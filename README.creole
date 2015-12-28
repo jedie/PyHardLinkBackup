@@ -1,0 +1,8 @@
+
+Hardlink Backups with Python
+
+Currently python 3.5 is needed.
+
+see hacked proof of concept script: https://github.com/jedie/PyHardlinkBackup/blob/master/proof_of_concept.py
+
+Currently only tested on windows 10
