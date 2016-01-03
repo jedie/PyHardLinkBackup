@@ -20,6 +20,18 @@ import hashlib
 from timeit import default_timer
 
 
+# Use the built-in version of scandir/walk if possible, otherwise
+# use the scandir module version
+try:
+    from os import scandir, walk # Python >=3.5
+except ImportError:
+    # use https://pypi.python.org/pypi/scandir
+    try:
+        from scandir import scandir, walk
+    except ImportError:
+        raise ImportError("For Python <2.5: Please install 'scandir' !")
+
+
 #~ DEFAULT_NEW_PATH_MODE=0o777
 DEFAULT_NEW_PATH_MODE=0o700
 
@@ -66,7 +78,7 @@ class PathHelper(object):
     def collect_old_backups(self):
         assert self.dst_path is not None
 
-        for entry in os.scandir(self.dst_path):
+        for entry in scandir(self.dst_path):
             if entry.is_dir():
                 self.old_backups.append(entry)
 
@@ -134,7 +146,7 @@ def walk2(top, followlinks=False):
     # minor reason when (say) a thousand readable directories are still
     # left to visit.  That logic is copied here.
     try:
-        scandir_it = os.scandir(top)
+        scandir_it = scandir(top)
     except OSError:
         return
 
@@ -325,7 +337,10 @@ class HardLinkBackup(object):
 
 
 if __name__ == '__main__':
-    backup_root = "d:\PyHardLinkBackups"
+    if sys.platform.startswith("win"):
+        backup_root = "d:\PyHardLinkBackups"
+    else:
+        backup_root = os.path.expanduser("~/PyHardLinkBackups")
 
     hardlinkbackup = HardLinkBackup(backup_root = backup_root)
 
