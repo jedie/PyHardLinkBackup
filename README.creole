@@ -1,8 +1,13 @@
 
 Hardlink Backups with Python
 
-Currently python 3.5 is needed.
+Currently python 3 is needed.
 
 see hacked proof of concept script: https://github.com/jedie/PyHardlinkBackup/blob/master/proof_of_concept.py
 
 Currently only tested on windows 10
+
+Try:
+
+
+pip install "django>=1.8,<1.9"

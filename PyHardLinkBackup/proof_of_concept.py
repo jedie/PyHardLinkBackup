@@ -32,6 +32,12 @@ except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "DjangoHardLinkBackup.settings")
+import django
+django.setup()
+from DjangoHardLinkBackup.models import BackupEntry, BackupRun
+
+
 #~ DEFAULT_NEW_PATH_MODE=0o777
 DEFAULT_NEW_PATH_MODE=0o700
 
@@ -65,15 +71,20 @@ class PathHelper(object):
         self.old_backups = [] # all existing old backups dirs
 
         self.src_path_raw = None # Source path to backup
+        self.backup_name = None # Name of this backup sources
         self.dst_path = None # destination in backup without timestamp
         self.src_path_dst = None # destination in backup with timestamp sub dir
+        self.backup_run = None #
 
         # path information for a file to backup:
+        self.filename = None # only the filename to backup
         self.abs_src_filepath = None # absolute source filepath
         self.rel_src_filepath = None # relative source filepath
         self.abs_dst_filepath = None # absolute destination in the backup tree
         self.abs_dst_filepath_hash = None # hash filepath in destination
         self.abs_dst_dir = None # absolute destination for the current file in the backup tree
+
+        self.backup_run = None # BackupRun() django orm instance
 
     def collect_old_backups(self):
         assert self.dst_path is not None
@@ -106,17 +117,22 @@ class PathHelper(object):
             src_path = os.path.splitdrive(src_path)[1]
             src_path = src_path.lstrip(os.sep)
 
+        self.backup_name = os.path.split(src_path)[1]
+
         self.dst_path = os.path.join(self.backup_root, src_path)
         self.collect_old_backups()
 
-        now = datetime.datetime.now()
-        date_string = now.strftime(BACKUP_SUB_FORMAT)
+        backup_datetime = datetime.datetime.now()
+        date_string = backup_datetime.strftime(BACKUP_SUB_FORMAT)
 
         self.src_path_dst = os.path.join(self.dst_path, date_string)
         print("src_path_dst: %r" % self.src_path_dst)
 
+        self.backup_run = BackupRun.objects.create(self.backup_name, backup_datetime)
+
     def set_src_filepath(self, src_filepath):
         self.abs_src_filepath = self.abs_norm_path(src_filepath)
+        self.filename = os.path.split(self.abs_src_filepath)[1]
 
         # FIXME:
         assert self.abs_src_filepath.startswith(self.src_path_raw)
@@ -267,7 +283,7 @@ class FileBackup(object):
         if not os.path.isdir(self.backup_path.abs_dst_dir):
             os.makedirs(self.backup_path.abs_dst_dir, mode=DEFAULT_NEW_PATH_MODE)
         else:
-            assert not os.path.isfile(self.backup_path.abs_dst_filepath)
+            assert not os.path.isfile(self.backup_path.abs_dst_filepath), self.backup_path.abs_dst_filepath
 
         try:
             with open(self.backup_path.abs_src_filepath, "rb") as in_file:
@@ -278,6 +294,13 @@ class FileBackup(object):
                     hash_file.write(hash_hexdigest)
         except KeyboardInterrupt:
             os.remove(dst_path)
+
+        BackupEntry.objects.create(
+            self.backup_path.backup_run,
+            directory=self.backup_path.dst_path,
+            filename=self.backup_path.filename,
+            sha512=hash_hexdigest,
+        )
 
         for old_backup, old_hash in self.backup_path.iter_old_backup():
             print("old:", old_backup, old_hash)
