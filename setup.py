@@ -204,7 +204,9 @@ setup(
     url='https://github.com/jedie/PyHardlinkBackup',
     packages=find_packages(),
     include_package_data=True, # include package data under version control
-    # test_suite = "runtests.run_tests",
+    entry_points={'console_scripts': [
+        'manage = PyHardLinkBackup.manage:cli',
+    ]},
     zip_safe=False,
     classifiers=[
        'Development Status :: 1 - Planning',

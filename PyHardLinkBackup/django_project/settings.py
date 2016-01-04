@@ -15,21 +15,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'vo9dci64(np-ivklc1fs$vc*u_$1i%#my(991sxk5)ahgwbao$'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
-
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,8 +22,21 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'DjangoHardLinkBackup',
+
+    'PyHardLinkBackup.backup_app',
 )
+ROOT_URLCONF = 'PyHardLinkBackup.django_project.urls'
+WSGI_APPLICATION = 'PyHardLinkBackup.django_project.wsgi.application'
+
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'no-secet'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -50,8 +48,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
-
-ROOT_URLCONF = 'DjangoHardLinkBackup.urls'
 
 TEMPLATES = [
     {
@@ -68,8 +64,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'DjangoHardLinkBackup.wsgi.application'
 
 
 # Database

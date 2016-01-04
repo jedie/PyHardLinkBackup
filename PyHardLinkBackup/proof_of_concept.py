@@ -32,10 +32,11 @@ except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "DjangoHardLinkBackup.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "PyHardLinkBackup.django_project.settings")
 import django
 django.setup()
-from DjangoHardLinkBackup.models import BackupEntry, BackupRun
+
+from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
 
 
 #~ DEFAULT_NEW_PATH_MODE=0o777
@@ -71,6 +72,7 @@ class PathHelper(object):
         self.old_backups = [] # all existing old backups dirs
 
         self.src_path_raw = None # Source path to backup
+        self.src_prefix = None # path to source root
         self.backup_name = None # Name of this backup sources
         self.dst_path = None # destination in backup without timestamp
         self.src_path_dst = None # destination in backup with timestamp sub dir
@@ -88,6 +90,10 @@ class PathHelper(object):
 
     def collect_old_backups(self):
         assert self.dst_path is not None
+
+        if not os.path.isdir(self.dst_path):
+            print("No old backups found: First Backup run ?")
+            return
 
         for entry in scandir(self.dst_path):
             if entry.is_dir():
@@ -115,11 +121,12 @@ class PathHelper(object):
 
         if sys.platform.startswith("win"):
             src_path = os.path.splitdrive(src_path)[1]
-            src_path = src_path.lstrip(os.sep)
 
-        self.backup_name = os.path.split(src_path)[1]
+        src_path = src_path.lstrip(os.sep)
 
-        self.dst_path = os.path.join(self.backup_root, src_path)
+        self.src_prefix, self.backup_name = os.path.split(src_path)
+
+        self.dst_path = os.path.join(self.backup_root, self.backup_name)
         self.collect_old_backups()
 
         backup_datetime = datetime.datetime.now()
@@ -337,7 +344,7 @@ class HardLinkBackup(object):
                     raise NotImplementedError("todo: %r" % entry)
 
             if time.time()>next_update:
-                print("%i dir items readed..." % len(file_list))
+                # print("%i dir items readed..." % len(file_list))
                 next_update = time.time() + 1
         return file_list, total_size
 
@@ -346,7 +353,7 @@ class HardLinkBackup(object):
         print("Backup %r to %r..." % (self.path.src_path_raw, self.path.src_path_dst))
 
         file_list, total_size = self.scandir(self.path.src_path_raw)
-        print("%i files (%i Bytes) to backup." % (len(file_list), total_size))
+        # print("%i files (%i Bytes) to backup." % (len(file_list), total_size))
 
         backuped_size=0
         for no, file_entry in enumerate(file_list):
@@ -367,4 +374,6 @@ if __name__ == '__main__':
 
     hardlinkbackup = HardLinkBackup(backup_root = backup_root)
 
-    hardlinkbackup.backup(src_path=os.getcwd())
+    src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+
+    hardlinkbackup.backup(src_path=src_path)

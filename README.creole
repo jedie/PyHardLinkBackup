@@ -8,13 +8,14 @@ Current state is only a proof of concept!
 Try:
 
 {{{
-
 ~$ virtualenv -p python3 PyHardLinkBackupEnv
 $ cd PyHardLinkBackupEnv/
 ~/PyHardLinkBackupEnv $ source bin/activate
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -U pip
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -e git+https://github.com/jedie/PyHardlinkBackup.git#egg=PyHardlinkBackup
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ manage migrate
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ manage createsuperuser
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ ./bin/python3 ./src/pyhardlinkbackup/PyHardLinkBackup/proof_of_concept.py
 }}}
 **Note:** If you not use python 3.5+, then '[[https://pypi.python.org/pypi/scandir|scandir]]' will be installed and so you need the **python3-dev** package...
 
-Start the [[https://github.com/jedie/PyHardlinkBackup/blob/master/PyHardLinkBackup/proof_of_concept.py|PyHardLinkBackup/proof_of_concept.py]] file.
