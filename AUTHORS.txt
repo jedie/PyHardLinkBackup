@@ -1,0 +1,10 @@
+
+PRIMARY AUTHORS are and/or have been (alphabetic order):
+
+* Diemer, Jens
+  Main Developer since the first code line.
+  Homepage: <http://www.jensdiemer.de/>
+  
+
+CONTRIBUTORS are and/or have been (alphabetic order):
+    -
