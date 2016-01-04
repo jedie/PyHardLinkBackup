@@ -9,5 +9,14 @@ Currently only tested on windows 10
 
 Try:
 
+{{{
 
-pip install "django>=1.8,<1.9"
+~$ virtualenv -p python3 PyHardLinkBackupEnv
+$ cd PyHardLinkBackupEnv/
+~/PyHardLinkBackupEnv $ source bin/activate
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -U pip
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install "django>=1.8,<1.9"
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -e git+https://github.com/jedie/PyHardlinkBackup.git#egg=PyHardlinkBackup
+}}}
+**pip install** will failed with: **FileNotFoundError: [Errno 2] No such file or directory: '.../PyHardLinkBackupEnv/src/pyhardlinkbackup/setup.py'**
+That's ok, currently there is no **setup.py** ;)
