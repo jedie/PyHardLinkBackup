@@ -199,13 +199,13 @@ if sys.version_info[0:2] < (3, 5):
     setup_kwargs["install_requires"].append("scandir")
 
 setup(
-    name='PyHardlinkBackup',
+    name='PyHardLinkBackup',
     version=__version__,
-    description='Hardlink/Deduplication Backups with Python',
+    description='HardLink/Deduplication Backups with Python',
     long_description=long_description,
     author=get_authors(),
     maintainer="Jens Diemer",
-    url='https://github.com/jedie/PyHardlinkBackup',
+    url='https://github.com/jedie/PyHardLinkBackup',
     packages=find_packages(),
     include_package_data=True, # include package data under version control
     entry_points={'console_scripts': [

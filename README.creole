@@ -1,5 +1,6 @@
+== PyHardLinkBackup
 
-Hardlink Backups with Python
+HardLink Backups with Python
 
 Currently python 3 is needed.
 
@@ -11,7 +12,7 @@ Currently python 3 is needed.
 $ cd PyHardLinkBackupEnv/
 ~/PyHardLinkBackupEnv $ source bin/activate
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -U pip
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -e git+https://github.com/jedie/PyHardlinkBackup.git#egg=PyHardlinkBackup
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=PyHardLinkBackup
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb migrate
 }}}
 **Note:** If you not use python 3.5+, then '[[https://pypi.python.org/pypi/scandir|scandir]]' will be installed and so you need the **python3-dev** package...
@@ -56,7 +57,7 @@ And then just request 'localhost'
 ==== What is 'phlb' ?!?
 
 the **phlb** executable is the similar to django **manage.py**, but it always
-used the PyHardlinkBackup settings.
+used the PyHardLinkBackup settings.
 
 == TODO
 
