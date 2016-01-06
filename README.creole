@@ -2,7 +2,10 @@
 
 HardLink Backups with Python
 
-Currently python 3 is needed.
+* python 3 only
+* Alpha state
+
+Try, fork and contribute! ;)
 
 == Try out:
 
