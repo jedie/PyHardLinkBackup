@@ -32,7 +32,7 @@ except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "PyHardLinkBackup.django_project.settings")
+os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
 import django
 django.setup()
 
