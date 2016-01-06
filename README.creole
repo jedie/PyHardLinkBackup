@@ -65,4 +65,7 @@ used the PyHardLinkBackup settings.
 * handle symlinks
 
 
+== Links
+
 * https://pypi.python.org/pypi/PyHardlinkBackup/
+* https://www.python-forum.de/viewtopic.php?f=6&t=37723 (de)
