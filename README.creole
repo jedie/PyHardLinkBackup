@@ -66,6 +66,12 @@ used the PyHardLinkBackup settings.
 
 * copy file meta data like owner, mode etc.
 * handle symlinks
+* use: https://github.com/jedie/bootstrap_env (So it's better to install it under windows)
+* Add some helper files to start a backup (.sh / .cmd scripts)
+* write docs
+* write more tests
+* activate CI
+* Far future: Add a GUI
 
 
 == Links
