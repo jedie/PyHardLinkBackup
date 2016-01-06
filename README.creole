@@ -64,3 +64,5 @@ used the PyHardLinkBackup settings.
 * copy file meta data like owner, mode etc.
 * handle symlinks
 
+
+* https://pypi.python.org/pypi/PyHardlinkBackup/
