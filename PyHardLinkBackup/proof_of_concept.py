@@ -50,109 +50,128 @@ hash_constructor = hashlib.sha512
 HAST_FILE_EXT = ".sha512"
 
 
-class Hasher(object):
-    def __init__(self, ):
-        super(Hasher, self).__init__()
-        self["md5"] = hashlib.md5()
-        self["sha1"] = hashlib.sha1()
-        self["sha256"] = hashlib.sha256()
-
-    def update(self, data):
-        self["md5"].update(data)
-        self["sha1"].update(data)
-        self["sha256"].update(data)
-
-
+SKIP_DIRS = (
+    "__pycache__",
+)
+SKIP_FILE_EXT = (
+    ".pyc",
+    ".tmp", ".cache"
+)
 
 
 class PathHelper(object):
+    """
+    e.g.: backup run called with: /abs/source/path/source_root
+
+    |<---------self.abs_src_filepath------------->|
+    |                                             |
+    |<--self.abs_src_root-->|<-self.sub_filepath->|
+    |                          |                  |
+    /abs/source/path/source_root/sub/path/filename
+    |              | |         | |      | |      |
+    +-------------'  +--------'  +-----'  +-----'
+    |                |           |        |
+    |                |           |        `-> self.filename
+    |                |           `-> self.sub_path
+    |                `-> self.backup_name (root dir to backup)
+    `-> self.src_prefix_path
+
+    |<---------self.abs_dst_filepath------------------>|
+    |                                                  |
+    |<----self.abs_dst_root----->|<-self.sub_filepath->|
+    |                            |                     |
+    |<---------self.abs_dst_path-+------->|        .---'
+    |                            |        |        |
+    /abs/destination/name/datetime/sub/path/filename
+    |-------------'  |-'  |-----'  |-----'  |-----'
+    |                |    |        |        `-> self.filename
+    |                |    |        `-> self.sub_path
+    |                |    `-> self.time_string (Start time of the backup run)
+    |                `<- self.backup_name
+    `- self.backup_root (root dir storage for all backups runs)
+    """
     def __init__(self, backup_root):
         self.backup_root = self.abs_norm_path(backup_root)
         print("backup_root: %r" % self.backup_root)
 
-        self.old_backups = [] # all existing old backups dirs
-
-        self.src_path_raw = None # Source path to backup
-        self.src_prefix = None # path to source root
-        self.backup_name = None # Name of this backup sources
-        self.dst_path = None # destination in backup without timestamp
-        self.src_path_dst = None # destination in backup with timestamp sub dir
-        self.backup_run = None #
-
-        # path information for a file to backup:
-        self.filename = None # only the filename to backup
-        self.abs_src_filepath = None # absolute source filepath
-        self.rel_src_filepath = None # relative source filepath
-        self.abs_dst_filepath = None # absolute destination in the backup tree
-        self.abs_dst_filepath_hash = None # hash filepath in destination
-        self.abs_dst_dir = None # absolute destination for the current file in the backup tree
-
+        # set in self.set_src_path():
+        self.abs_src_filepath = None
+        self.abs_src_root = None
+        self.src_prefix_path = None
+        self.backup_name = None
+        self.time_string = None
+        self.abs_dst_root = None
         self.backup_run = None # BackupRun() django orm instance
 
-    def collect_old_backups(self):
-        assert self.dst_path is not None
-
-        if not os.path.isdir(self.dst_path):
-            print("No old backups found: First Backup run ?")
-            return
-
-        for entry in scandir(self.dst_path):
-            if entry.is_dir():
-                self.old_backups.append(entry)
-
-        print("Found %i existing old backups:" % len(self.old_backups))
-        self.old_backups.sort(key=lambda entry: entry.stat().st_mtime, reverse=True)
-        for entry in self.old_backups:
-            print("\t* %s" % entry.name)
-
-    def iter_old_backup(self):
-        assert self.rel_src_filepath is not None
-
-        for entry in self.old_backups:
-            old_path = os.path.join(entry.path, self.rel_src_filepath)
-            #~ print("\t* %s" % old_path)
-            if os.path.isfile(old_path):
-                yield old_path, old_path + HAST_FILE_EXT
+        # set in set_src_filepath():
+        self.abs_src_filepath = None
+        self.sub_filepath = None
+        self.sub_path = None
+        self.filename = None
+        self.abs_dst_path = None
+        self.abs_dst_filepath = None
+        self.abs_dst_hash_filepath = None
 
     def set_src_path(self, raw_path):
-        src_path = self.src_path_raw = os.path.normpath(os.path.abspath(raw_path))
-        print("src_path_raw: %r" % self.src_path_raw)
-        if not os.path.isdir(src_path):
-            raise OSError("Source path %r doesn't exists!" % src_path)
+        """
+        Set the source backup path.
+        Called one time to start a backup run.
+        """
+        print("set_src_path() with: %r" % raw_path)
 
-        if sys.platform.startswith("win"):
-            src_path = os.path.splitdrive(src_path)[1]
+        self.abs_src_root = self.abs_norm_path(raw_path)
+        print(" * abs_src_root: %r" % self.abs_src_root)
 
-        src_path = src_path.lstrip(os.sep)
+        if not os.path.isdir(self.abs_src_root):
+            raise OSError("Source path %r doesn't exists!" % self.abs_src_root)
 
-        self.src_prefix, self.backup_name = os.path.split(src_path)
-
-        self.dst_path = os.path.join(self.backup_root, self.backup_name)
-        self.collect_old_backups()
+        self.src_prefix_path, self.backup_name = os.path.split(raw_path)
+        print(" * src_prefix_path: %r" % self.src_prefix_path)
+        print(" * backup_name: %r" % self.backup_name)
 
         backup_datetime = datetime.datetime.now()
-        date_string = backup_datetime.strftime(BACKUP_SUB_FORMAT)
+        self.time_string = backup_datetime.strftime(BACKUP_SUB_FORMAT)
+        print(" * time_string: %r" % self.time_string)
 
-        self.src_path_dst = os.path.join(self.dst_path, date_string)
-        print("src_path_dst: %r" % self.src_path_dst)
+        self.abs_dst_root = os.path.join(self.backup_root, self.backup_name, self.time_string)
+        print(" * abs_dst_root: %r" % self.abs_dst_root)
 
-        self.backup_run = BackupRun.objects.create(self.backup_name, backup_datetime)
+        self.backup_run = BackupRun.objects.create(
+            self.backup_name,
+            backup_datetime
+        )
+        print(" * backup_run: %s" % self.backup_run)
 
     def set_src_filepath(self, src_filepath):
+        """
+        Set one filepath to backup this file.
+        Called for every file in the source directory.
+        """
+        print("set_src_filepath() with: %r" % src_filepath)
         self.abs_src_filepath = self.abs_norm_path(src_filepath)
-        self.filename = os.path.split(self.abs_src_filepath)[1]
+        print(" * abs_src_filepath: %s" % self.abs_src_filepath)
 
         # FIXME:
-        assert self.abs_src_filepath.startswith(self.src_path_raw)
-        self.rel_src_filepath = self.abs_src_filepath[len(self.src_path_raw):].lstrip(os.sep)
+        assert self.abs_src_filepath.startswith(self.abs_src_root)
+        self.sub_filepath = self.abs_src_filepath[len(self.abs_src_root):]
+        self.sub_filepath = self.sub_filepath.lstrip(os.sep)
+        print(" * sub_filepath: %s" % self.sub_filepath)
 
-        self.abs_dst_filepath = os.path.join(self.src_path_dst, self.rel_src_filepath)
-        self.abs_dst_filepath_hash = self.abs_dst_filepath + HAST_FILE_EXT
-        self.abs_dst_dir = os.path.split(self.abs_dst_filepath)[0]
+        self.sub_path, self.filename = os.path.split(self.sub_filepath)
+        print(" * sub_path: %s" % self.sub_path)
+        print(" * filename: %s" % self.filename)
+
+        self.abs_dst_path = os.path.join(self.abs_dst_root, self.sub_path)
+        print(" * abs_dst_path: %s" % self.abs_dst_path)
+
+        self.abs_dst_filepath = os.path.join(self.abs_dst_root, self.sub_filepath)
+        print(" * abs_dst_filepath: %s" % self.abs_dst_filepath)
+
+        self.abs_dst_hash_filepath = self.abs_dst_filepath + HAST_FILE_EXT
+        print(" * abs_dst_hash_filepath: %s" % self.abs_dst_hash_filepath)
 
     def abs_norm_path(self, path):
         return os.path.normpath(os.path.abspath(path))
-
 
 
 def walk2(top, followlinks=False):
@@ -191,9 +210,16 @@ def walk2(top, followlinks=False):
             is_dir = False
 
         if is_dir:
-            dirs.append(entry)
+            if entry.name not in SKIP_DIRS:
+                dirs.append(entry)
+            else:
+                print("Skip directory: %r" % entry.name)
         else:
-            nondirs.append(entry)
+            ext = os.path.splitext(entry.name)[1]
+            if ext not in SKIP_FILE_EXT:
+                nondirs.append(entry)
+            else:
+                print("Skip file: %r" % entry.name)
 
     yield top, dirs, nondirs
 
@@ -252,11 +278,11 @@ class FileBackup(object):
                     " - %(perf).1fMB/sec"
                     "   "
                 ) % {
-                    "percent"  : percent,
-                    "elapsed"  : human_time(elapsed),
+                    "percent": percent,
+                    "elapsed": human_time(elapsed),
                     "estimated": human_time(estimated),
-                    "remain"   : human_time(remain),
-                    "perf"     : performance,
+                    "remain": human_time(remain),
+                    "perf": performance,
                 }
                 sys.stdout.write("\r")
                 sys.stdout.write("\r{:^79}".format(infoline))
@@ -272,7 +298,7 @@ class FileBackup(object):
             print(end_time, start_time, (end_time - start_time))
 
         sys.stdout.write("\r")
-        sys.stdout.write(" "*79)
+        sys.stdout.write(" " * 79)
         sys.stdout.write("\r")
 
         print("Performance: %.1fMB/sec" % performance)
@@ -285,58 +311,80 @@ class FileBackup(object):
         self.backup_path.set_src_filepath(src_path)
         print("abs_src_filepath:", self.backup_path.abs_src_filepath)
         print("abs_dst_filepath:", self.backup_path.abs_dst_filepath)
-        print("abs_dst_filepath_hash:", self.backup_path.abs_dst_filepath_hash)
-        print("abs_dst_dir:", self.backup_path.abs_dst_dir)
+        print("abs_dst_hash_filepath:", self.backup_path.abs_dst_hash_filepath)
+        print("abs_dst_dir:", self.backup_path.abs_dst_path)
 
-        if not os.path.isdir(self.backup_path.abs_dst_dir):
-            os.makedirs(self.backup_path.abs_dst_dir, mode=DEFAULT_NEW_PATH_MODE)
+        if not os.path.isdir(self.backup_path.abs_dst_path):
+            os.makedirs(self.backup_path.abs_dst_path, mode=DEFAULT_NEW_PATH_MODE)
         else:
             assert not os.path.isfile(self.backup_path.abs_dst_filepath), self.backup_path.abs_dst_filepath
 
         try:
             with open(self.backup_path.abs_src_filepath, "rb") as in_file:
-                with open(self.backup_path.abs_dst_filepath_hash, "w") as hash_file:
+                with open(self.backup_path.abs_dst_hash_filepath, "w") as hash_file:
                     with open(self.backup_path.abs_dst_filepath, "wb") as out_file:
                         hash = self._deduplication_backup(self.file_entry, in_file, out_file)
                     hash_hexdigest = hash.hexdigest()
                     hash_file.write(hash_hexdigest)
         except KeyboardInterrupt:
             os.remove(self.backup_path.abs_dst_filepath)
-            os.remove(self.backup_path.abs_dst_filepath_hash)
+            os.remove(self.backup_path.abs_dst_hash_filepath)
             sys.exit(-1)
 
+        old_backups = BackupEntry.objects.filter(
+            content_info__hash_hexdigest=hash_hexdigest
+        )
+        no_old_backup = True
+        for old_backup in old_backups:
+            no_old_backup = False
+            print("+++ old:", old_backup)
+            print("+++ rel:", old_backup.get_backup_path())
+
+            abs_old_backup_path = os.path.join(
+                self.backup_path.backup_root,
+                old_backup.get_backup_path()
+            )
+            print("+++ abs:", abs_old_backup_path)
+            if not os.path.isfile(abs_old_backup_path):
+                print("*** ERROR old file doesn't exist! %r" % abs_old_backup_path)
+                continue
+
+            # TODO:
+            # compare hash
+            # compare current content
+            os.remove(self.backup_path.abs_dst_filepath)
+            os.link(abs_old_backup_path, self.backup_path.abs_dst_filepath)
+            print("Remove and link, ok.")
+            break
+
+        if no_old_backup:
+            print("+++ no old entry in database!")
+
         BackupEntry.objects.create(
-                self.backup_path.backup_run,
-                directory=self.backup_path.dst_path,
-                filename=self.backup_path.filename,
-                sha512=hash_hexdigest,
-                file_size=self.file_entry.stat().st_size,
+            self.backup_path.backup_run,
+            directory=self.backup_path.sub_path,
+            filename=self.backup_path.filename,
+            hash_hexdigest=hash_hexdigest,
+            file_stat=self.file_entry.stat(),
         )
 
-        for old_backup, old_hash in self.backup_path.iter_old_backup():
-            print("old:", old_backup, old_hash)
-            with open(old_hash, "r") as old_hash_file:
-                old_hash_value = old_hash_file.read()
-            if old_hash_value == hash_hexdigest:
-                print("***Found old version in Backup...", end="")
-                os.remove(self.backup_path.abs_dst_filepath)
-                os.link(old_backup, self.backup_path.abs_dst_filepath)
-                print("Remove and link, ok.")
-                break
-            else:
-                print("%r != %r" % (old_hash_value, hash_hexdigest))
 
 
 class HardLinkBackup(object):
     def __init__(self, backup_root):
         self.path = PathHelper(backup_root)
 
-        os.makedirs(self.path.backup_root, mode=DEFAULT_NEW_PATH_MODE, exist_ok=True)
+        os.makedirs(
+            self.path.backup_root, mode=DEFAULT_NEW_PATH_MODE,
+            exist_ok=True
+        )
         if not os.path.isdir(self.path.backup_root):
-            raise OSError("Backup path %r doesn't exists!" % self.path.backup_root)
+            raise OSError(
+                "Backup path %r doesn't exists!" % self.path.backup_root
+            )
 
     def scandir(self, path):
-        next_update = time.time()+1
+        next_update = time.time() + 1
         file_list = []
         total_size = 0
         for top, dirs, nondirs in walk2(path):
@@ -347,27 +395,23 @@ class HardLinkBackup(object):
                 else:
                     raise NotImplementedError("todo: %r" % entry)
 
-            if time.time()>next_update:
+            if time.time() > next_update:
                 # print("%i dir items readed..." % len(file_list))
                 next_update = time.time() + 1
         return file_list, total_size
 
     def backup(self, src_path):
         self.path.set_src_path(src_path)
-        print("Backup %r to %r..." % (self.path.src_path_raw, self.path.src_path_dst))
 
-        file_list, total_size = self.scandir(self.path.src_path_raw)
+        file_list, total_size = self.scandir(self.path.abs_src_root)
         # print("%i files (%i Bytes) to backup." % (len(file_list), total_size))
 
-        backuped_size=0
+        backuped_size = 0
         for no, file_entry in enumerate(file_list):
             print(no, file_entry.path)
 
             file_backup = FileBackup(file_entry, self.path)
             file_backup.deduplication_backup()
-
-
-
 
 
 if __name__ == '__main__':
@@ -376,8 +420,9 @@ if __name__ == '__main__':
     else:
         backup_root = os.path.expanduser("~/PyHardLinkBackups")
 
-    hardlinkbackup = HardLinkBackup(backup_root = backup_root)
+    hardlinkbackup = HardLinkBackup(backup_root=backup_root)
 
-    src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    # src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "django_project")
 
     hardlinkbackup.backup(src_path=src_path)

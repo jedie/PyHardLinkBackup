@@ -15,6 +15,7 @@ $ cd PyHardLinkBackupEnv/
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -e git+https://github.com/jedie/PyHardlinkBackup.git#egg=PyHardlinkBackup
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ manage migrate
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ manage createsuperuser
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ manage test
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ ./bin/python3 ./src/pyhardlinkbackup/PyHardLinkBackup/proof_of_concept.py
 }}}
 **Note:** If you not use python 3.5+, then '[[https://pypi.python.org/pypi/scandir|scandir]]' will be installed and so you need the **python3-dev** package...
