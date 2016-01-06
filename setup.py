@@ -189,6 +189,7 @@ def get_authors():
 setup_kwargs = {
     "install_requires": [
         "Django>=1.8,<1.9",
+        "django-tools", # https://github.com/jedie/django-tools/
         "tqdm", # https://github.com/tqdm/tqdm
     ],
 }
@@ -208,13 +209,13 @@ setup(
     packages=find_packages(),
     include_package_data=True, # include package data under version control
     entry_points={'console_scripts': [
-        'manage = PyHardLinkBackup.manage:cli',
+        'phlb = PyHardLinkBackup.phlb_cli:cli',
     ]},
     zip_safe=False,
     classifiers=[
-       'Development Status :: 1 - Planning',
+       # 'Development Status :: 1 - Planning',
        # 'Development Status :: 2 - Pre-Alpha',
-       # 'Development Status :: 3 - Alpha',
+       'Development Status :: 3 - Alpha',
        # "Development Status :: 4 - Beta",
        #  "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",

@@ -1,37 +1,64 @@
-"""
-    The complete backup path:
-
-    destination/name/backup_datetime/sub/path/filename
-    |           |           |               |        |
-    |           |           |               |        '-> filename and .hash file
-    |           |           |               '-> The path from the source direcotry without prefix and filename
-    |           |           '-> Start time of the backup run
-    |           '-> Name of this source path
-    '-> Prefix path for all backups
-
-"""
 
 import os
 import logging
 
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
+
+# https://github.com/jedie/django-tools/
+from django_tools.fields.directory import DirectoryModelField
+from django_tools.fields.sign_separated import SignSeparatedModelField
+from django_tools.models import UpdateTimeBaseModel
 
 log = logging.getLogger(__name__)
 
-BACKUP_SUB_FORMAT = "%Y-%m-%d-%H%M%S"
+_DEFAULT_SUB_FORMAT="%Y-%m-%d-%H%M%S"
 
 
-class BackupName(models.Model):
-    """
-    a name of a backup, e.g.: the last path name
-    """
+class Config(UpdateTimeBaseModel):
     name = models.CharField(max_length=1024, editable=False, unique=True,
-        help_text="The name of the backup directory"
+        help_text=_("The name of the backup directory")
     )
-    note = models.TextField(help_text="A comment about this backup directory.")
+    note = models.TextField(help_text=_("A comment about this backup directory."))
+
+    active=models.BooleanField(
+        default=False,
+        help_text=_("If not active, then you will always land to change this config on every backup run.")
+    )
+
+    backup_path=DirectoryModelField(base_path="",
+        default=os.path.expanduser("~/PyHardLinkBackups"),
+        help_text=_("Root directory for this backup.")
+    )
+
+    hash_name=models.CharField(max_length=128,
+        default="sha512",
+        help_text=_("Name of the content hasher used in hashlib.new() and as file ending for the hast files.")
+    )
+
+    sub_dir_format=models.CharField(max_length=128,
+        default=_DEFAULT_SUB_FORMAT,
+        help_text=_("datetime.strftime() formatter to create the sub directory.")
+    )
+    default_new_path_mode=models.CharField(max_length=5,
+        default="0o700",
+        help_text=_("default directory mode for os.makedirs().")
+    )
+    chunk_size=models.PositiveIntegerField(
+        default=64*1024,
+        help_text=_("Size in bytes to read/write files.")
+    )
+    skip_dirs=SignSeparatedModelField(separator=",", strip_items=True, skip_empty=True,
+        default="__pycache__, temp",
+        help_text=_("Direcory names that will be recusive exclude vom backups (Comma seperated list!)")
+    )
+    skip_files=SignSeparatedModelField(separator=",", strip_items=True, skip_empty=True,
+        default="*.pyc, *.tmp, *.cache",
+        help_text=_("Filename patterns to exclude files from backups use with fnmatch() (Comma seperated list!)")
+    )
 
     def path_part(self):
-        return self.name
+        return os.path.join(self.backup_path, self.name)
     __str__ = path_part
 
 
@@ -41,20 +68,20 @@ class BackupDatetime(models.Model):
     Used as a sub directory prefix.
     """
     backup_datetime = models.DateTimeField(auto_now=False, auto_now_add=False, editable=False, unique=True,
-        help_text="backup_datetime of a started backup. Used in all path as prefix."
+        help_text=_("backup_datetime of a started backup. Used in all path as prefix.")
     )
     def path_part(self):
-        return self.backup_datetime.strftime(BACKUP_SUB_FORMAT)
+        return self.backup_datetime.strftime(_DEFAULT_SUB_FORMAT)
     __str__ = path_part
 
 
 class BackupRunManager(models.Manager):
     def create(self, name, backup_datetime):
-        name, created = BackupName.objects.get_or_create(name=name)
+        config, created = Config.objects.get_or_create(name=name)
         backup_datetime = BackupDatetime.objects.create(backup_datetime=backup_datetime)
 
         return super(BackupRunManager, self).create(
-            name=name, backup_datetime=backup_datetime,
+            config=config, backup_datetime=backup_datetime,
         )
 
 
@@ -62,14 +89,14 @@ class BackupRun(models.Model):
     """
     One Backup run prefix: start time + backup name
     """
-    name = models.ForeignKey(BackupName)
+    config = models.ForeignKey(Config)
     backup_datetime = models.ForeignKey(BackupDatetime)
 
     objects = BackupRunManager()
 
     def path_part(self):
         return os.path.join(
-            self.name.path_part(),
+            self.config.path_part(),
             self.backup_datetime.path_part()
         )
     __str__ = path_part
@@ -84,7 +111,7 @@ class BackupDir(models.Model):
     Unique sub path of backup files.
     """
     directory = models.CharField(max_length=1024, editable=False, unique=True,
-        help_text="The path in the backup without datetime and filename"
+        help_text=_("The path in the backup without datetime and filename")
     )
     def path_part(self):
         return self.directory
@@ -96,7 +123,7 @@ class BackupFilename(models.Model):
     Unique Filename.
     """
     filename = models.CharField(max_length=1024, editable=False, unique=True,
-        help_text="Filename of one file in backup"
+        help_text=_("Filename of one file in backup")
     )
     def path_part(self):
         return self.filename
@@ -106,14 +133,14 @@ class BackupFilename(models.Model):
 class ContentInfo(models.Model):
     hash_hexdigest = models.CharField(
         max_length=128, editable=False, unique=True,
-        help_text="SHA-512 (hexdigest) of the file content"
+        help_text=_("Hash (hexdigest) of the file content")
     )
     file_size = models.PositiveIntegerField(editable=False,
-        help_text="The file size in Bytes"
+        help_text=_("The file size in Bytes")
     )
 
     def __str__(self):
-        return "SHA512: %s...%s File Size: %i Bytes" % (
+        return "Hash: %s...%s File Size: %i Bytes" % (
             self.hash_hexdigest[:4], self.hash_hexdigest[-4:], self.file_size
         )
 
@@ -140,7 +167,7 @@ class BackupEntry(models.Model):
     filename = models.ForeignKey(BackupFilename)
     content_info = models.ForeignKey(ContentInfo)
     file_mtime_ns = models.PositiveIntegerField(editable=False,
-        help_text="Time of most recent content modification expressed in nanoseconds as an integer."
+        help_text=_("Time of most recent content modification expressed in nanoseconds as an integer.")
     )
     objects = BackupEntryManager()
 
