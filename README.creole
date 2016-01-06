@@ -61,5 +61,6 @@ used the PyHardLinkBackup settings.
 
 == TODO
 
+* copy file meta data like owner, mode etc.
 * handle symlinks
 

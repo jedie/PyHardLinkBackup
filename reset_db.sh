@@ -7,8 +7,9 @@ fi
 
 set -x
 
+rm ~/PyHardLinkBackups.sqlite3
+
 cd PyHardLinkBackup
-rm db.sqlite3
 rm backup_app/migrations/0*.py
 
 set -e
