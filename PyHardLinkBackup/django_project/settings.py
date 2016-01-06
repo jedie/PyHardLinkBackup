@@ -15,6 +15,11 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Username/password for PyHardLinkBackup.backup_app.middleware.AlwaysLoggedInAsSuperUser
+DEFAULT_USERNAME="AutoLoginUser"
+DEFAULT_USERPASS="no password needed!"
+
+
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,6 +50,12 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+
+    # WARNING:
+    # This will 'disable' the authentication, becuase
+    # the default user will always be logged in.
+    "PyHardLinkBackup.backup_app.middleware.AlwaysLoggedInAsSuperUser",
+
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
