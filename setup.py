@@ -187,7 +187,10 @@ def get_authors():
     return authors
 
 setup_kwargs = {
-    "install_requires": ["Django>=1.8,<1.9"],
+    "install_requires": [
+        "Django>=1.8,<1.9",
+        "tqdm", # https://github.com/tqdm/tqdm
+    ],
 }
 
 if sys.version_info[0:2] < (3, 5):

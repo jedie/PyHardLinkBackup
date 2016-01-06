@@ -12,8 +12,11 @@
 """
 
 import os
+import logging
 
 from django.db import models
+
+log = logging.getLogger(__name__)
 
 BACKUP_SUB_FORMAT = "%Y-%m-%d-%H%M%S"
 
@@ -117,7 +120,7 @@ class ContentInfo(models.Model):
 
 class BackupEntryManager(models.Manager):
     def create(self, backup_run, directory, filename, hash_hexdigest, file_stat):
-        print("Save:", backup_run, directory, filename, hash_hexdigest, file_stat)
+        log.debug("Save:", backup_run, directory, filename, hash_hexdigest, file_stat)
         directory, created = BackupDir.objects.get_or_create(directory=directory)
         filename, created = BackupFilename.objects.get_or_create(filename=filename)
         content_info, created = ContentInfo.objects.get_or_create(

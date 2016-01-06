@@ -10,6 +10,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import logging
 import os
 import sys
 import time
@@ -19,6 +20,11 @@ import hashlib
 # time.clock() on windows and time.time() on linux
 from timeit import default_timer
 
+try:
+    # https://github.com/tqdm/tqdm
+    from tqdm import tqdm
+except ImportError as err:
+    raise ImportError("Please install 'tqdm': %s" % err)
 
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
@@ -31,7 +37,9 @@ except ImportError:
     except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
-from PyHardLinkBackup.human import human_time
+from PyHardLinkBackup.human import human_time, human_filesize
+
+log = logging.getLogger(__name__)
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
 import django
@@ -92,7 +100,7 @@ class PathHelper(object):
     """
     def __init__(self, backup_root):
         self.backup_root = self.abs_norm_path(backup_root)
-        print("backup_root: %r" % self.backup_root)
+        log.debug("backup_root: %r", self.backup_root)
 
         # set in self.set_src_path():
         self.abs_src_filepath = None
@@ -117,58 +125,58 @@ class PathHelper(object):
         Set the source backup path.
         Called one time to start a backup run.
         """
-        print("set_src_path() with: %r" % raw_path)
+        log.debug("set_src_path() with: %r", raw_path)
 
         self.abs_src_root = self.abs_norm_path(raw_path)
-        print(" * abs_src_root: %r" % self.abs_src_root)
+        log.debug(" * abs_src_root: %r", self.abs_src_root)
 
         if not os.path.isdir(self.abs_src_root):
             raise OSError("Source path %r doesn't exists!" % self.abs_src_root)
 
         self.src_prefix_path, self.backup_name = os.path.split(raw_path)
-        print(" * src_prefix_path: %r" % self.src_prefix_path)
-        print(" * backup_name: %r" % self.backup_name)
+        log.debug(" * src_prefix_path: %r", self.src_prefix_path)
+        log.debug(" * backup_name: %r", self.backup_name)
 
         backup_datetime = datetime.datetime.now()
         self.time_string = backup_datetime.strftime(BACKUP_SUB_FORMAT)
-        print(" * time_string: %r" % self.time_string)
+        log.debug(" * time_string: %r", self.time_string)
 
         self.abs_dst_root = os.path.join(self.backup_root, self.backup_name, self.time_string)
-        print(" * abs_dst_root: %r" % self.abs_dst_root)
+        log.debug(" * abs_dst_root: %r", self.abs_dst_root)
 
         self.backup_run = BackupRun.objects.create(
             self.backup_name,
             backup_datetime
         )
-        print(" * backup_run: %s" % self.backup_run)
+        log.debug(" * backup_run: %s" % self.backup_run)
 
     def set_src_filepath(self, src_filepath):
         """
         Set one filepath to backup this file.
         Called for every file in the source directory.
         """
-        print("set_src_filepath() with: %r" % src_filepath)
+        log.debug("set_src_filepath() with: %r", src_filepath)
         self.abs_src_filepath = self.abs_norm_path(src_filepath)
-        print(" * abs_src_filepath: %s" % self.abs_src_filepath)
+        log.debug(" * abs_src_filepath: %s" % self.abs_src_filepath)
 
         # FIXME:
         assert self.abs_src_filepath.startswith(self.abs_src_root)
         self.sub_filepath = self.abs_src_filepath[len(self.abs_src_root):]
         self.sub_filepath = self.sub_filepath.lstrip(os.sep)
-        print(" * sub_filepath: %s" % self.sub_filepath)
+        log.debug(" * sub_filepath: %s" % self.sub_filepath)
 
         self.sub_path, self.filename = os.path.split(self.sub_filepath)
-        print(" * sub_path: %s" % self.sub_path)
-        print(" * filename: %s" % self.filename)
+        log.debug(" * sub_path: %s" % self.sub_path)
+        log.debug(" * filename: %s" % self.filename)
 
         self.abs_dst_path = os.path.join(self.abs_dst_root, self.sub_path)
-        print(" * abs_dst_path: %s" % self.abs_dst_path)
+        log.debug(" * abs_dst_path: %s" % self.abs_dst_path)
 
         self.abs_dst_filepath = os.path.join(self.abs_dst_root, self.sub_filepath)
-        print(" * abs_dst_filepath: %s" % self.abs_dst_filepath)
+        log.debug(" * abs_dst_filepath: %s" % self.abs_dst_filepath)
 
         self.abs_dst_hash_filepath = self.abs_dst_filepath + HAST_FILE_EXT
-        print(" * abs_dst_hash_filepath: %s" % self.abs_dst_hash_filepath)
+        log.debug(" * abs_dst_hash_filepath: %s" % self.abs_dst_hash_filepath)
 
     def abs_norm_path(self, path):
         return os.path.normpath(os.path.abspath(path))
@@ -213,13 +221,13 @@ def walk2(top, followlinks=False):
             if entry.name not in SKIP_DIRS:
                 dirs.append(entry)
             else:
-                print("Skip directory: %r" % entry.name)
+                log.debug("Skip directory: %r", entry.name)
         else:
             ext = os.path.splitext(entry.name)[1]
             if ext not in SKIP_FILE_EXT:
                 nondirs.append(entry)
             else:
-                print("Skip file: %r" % entry.name)
+                log.debug("Skip file: %r", entry.name)
 
     yield top, dirs, nondirs
 
@@ -239,12 +247,7 @@ class FileBackup(object):
         self.file_entry = file_entry # os.DirEntry() instance
         self.backup_path = backup_path # PathHelper(backup_root) instance
 
-    def _deduplication_backup(self, file_entry, in_file, out_file):
-        file_size = os.stat(file_entry.path).st_size
-        time_threshold = start_time = default_timer()
-
-        bytesreaded = old_readed = 0
-        threshold = file_size / 10
+    def _deduplication_backup(self, file_entry, in_file, out_file, process_bar):
         hash = hash_constructor()
         while True:
             data = in_file.read(CHUNK_SIZE)
@@ -253,66 +256,22 @@ class FileBackup(object):
 
             out_file.write(data)
             hash.update(data)
+            process_bar.update(len(data))
 
-            bytesreaded += len(data)
-
-            current_time = default_timer()
-            if current_time > (time_threshold + 0.5):
-
-                elapsed = float(current_time - start_time)
-                estimated = elapsed / bytesreaded * file_size
-                remain = estimated - elapsed
-
-                diff_bytes = bytesreaded - old_readed
-                diff_time = current_time - time_threshold
-                performance = diff_bytes / diff_time / 1024.0 / 1024.0
-
-                percent = round(float(bytesreaded) / file_size * 100.0, 2)
-
-                infoline = (
-                    "   "
-                    "%(percent).1f%%"
-                    " - current: %(elapsed)s"
-                    " - total: %(estimated)s"
-                    " - remain: %(remain)s"
-                    " - %(perf).1fMB/sec"
-                    "   "
-                ) % {
-                    "percent": percent,
-                    "elapsed": human_time(elapsed),
-                    "estimated": human_time(estimated),
-                    "remain": human_time(remain),
-                    "perf": performance,
-                }
-                sys.stdout.write("\r")
-                sys.stdout.write("\r{:^79}".format(infoline))
-
-                time_threshold = current_time
-                old_readed = bytesreaded
-
-        end_time = default_timer()
-        try:
-            performance = float(file_size) / (end_time - start_time) / 1024 / 1024
-        except ZeroDivisionError as err:
-            print("Warning: %s" % err)
-            print(end_time, start_time, (end_time - start_time))
-
-        sys.stdout.write("\r")
-        sys.stdout.write(" " * 79)
-        sys.stdout.write("\r")
-
-        print("Performance: %.1fMB/sec" % performance)
         return hash
 
-    def deduplication_backup(self):
+    def deduplication_backup(self, process_bar):
+        new_bytes = 0
+        stined_bytes = 0
+
         src_path = self.file_entry.path
-        print("*** deduplication backup: %r" % src_path)
+        log.debug("*** deduplication backup: %r", src_path)
 
         self.backup_path.set_src_filepath(src_path)
-        print("abs_src_filepath:", self.backup_path.abs_src_filepath)
-        print("abs_dst_filepath:", self.backup_path.abs_dst_filepath)
-        print("abs_dst_hash_filepath:", self.backup_path.abs_dst_hash_filepath)
-        print("abs_dst_dir:", self.backup_path.abs_dst_path)
+        log.debug("abs_src_filepath:", self.backup_path.abs_src_filepath)
+        log.debug("abs_dst_filepath:", self.backup_path.abs_dst_filepath)
+        log.debug("abs_dst_hash_filepath:", self.backup_path.abs_dst_hash_filepath)
+        log.debug("abs_dst_dir:", self.backup_path.abs_dst_path)
 
         if not os.path.isdir(self.backup_path.abs_dst_path):
             os.makedirs(self.backup_path.abs_dst_path, mode=DEFAULT_NEW_PATH_MODE)
@@ -323,7 +282,7 @@ class FileBackup(object):
             with open(self.backup_path.abs_src_filepath, "rb") as in_file:
                 with open(self.backup_path.abs_dst_hash_filepath, "w") as hash_file:
                     with open(self.backup_path.abs_dst_filepath, "wb") as out_file:
-                        hash = self._deduplication_backup(self.file_entry, in_file, out_file)
+                        hash = self._deduplication_backup(self.file_entry, in_file, out_file, process_bar)
                     hash_hexdigest = hash.hexdigest()
                     hash_file.write(hash_hexdigest)
         except KeyboardInterrupt:
@@ -331,22 +290,25 @@ class FileBackup(object):
             os.remove(self.backup_path.abs_dst_hash_filepath)
             sys.exit(-1)
 
+        file_stat=self.file_entry.stat()
+        file_size=file_stat.st_size
+
         old_backups = BackupEntry.objects.filter(
             content_info__hash_hexdigest=hash_hexdigest
         )
         no_old_backup = True
         for old_backup in old_backups:
             no_old_backup = False
-            print("+++ old:", old_backup)
-            print("+++ rel:", old_backup.get_backup_path())
+            log.debug("+++ old:", old_backup)
+            log.debug("+++ rel:", old_backup.get_backup_path())
 
             abs_old_backup_path = os.path.join(
                 self.backup_path.backup_root,
                 old_backup.get_backup_path()
             )
-            print("+++ abs:", abs_old_backup_path)
+            log.debug("+++ abs:", abs_old_backup_path)
             if not os.path.isfile(abs_old_backup_path):
-                print("*** ERROR old file doesn't exist! %r" % abs_old_backup_path)
+                log.debug("*** ERROR old file doesn't exist! %r", abs_old_backup_path)
                 continue
 
             # TODO:
@@ -354,20 +316,31 @@ class FileBackup(object):
             # compare current content
             os.remove(self.backup_path.abs_dst_filepath)
             os.link(abs_old_backup_path, self.backup_path.abs_dst_filepath)
-            print("Remove and link, ok.")
+            log.debug("Remove and link, ok.")
+            log.info("Replaced with a hardlink to: %r" % abs_old_backup_path)
+            new_bytes = 0
+            stined_bytes = file_size
             break
 
         if no_old_backup:
-            print("+++ no old entry in database!")
+            log.debug("+++ no old entry in database!")
+            new_bytes = file_size
+            stined_bytes = 0
 
         BackupEntry.objects.create(
             self.backup_path.backup_run,
             directory=self.backup_path.sub_path,
             filename=self.backup_path.filename,
             hash_hexdigest=hash_hexdigest,
-            file_stat=self.file_entry.stat(),
+            file_stat=file_stat,
         )
 
+        # set origin access/modified times to the new created backup file
+        atime_ns = file_stat.st_atime_ns
+        mtime_ns = file_stat.st_mtime_ns
+        os.utime(self.backup_path.abs_dst_filepath, ns=(atime_ns, mtime_ns))
+
+        return new_bytes, stined_bytes
 
 
 class HardLinkBackup(object):
@@ -384,34 +357,41 @@ class HardLinkBackup(object):
             )
 
     def scandir(self, path):
-        next_update = time.time() + 1
         file_list = []
         total_size = 0
-        for top, dirs, nondirs in walk2(path):
+        start_time = default_timer()
+        print("\nScan %r...\n" % path)
+        for top, dirs, nondirs in tqdm(walk2(path), unit="dirs", leave=True):
             for entry in nondirs:
                 if entry.is_file():
                     file_list.append(entry)
                     total_size += entry.stat().st_size
                 else:
-                    raise NotImplementedError("todo: %r" % entry)
+                    raise NotImplementedError("todo: %r", entry)
 
-            if time.time() > next_update:
-                # print("%i dir items readed..." % len(file_list))
-                next_update = time.time() + 1
+        print("\nscanned %i files in %s\n" % (
+            len(file_list), human_time(default_timer()-start_time)
+        ))
         return file_list, total_size
 
     def backup(self, src_path):
         self.path.set_src_path(src_path)
 
         file_list, total_size = self.scandir(self.path.abs_src_root)
-        # print("%i files (%i Bytes) to backup." % (len(file_list), total_size))
+        print("%i in %s files to backup." % (len(file_list), human_filesize(total_size)))
 
-        backuped_size = 0
-        for no, file_entry in enumerate(file_list):
-            print(no, file_entry.path)
+        total_new_bytes = 0
+        total_stined_bytes = 0
+        with tqdm(total=total_size, unit='B', unit_scale=True) as process_bar:
+            for no, file_entry in enumerate(file_list):
+                log.debug(no, file_entry.path)
 
-            file_backup = FileBackup(file_entry, self.path)
-            file_backup.deduplication_backup()
+                file_backup = FileBackup(file_entry, self.path)
+                new_bytes, stined_bytes = file_backup.deduplication_backup(process_bar)
+                total_new_bytes += new_bytes
+                total_stined_bytes += stined_bytes
+
+        return len(file_list), total_size, total_new_bytes, total_stined_bytes
 
 
 if __name__ == '__main__':
@@ -420,9 +400,27 @@ if __name__ == '__main__':
     else:
         backup_root = os.path.expanduser("~/PyHardLinkBackups")
 
+    start_time = default_timer()
+
     hardlinkbackup = HardLinkBackup(backup_root=backup_root)
 
-    # src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-    src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "django_project")
+    src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    # src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "django_project")
 
-    hardlinkbackup.backup(src_path=src_path)
+    file_count, total_size, total_new_bytes, total_stined_bytes = hardlinkbackup.backup(src_path=src_path)
+
+    print("\nBackup done:")
+    print(" * Files to backup: %i files" % file_count)
+    print(" * Source file sizes: %s" % human_filesize(total_size))
+    print(" * new bytes to saved: %s (%.1f%%)" % (
+        human_filesize(total_new_bytes),
+        (total_new_bytes/total_size*100)
+    ))
+    print(" * stint bytes via hardlinks: %s (%.1f%%)" % (
+        human_filesize(total_stined_bytes),
+        (total_stined_bytes/total_size*100)
+    ))
+    duration= default_timer() - start_time
+    performance = total_size / duration / 1024.0 / 1024.0
+    print(" * duration: %s %.1fMB/s\n" % (human_time(duration), performance))
+
