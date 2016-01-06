@@ -58,6 +58,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
                 ('sha512', models.CharField(unique=True, help_text='SHA-512 (hexdigest) of the file content', max_length=1024, editable=False)),
+                ('file_size', models.PositiveIntegerField(help_text='The file size in Bytes', editable=False)),
             ],
         ),
         migrations.AddField(

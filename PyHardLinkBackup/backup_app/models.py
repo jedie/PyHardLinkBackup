@@ -15,8 +15,7 @@ import os
 
 from django.db import models
 
-
-BACKUP_SUB_FORMAT="%Y-%m-%d-%H%M%S"
+BACKUP_SUB_FORMAT = "%Y-%m-%d-%H%M%S"
 
 
 class BackupName(models.Model):
@@ -93,16 +92,22 @@ class FileHash(models.Model):
     sha512 = models.CharField(max_length=1024, editable=False, unique=True,
         help_text="SHA-512 (hexdigest) of the file content"
     )
+    file_size = models.PositiveIntegerField(editable=False,
+        help_text="The file size in Bytes"
+    )
+
     def __str__(self):
-        return self.sha512
+        return "SHA512: %s...%s File Size: %i Bytes" % (
+            self.sha512[:4], self.sha512[-4:], self.file_size
+        )
 
 
 class BackupEntryManager(models.Manager):
-    def create(self, backup_run, directory, filename, sha512):
+    def create(self, backup_run, directory, filename, sha512, file_size):
         print("Save:", backup_run, directory, filename, hash)
         directory, created = BackupDir.objects.get_or_create(directory=directory)
         filename, created = BackupFilename.objects.get_or_create(filename=filename)
-        sha512, created = FileHash.objects.get_or_create(sha512=sha512)
+        sha512, created = FileHash.objects.get_or_create(sha512=sha512,file_size=file_size)
 
         return super(BackupEntryManager, self).create(
             backup_run=backup_run,

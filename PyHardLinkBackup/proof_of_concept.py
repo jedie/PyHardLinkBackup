@@ -300,13 +300,16 @@ class FileBackup(object):
                     hash_hexdigest = hash.hexdigest()
                     hash_file.write(hash_hexdigest)
         except KeyboardInterrupt:
-            os.remove(dst_path)
+            os.remove(self.backup_path.abs_dst_filepath)
+            os.remove(self.backup_path.abs_dst_filepath_hash)
+            sys.exit(-1)
 
         BackupEntry.objects.create(
-            self.backup_path.backup_run,
-            directory=self.backup_path.dst_path,
-            filename=self.backup_path.filename,
-            sha512=hash_hexdigest,
+                self.backup_path.backup_run,
+                directory=self.backup_path.dst_path,
+                filename=self.backup_path.filename,
+                sha512=hash_hexdigest,
+                file_size=self.file_entry.stat().st_size,
         )
 
         for old_backup, old_hash in self.backup_path.iter_old_backup():
