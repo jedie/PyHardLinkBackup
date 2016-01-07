@@ -56,6 +56,11 @@ echo @cd /d "%%~dp0\Scripts" > %out%
 echo phlb.exe migrate >> %out%
 echo @pause >> %out%
 
+set out="%destination%\pip upgrade.cmd"
+echo @cd /d "%%~dp0\Scripts" > %out%
+echo pip.exe install --upgrade PyHardLinkBackup >> %out%
+echo @pause >> %out%
+
 echo on
 explorer.exe %destination%
 @pause
