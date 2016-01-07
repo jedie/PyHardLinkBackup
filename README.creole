@@ -103,16 +103,16 @@ $ cd PyHardLinkBackupEnv/
 
 == some notes
 
-==== What is 'phlb' ?!?
+=== What is 'phlb' ?!?
 
 the **phlb** executable is the similar to django **manage.py**, but it always
 used the PyHardLinkBackup settings.
 
-==== Why in hell do you use django?!?
+=== Why in hell do you use django?!?
 
 * Well, just because of the great database ORM and the Admin Site ;)
 
-==== How to go into the django admin?
+=== How to go into the django admin?
 
 {{{
 $ cd PyHardLinkBackupEnv/
