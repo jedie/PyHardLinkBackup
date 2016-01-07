@@ -327,13 +327,7 @@ class HardLinkBackup(object):
 
 
 if __name__ == '__main__':
-    if not hasattr(sys, "real_prefix"):
-        print("ERROR: virtualenv not activated!")
-        sys.exit("-1")
-
-    # src_path = sys.prefix
-    src_path = os.path.join(sys.prefix, "src")
-    # src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
     # src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "django_project")
 
     print("\n*** Test run with: %r ***\n" % src_path)
