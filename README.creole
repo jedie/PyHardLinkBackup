@@ -1,8 +1,47 @@
 == PyHardLinkBackup
 
-HardLink Backups with Python
+Hardlink/Deduplication Backups with Python.
 
-Currently python 3 is needed.
+* Backups should be saved as normal files in filesystem:
+** accessible without any extra software or extra meta files
+** non-proprietary format
+* Create backups with versioning
+** every backup run creates a complete filesystem snapshot tree
+** every snapshot tree can be deleted, without affecting the other snapshots
+* Deduplication with hardlinks:
+** Store only changed files, all other via hardlinks
+** find duplicate files everywhere (even if renamed or moved files)
+* useable under Windows and Linux
+
+current state:
+
+* python 3 only
+* Alpha state
+
+Please, try, fork and contribute! ;)
+
+== Example
+
+{{{
+$ phlb backup ~/my/important/documents
+...start backup, some time later...
+$ phlb backup ~/my/important/documents
+... 
+}}}
+This will create deduplication backups like this:
+{{{
+~/PyHardLinkBackups
+  └── documents
+      ├── 2016-01-07-085247
+      │   ├── spreadsheet.ods
+      │   ├── brief.odt
+      │   └── important_files.ext
+      └── 2016-01-07-102310
+          ├── spreadsheet.ods
+          ├── brief.odt
+          └── important_files.ext
+}}}
+
 
 == Try out:
 
@@ -63,4 +102,16 @@ used the PyHardLinkBackup settings.
 
 * copy file meta data like owner, mode etc.
 * handle symlinks
+* Quick Backup: Don't check the content, just compare file size + modification date
+* use: https://github.com/jedie/bootstrap_env (So it's better to install it under windows)
+* Add some helper files to start a backup (.sh / .cmd scripts)
+* write docs
+* write more tests
+* activate CI
+* Far future: Add a GUI
 
+
+== Links
+
+* https://pypi.python.org/pypi/PyHardlinkBackup/
+* https://www.python-forum.de/viewtopic.php?f=6&t=37723 (de)
