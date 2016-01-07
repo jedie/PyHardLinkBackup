@@ -1,0 +1,13 @@
+Django>=1.8,<1.9
+
+# https://github.com/jedie/django-tools/
+django-tools
+
+# https://github.com/tqdm/tqdm
+tqdm
+
+# https://github.com/mitsuhiko/click
+click
+
+# https://pypi.python.org/pypi/scandir
+scandir ; python_version < '3.5'

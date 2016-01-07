@@ -186,22 +186,6 @@ def get_authors():
         authors = "[Error: %s]" % err
     return authors
 
-setup_kwargs = {
-    "install_requires": [
-        "Django>=1.8,<1.9",
-        "django-tools", # https://github.com/jedie/django-tools/
-        "tqdm", # https://github.com/tqdm/tqdm
-        "click", # https://github.com/mitsuhiko/click
-    ],
-}
-
-try:
-    from os import scandir # new in Python 3.5
-except ImportError:
-    # Install fallback
-    # https://pypi.python.org/pypi/scandir
-    setup_kwargs["install_requires"].append("scandir")
-
 setup(
     name='PyHardLinkBackup',
     version=__version__,
@@ -212,6 +196,16 @@ setup(
     url='https://github.com/jedie/PyHardLinkBackup',
     packages=find_packages(),
     include_package_data=True, # include package data under version control
+    install_requires=[
+        "Django>=1.8,<1.9",
+        "django-tools", # https://github.com/jedie/django-tools/
+        "tqdm", # https://github.com/tqdm/tqdm
+        "click", # https://github.com/mitsuhiko/click
+
+        # FIXME: It seems there is no way to do this:
+        # scandir ; python_version < '3.5'
+        # (scandir need compiling, which is difficult under windows)
+    ],
     entry_points={'console_scripts': [
         'phlb = PyHardLinkBackup.phlb_cli:cli',
     ]},
@@ -235,5 +229,4 @@ setup(
         "Operating System :: OS Independent",
     ],
     # test_suite="runtests.cli_run",
-    **setup_kwargs
 )

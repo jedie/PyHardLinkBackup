@@ -1,0 +1,12 @@
+
+# convert README.creole on-the-fly to ReSt, see also:
+# https://github.com/jedie/python-creole/wiki/Use-In-Setup/
+python-creole
+docutils
+
+# Build and send to PyPi:
+wheel
+twine
+
+# https://github.com/jedie/bootstrap_env
+bootstrap_env
