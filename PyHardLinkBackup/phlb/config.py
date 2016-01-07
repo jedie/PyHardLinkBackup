@@ -176,7 +176,11 @@ class PyHardLinkBackupConfig(object):
         default_config_filepath = os.path.join(
             os.path.dirname(__file__), DEAFULT_CONFIG_FILENAME
         )
-        log.debug("Reade defaults from: %r" % default_config_filepath)
+        log.debug("Read defaults from: %r" % default_config_filepath)
+        if not os.path.isfile(default_config_filepath):
+            raise RuntimeError(
+                "Internal error: Can't locate the default .ini file here: %r" % default_config_filepath
+            )
         config = self._read_and_convert(default_config_filepath, all_values=True)
         log.debug("Defaults: %s", pprint.pformat(config))
     
