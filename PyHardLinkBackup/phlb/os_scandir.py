@@ -1,7 +1,17 @@
 import fnmatch
 
 import os
-from scandir import scandir
+
+# Use the built-in version of scandir/walk if possible, otherwise
+# use the scandir module version
+try:
+    from os import scandir # new in Python 3.5
+except ImportError:
+    # use https://pypi.python.org/pypi/scandir
+    try:
+        from scandir import scandir
+    except ImportError:
+        raise ImportError("For Python <2.5: Please install 'scandir' !")
 
 from PyHardLinkBackup.phlb.phlb_main import log
 

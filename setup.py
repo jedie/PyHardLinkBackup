@@ -195,7 +195,10 @@ setup_kwargs = {
     ],
 }
 
-if sys.version_info[0:2] < (3, 5):
+try:
+    from os import scandir # new in Python 3.5
+except ImportError:
+    # Install fallback
     # https://pypi.python.org/pypi/scandir
     setup_kwargs["install_requires"].append("scandir")
 

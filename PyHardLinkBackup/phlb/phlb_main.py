@@ -24,20 +24,10 @@ try:
 except ImportError as err:
     raise ImportError("Please install 'tqdm': %s" % err)
 
-# Use the built-in version of scandir/walk if possible, otherwise
-# use the scandir module version
-try:
-    from os import scandir, walk # Python >=3.5
-except ImportError:
-    # use https://pypi.python.org/pypi/scandir
-    try:
-        from scandir import scandir, walk
-    except ImportError:
-        raise ImportError("For Python <2.5: Please install 'scandir' !")
-
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
+
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
 import django
