@@ -45,18 +45,28 @@ This will create deduplication backups like this:
 
 == Try out:
 
-**setup**
+=== 1. Create a virtual env and install:
 {{{
 ~$ virtualenv -p python3 PyHardLinkBackupEnv
 $ cd PyHardLinkBackupEnv/
 ~/PyHardLinkBackupEnv $ source bin/activate
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -U pip
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=PyHardLinkBackup
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb migrate
 }}}
 **Note:** If you not use python 3.5+, then '[[https://pypi.python.org/pypi/scandir|scandir]]' will be installed and so you need the **python3-dev** package...
 
-== start a backup run
+=== 2. setup
+create a .ini config file and edit it:
+{{{
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb config
+}}}
+
+Initialize the database:
+{{{
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb migrate
+}}}
+
+=== 3. start a backup run
 
 {{{
 ~$ ./PyHardLinkBackupEnv/bin/phlb backup ~/Photo
@@ -65,6 +75,20 @@ or:
 {{{
 ~$ source ./PyHardLinkBackupEnv/bin/activate
 (PyHardLinkBackupEnv) ~$ phlb backup ~/documents
+}}}
+
+
+== configuration
+
+phlb will used a configuration file named: **PyHardLinkBackup.ini**
+
+Search order is:
+# current directory
+# user directory
+
+You can just open the editor with the user directory .ini file with:
+{{{
+(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb config
 }}}
 
 
@@ -79,11 +103,16 @@ $ cd PyHardLinkBackupEnv/
 
 == some notes
 
+==== What is 'phlb' ?!?
+
+the **phlb** executable is the similar to django **manage.py**, but it always
+used the PyHardLinkBackup settings.
+
 ==== Why in hell do you use django?!?
 
 * Well, just because of the great database ORM and the Admin Site ;)
 
-==== How to use the django admin?
+==== How to go into the django admin?
 
 {{{
 $ cd PyHardLinkBackupEnv/
@@ -92,11 +121,6 @@ $ cd PyHardLinkBackupEnv/
 }}}
 And then just request 'localhost'
 
-
-==== What is 'phlb' ?!?
-
-the **phlb** executable is the similar to django **manage.py**, but it always
-used the PyHardLinkBackup settings.
 
 == TODO
 

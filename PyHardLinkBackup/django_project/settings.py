@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
+
+from PyHardLinkBackup.phlb.config import phlb_config as _phlb_config
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Username/password for PyHardLinkBackup.backup_app.middleware.AlwaysLoggedInAsSuperUser
@@ -52,8 +55,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 
     # WARNING:
-    # This will 'disable' the authentication, becuase
+    # This will 'disable' the authentication, because
     # the default user will always be logged in.
+    # But only if phlb_config["ENABLE_AUTO_LOGIN"] == True
     "PyHardLinkBackup.backup_app.middleware.AlwaysLoggedInAsSuperUser",
 
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -83,7 +87,7 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(os.path.expanduser("~"), 'PyHardLinkBackups.sqlite3'),
+        'NAME': _phlb_config.database_name,
     }
 }
 print("Use Database file: %r" % DATABASES["default"]["NAME"])
@@ -105,3 +109,21 @@ USE_L10N = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'PyHardLinkBackup': {
+            'handlers': ['console'],
+            'level': _phlb_config.logging_level,
+        },
+    },
+}

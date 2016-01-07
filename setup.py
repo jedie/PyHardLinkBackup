@@ -191,6 +191,7 @@ setup_kwargs = {
         "Django>=1.8,<1.9",
         "django-tools", # https://github.com/jedie/django-tools/
         "tqdm", # https://github.com/tqdm/tqdm
+        "click", # https://github.com/mitsuhiko/click
     ],
 }
 
@@ -221,8 +222,7 @@ setup(
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License (GPL)",
-        "Programming Language :: Python",
-        "Programming Language :: JavaScript",
+        "Programming Language :: Python :: 3 :: Only",
         'Framework :: Django',
         "Topic :: Database :: Front-Ends",
         "Topic :: Documentation",

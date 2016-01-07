@@ -2,9 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import django_tools.fields.sign_separated
-import django.utils.timezone
-import django_tools.fields.directory
 
 
 class Migration(migrations.Migration):
@@ -14,24 +11,17 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='BackupDatetime',
-            fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
-                ('backup_datetime', models.DateTimeField(unique=True, editable=False, help_text='backup_datetime of a started backup. Used in all path as prefix.')),
-            ],
-        ),
-        migrations.CreateModel(
             name='BackupDir',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
-                ('directory', models.CharField(unique=True, editable=False, help_text='The path in the backup without datetime and filename', max_length=1024)),
+                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('directory', models.CharField(help_text='The path in the backup without datetime and filename', max_length=1024, editable=False, unique=True)),
             ],
         ),
         migrations.CreateModel(
             name='BackupEntry',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
-                ('file_mtime_ns', models.PositiveIntegerField(editable=False, help_text='Time of most recent content modification expressed in nanoseconds as an integer.')),
+                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('file_mtime_ns', models.PositiveIntegerField(help_text='Time of most recent content modification expressed in nanoseconds as an integer.', editable=False)),
             ],
             options={
                 'ordering': ['-backup_run__backup_datetime'],
@@ -41,15 +31,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BackupFilename',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
-                ('filename', models.CharField(unique=True, editable=False, help_text='Filename of one file in backup', max_length=1024)),
+                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('filename', models.CharField(help_text='Filename of one file in backup', max_length=1024, editable=False, unique=True)),
             ],
         ),
         migrations.CreateModel(
             name='BackupRun',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
-                ('backup_datetime', models.ForeignKey(to='backup_app.BackupDatetime')),
+                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('name', models.CharField(help_text='The name of the backup directory', max_length=1024, editable=False)),
+                ('backup_datetime', models.DateTimeField(help_text='backup_datetime of a started backup. Used in all path as prefix.', editable=False, unique=True)),
             ],
             options={
                 'ordering': ['-backup_datetime'],
@@ -57,38 +48,12 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Config',
-            fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
-                ('createtime', models.DateTimeField(default=django.utils.timezone.now, editable=False, help_text='Create time')),
-                ('lastupdatetime', models.DateTimeField(default=django.utils.timezone.now, editable=False, help_text='Time of the last change.')),
-                ('name', models.CharField(unique=True, editable=False, help_text='The name of the backup directory', max_length=1024)),
-                ('note', models.TextField(help_text='A comment about this backup directory.')),
-                ('active', models.BooleanField(default=False, help_text='If not active, then you will always land to change this config on every backup run.')),
-                ('backup_path', django_tools.fields.directory.DirectoryModelField(default='/home/jedie/PyHardLinkBackups', help_text='Root directory for this backup.', max_length=256)),
-                ('hash_name', models.CharField(default='sha512', help_text='Name of the content hasher used in hashlib.new() and as file ending for the hast files.', max_length=128)),
-                ('sub_dir_format', models.CharField(default='%Y-%m-%d-%H%M%S', help_text='datetime.strftime() formatter to create the sub directory.', max_length=128)),
-                ('default_new_path_mode', models.CharField(default='0o700', help_text='default directory mode for os.makedirs().', max_length=5)),
-                ('chunk_size', models.PositiveIntegerField(default=65536, help_text='Size in bytes to read/write files.')),
-                ('skip_dirs', django_tools.fields.sign_separated.SignSeparatedModelField(default='__pycache__, temp', help_text='Direcory names that will be recusive exclude vom backups (Comma seperated list!)')),
-                ('skip_files', django_tools.fields.sign_separated.SignSeparatedModelField(default='*.pyc, *.tmp, *.cache', help_text='Filename patterns to exclude files from backups use with fnmatch() (Comma seperated list!)')),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
             name='ContentInfo',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
-                ('hash_hexdigest', models.CharField(unique=True, editable=False, help_text='Hash (hexdigest) of the file content', max_length=128)),
-                ('file_size', models.PositiveIntegerField(editable=False, help_text='The file size in Bytes')),
+                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('hash_hexdigest', models.CharField(help_text='Hash (hexdigest) of the file content', max_length=128, editable=False, unique=True)),
+                ('file_size', models.PositiveIntegerField(help_text='The file size in Bytes', editable=False)),
             ],
-        ),
-        migrations.AddField(
-            model_name='backuprun',
-            name='config',
-            field=models.ForeignKey(to='backup_app.Config'),
         ),
         migrations.AddField(
             model_name='backupentry',

@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.contrib import messages
 
+from PyHardLinkBackup.phlb.config import phlb_config
 
 def _print_and_message(request, msg, level=messages.WARNING):
     print(" *** %s ***" % msg, file=sys.stderr)
@@ -21,6 +22,10 @@ class AlwaysLoggedInAsSuperUser(object):
     """
     def process_request(self, request):
         if request.user.is_authenticated():
+            return
+
+        if not phlb_config.enable_auto_login:
+            _print_and_message(request, "ENABLE_AUTO_LOGIN is False", level=messages.INFO)
             return
 
         try:
