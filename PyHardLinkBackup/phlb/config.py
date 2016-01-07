@@ -189,7 +189,13 @@ class PyHardLinkBackupConfig(object):
             # No .ini file made by user found
             # -> Create one into user home
             self.ini_filepath = get_user_ini_filepath()
-            shutil.copyfile(default_config_filepath,self.ini_filepath)
+
+            # We don't use shutil.copyfile here, so the line endings will
+            # be converted e.g. under windows from \n to \n\r
+            with open(default_config_filepath, "r") as infile:
+                with open(self.ini_filepath, "w") as outfile:
+                    outfile.write(infile.read())
+
             print("\n*************************************************************")
             print("Default config file was created into your home:")
             print("\t%s" % self.ini_filepath)
