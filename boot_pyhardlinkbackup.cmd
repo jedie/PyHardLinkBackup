@@ -44,5 +44,18 @@ if NOT exist %destination% (
 echo on
 py -3 -m venv %destination%
 %destination%\Scripts\pip.exe install PyHardLinkBackup
+@echo off
+
+set out="%destination%\pyhlb config.cmd"
+echo @cd /d "%%~dp0\Scripts" > %out%
+echo phlb.exe config >> %out%
+echo @pause >> %out%
+
+set out="%destination%\pyhlb migrate.cmd"
+echo @cd /d "%%~dp0\Scripts" > %out%
+echo phlb.exe migrate >> %out%
+echo @pause >> %out%
+
+echo on
 explorer.exe %destination%
 @pause

@@ -45,6 +45,22 @@ This will create deduplication backups like this:
 
 == Try out:
 
+=== on Windows:
+
+# install Python 3: https://www.python.org/downloads/
+# Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.cmd|boot_pyhardlinkbackup.cmd]]
+# run **boot_pyhardlinkbackup.cmd**
+
+There will be a virtual env in this path: {{{%APPDATA%\PyHardLinkBackup}}}
+
+call these batch files:
+
+# {{{%APPDATA%\PyHardLinkBackup\pyhlb config.cmd}}}
+# {{{%APPDATA%\PyHardLinkBackup\pyhlb migrate.cmd}}}
+
+
+on linux follow these steps:
+
 === 1. Create a virtual env and install:
 {{{
 ~$ virtualenv -p python3 PyHardLinkBackupEnv
