@@ -16,7 +16,7 @@ Hardlink/Deduplication Backups with Python.
 current state:
 
 * python 3 only
-* Alpha state
+* Beta state
 
 Please, try, fork and contribute! ;)
 
@@ -142,6 +142,7 @@ $ cd PyHardLinkBackupEnv/
 (PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb runserver
 }}}
 And then just request 'localhost'
+(Note: **--noreload** is needed under windows with venv!)
 
 
 == TODO
@@ -149,8 +150,7 @@ And then just request 'localhost'
 * copy file meta data like owner, mode etc.
 * handle symlinks
 * Quick Backup: Don't check the content, just compare file size + modification date
-* use: https://github.com/jedie/bootstrap_env (So it's better to install it under windows)
-* Add some helper files to start a backup (.sh / .cmd scripts)
+* create boot_pyhardlinkbackup.sh script for linux
 * write docs
 * write more tests
 * activate CI
