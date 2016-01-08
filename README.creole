@@ -55,8 +55,8 @@ There will be a virtual env in this path: {{{%APPDATA%\PyHardLinkBackup}}}
 
 call these batch files:
 
-# {{{%APPDATA%\PyHardLinkBackup\pyhlb config.cmd}}}
-# {{{%APPDATA%\PyHardLinkBackup\pyhlb migrate.cmd}}}
+# {{{%APPDATA%\PyHardLinkBackup\phlb_edit_config.cmd}}}
+# {{{%APPDATA%\PyHardLinkBackup\phlb_migrate_database.cmd}}}
 
 There is also a helper batchfile:
 

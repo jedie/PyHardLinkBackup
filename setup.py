@@ -207,7 +207,8 @@ setup(
         # (scandir need compiling, which is difficult under windows)
     ],
     entry_points={'console_scripts': [
-        'phlb = PyHardLinkBackup.phlb_cli:cli',
+        'phlb_setup_helper_files = PyHardLinkBackup.phlb_cli:setup_helper_files',
+        'phlb = PyHardLinkBackup.phlb_cli:manage',
     ]},
     zip_safe=False,
     classifiers=[
