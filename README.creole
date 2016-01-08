@@ -58,6 +58,12 @@ call these batch files:
 # {{{%APPDATA%\PyHardLinkBackup\pyhlb config.cmd}}}
 # {{{%APPDATA%\PyHardLinkBackup\pyhlb migrate.cmd}}}
 
+There is also a helper batchfile:
+
+* {{{%APPDATA%\PyHardLinkBackup\PyHardLinkBackup this directory.cmd}}}
+
+Copy this file to a location that should be backup and just call it to run a backup.
+
 
 on linux follow these steps:
 
