@@ -4,14 +4,14 @@
     Python HardLink Backup
     ~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2015 by Jens Diemer
+    :copyleft: 2015-2016 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import datetime
 import logging
 import sys
-
+import shutil
 import hashlib
 import os
 
@@ -253,7 +253,25 @@ class HardLinkBackup(object):
                 "Backup path %r doesn't exists!" % self.path.abs_dst_root
             )
 
-        self._backup()
+        try:
+            self._backup()
+        except KeyboardInterrupt:
+            print("\nCleanup after keyboard interrupt:")
+
+            print("\t* clean %r" % self.path.abs_dst_root)
+            def print_error(fn, path, excinfo):
+                print("\tError remove: %r" % path)
+            shutil.rmtree(self.path.abs_dst_root, ignore_errors=True, onerror=print_error)
+
+            # TODO: Remove unused ForeignKey, too,
+            queryset = BackupEntry.objects.filter(backup_run=self.path.backup_run)
+            count = queryset.count()
+            print("\t* cleanup %i database entries" % count)
+            queryset.delete()
+
+            print("Bye")
+            sys.exit(1)
+
 
     def _scandir(self, path):
         file_list = []
