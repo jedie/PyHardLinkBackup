@@ -201,11 +201,12 @@ setup(
         "django-tools", # https://github.com/jedie/django-tools/
         "tqdm", # https://github.com/tqdm/tqdm
         "click", # https://github.com/mitsuhiko/click
-
-        # FIXME: It seems there is no way to do this:
-        # scandir ; python_version < '3.5'
-        # (scandir need compiling, which is difficult under windows)
     ],
+	extras_require={
+		':python_version < "3.5"': [
+			"scandir", # https://pypi.python.org/pypi/scandir
+		],
+	},
     entry_points={'console_scripts': [
         'phlb_setup_helper_files = PyHardLinkBackup.phlb_cli:setup_helper_files',
         'phlb = PyHardLinkBackup.phlb_cli:manage',
