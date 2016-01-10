@@ -42,8 +42,11 @@ def setup_helper_files():
     if sys.platform.startswith("win"):
         # link batch files
         src_path = os.path.join(BASE_DIR, "helper_cmd")
+    if sys.platform.startswith("linux"):
+        # link shell scripts
+        src_path = os.path.join(BASE_DIR, "helper_sh")
     else:
-        print("TODO!")
+        print("TODO: %s" % sys.platform)
         return
 
     if not os.path.isdir(src_path):
@@ -51,7 +54,7 @@ def setup_helper_files():
 
     for entry in scandir(src_path):
         print("_"*79)
-        print("Update file: %r" % entry.name)
+        print("Link file: %r" % entry.name)
         src = entry.path
         dst = os.path.join(ENV_ROOT, entry.name)
         if os.path.exists(dst):

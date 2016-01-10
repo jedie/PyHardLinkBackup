@@ -53,24 +53,25 @@ This will create deduplication backups like this:
 
 If everything works fine, you will get a venv here: {{{%APPDATA%\PyHardLinkBackup}}}
 
-call these batch files:
+After the venv is created, call these scripts to finilize the setup:
 
-# {{{%APPDATA%\PyHardLinkBackup\phlb_edit_config.cmd}}}
-# {{{%APPDATA%\PyHardLinkBackup\phlb_migrate_database.cmd}}}
+# {{{%APPDATA%\PyHardLinkBackup\phlb_edit_config.cmd}}} - Created a config .ini file
+# {{{%APPDATA%\PyHardLinkBackup\phlb_migrate_database.cmd}}} - Create Database tables
 
-There is also a helper batchfile:
+To upgrade PyHardLinkBackup, call:
 
-* {{{%APPDATA%\PyHardLinkBackup\PyHardLinkBackup this directory.cmd}}}
+# {{{%APPDATA%\PyHardLinkBackup\phlb_upgrade_PyHardLinkBackup.cmd}}}
 
-Copy this file to a location that should be backup and just call it to run a backup.
+To start the django webserver, call:
+
+# {{{%APPDATA%\PyHardLinkBackup\phlb_run_django_webserver.cmd}}}
+
 
 
 === on Linux:
 
 # Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.sh|boot_pyhardlinkbackup.sh]]
 # call **boot_pyhardlinkbackup.sh**
-
-If everything works fine, you will get a venv here: {{{~\PyHardLinkBackup}}}
 
 **Note:** If you not use python 3.5+, then you must install '[[https://pypi.python.org/pypi/scandir|scandir]]', e.g.:
 {{{
@@ -80,29 +81,31 @@ If everything works fine, you will get a venv here: {{{~\PyHardLinkBackup}}}
 }}}
 (You need the **python3-dev** package installed)
 
-=== 2. setup
-create a .ini config file and edit it:
-{{{
-~ $ cd PyHardLinkBackup
-~/PyHardLinkBackup $ source bin/activate
-(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb config
-}}}
+If everything works fine, you will get a venv here: {{{~\PyHardLinkBackup}}}
 
-Initialize the database:
-{{{
-(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb migrate
-}}}
+After the venv is created, call these scripts to finilize the setup:
 
-=== 3. start a backup run
+* {{{~/PyHardLinkBackup/phlb_edit_config.sh}}} - Created a config .ini file
+* {{{~/PyHardLinkBackup/phlb_migrate_database.sh}}} - Create Database tables
 
-{{{
-~$ ./PyHardLinkBackup/bin/phlb backup ~/Photo
-}}}
-or:
-{{{
-~$ source ./PyHardLinkBackup/bin/activate
-(PyHardLinkBackup) ~$ phlb backup ~/documents
-}}}
+To upgrade PyHardLinkBackup, call:
+
+* {{{~/PyHardLinkBackup/phlb_upgrade_PyHardLinkBackup.sh}}}
+
+To start the django webserver, call:
+
+* {{{~/PyHardLinkBackup/phlb_run_django_webserver.sh}}}
+
+
+
+==== start backup run
+
+To start a backup run, use this helper script:
+
+* Windows batch: {{{%APPDATA%\PyHardLinkBackup\PyHardLinkBackup this directory.cmd}}}
+* Linux shell script: {{{~/PyHardLinkBackup/PyHardLinkBackup this directory.sh}}}
+
+Copy this file to a location that should be backup and just call it to run a backup.
 
 
 == configuration

@@ -26,6 +26,7 @@ if NOT exist %PIP_EXE% (
 
 echo on
 
+%PIP_EXE% install --upgrade pip
 %PIP_EXE% install --upgrade PyHardLinkBackup
 
 @echo off
