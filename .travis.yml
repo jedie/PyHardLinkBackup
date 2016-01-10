@@ -35,6 +35,7 @@ install:
     - ./boot_pyhardlinkbackup.sh
     - cd ~/PyHardLinkBackup
     - ls
+    - pip freeze
     - pip install uninstall PyHardLinkBackup
     - pip install install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
     - cd src/pyhardlinkbackup
