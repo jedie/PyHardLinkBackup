@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from PyHardLinkBackup.phlb.config import phlb_config
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("phlb.%s" % __name__)
 
 
 class BackupRun(models.Model):

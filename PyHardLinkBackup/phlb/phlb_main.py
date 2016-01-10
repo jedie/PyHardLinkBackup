@@ -25,7 +25,7 @@ except ImportError as err:
     raise ImportError("Please install 'tqdm': %s" % err)
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("phlb.%s" % __name__)
 # logging.basicConfig(level=logging.DEBUG)
 
 

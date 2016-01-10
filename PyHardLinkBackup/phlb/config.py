@@ -15,7 +15,7 @@ import configparser
 import click
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("phlb.%s" % __name__)
 
 CONFIG_FILENAME="PyHardLinkBackup.ini"
 DEAFULT_CONFIG_FILENAME="config_defaults.ini"
@@ -42,6 +42,10 @@ def hashname(value):
 def expand_abs_path(value):
     return os.path.normpath(os.path.abspath(os.path.expanduser(value)))
 
+def logging_level(value):
+    level=getattr(logging, value)
+    return level
+
 
 INI_CONVERTER_DICT = {
     "database_name": expand_abs_path,
@@ -53,7 +57,7 @@ INI_CONVERTER_DICT = {
     "skip_dirs": commalist,
     "skip_files": commalist,
 
-    "logging_level": None,
+    "logging_level": logging_level,
     "default_new_path_mode": int8,
     "hash_name": hashname,
     "chunk_size": int,
@@ -109,7 +113,13 @@ def edit_ini(ini_filepath=None):
         webbrowser.open(ini_filepath)
 
 
-
+def set_phlb_logger(level):
+    phlb_logger = logging.getLogger("phlb")
+    phlb_logger.setLevel(level=level)
+    phlb_logger.handlers = []
+    handler = logging.StreamHandler()
+    phlb_logger.addHandler(handler)
+    phlb_logger.info("Set log level: %i" % level)
 
 
 class PyHardLinkBackupConfig(object):
@@ -120,9 +130,10 @@ class PyHardLinkBackupConfig(object):
         super(PyHardLinkBackupConfig, self).__init__()
         self.ini_converter_dict = ini_converter_dict
 
-    def _load(self):
-        if self._config is None:
+    def _load(self, force=False):
+        if force or self._config is None:
             self._config = self._read_config()
+            set_phlb_logger(level=self._config["logging_level"])
 
     def __getattr__(self, item):
         self._load()
@@ -217,7 +228,7 @@ class PyHardLinkBackupConfig(object):
 
     def print_config(self):
         self._load()
-        print("Debug config:")
+        print("Debug config %r:" % self.ini_filepath)
         pprint.pprint(self._config)
 
 phlb_config=PyHardLinkBackupConfig(INI_CONVERTER_DICT)
