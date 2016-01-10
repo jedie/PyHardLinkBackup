@@ -51,7 +51,7 @@ This will create deduplication backups like this:
 # Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.cmd|boot_pyhardlinkbackup.cmd]]
 # run **boot_pyhardlinkbackup.cmd**
 
-There will be a virtual env in this path: {{{%APPDATA%\PyHardLinkBackup}}}
+If everything works fine, you will get a venv here: {{{%APPDATA%\PyHardLinkBackup}}}
 
 call these batch files:
 
@@ -65,38 +65,43 @@ There is also a helper batchfile:
 Copy this file to a location that should be backup and just call it to run a backup.
 
 
-on linux follow these steps:
+=== on Linux:
 
-=== 1. Create a virtual env and install:
+# Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.sh|boot_pyhardlinkbackup.sh]]
+# call **boot_pyhardlinkbackup.sh**
+
+If everything works fine, you will get a venv here: {{{~\PyHardLinkBackup}}}
+
+**Note:** If you not use python 3.5+, then you must install '[[https://pypi.python.org/pypi/scandir|scandir]]', e.g.:
 {{{
-~$ virtualenv -p python3 PyHardLinkBackupEnv
-$ cd PyHardLinkBackupEnv/
-~/PyHardLinkBackupEnv $ source bin/activate
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -U pip
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=PyHardLinkBackup
+~ $ cd PyHardLinkBackup
+~/PyHardLinkBackup $ source bin/activate
+(PyHardLinkBackup) ~/PyHardLinkBackup $ pip install scndir
 }}}
-**Note:** If you not use python 3.5+, then '[[https://pypi.python.org/pypi/scandir|scandir]]' will be installed and so you need the **python3-dev** package...
+(You need the **python3-dev** package installed)
 
 === 2. setup
 create a .ini config file and edit it:
 {{{
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb config
+~ $ cd PyHardLinkBackup
+~/PyHardLinkBackup $ source bin/activate
+(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb config
 }}}
 
 Initialize the database:
 {{{
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb migrate
+(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb migrate
 }}}
 
 === 3. start a backup run
 
 {{{
-~$ ./PyHardLinkBackupEnv/bin/phlb backup ~/Photo
+~$ ./PyHardLinkBackup/bin/phlb backup ~/Photo
 }}}
 or:
 {{{
-~$ source ./PyHardLinkBackupEnv/bin/activate
-(PyHardLinkBackupEnv) ~$ phlb backup ~/documents
+~$ source ./PyHardLinkBackup/bin/activate
+(PyHardLinkBackup) ~$ phlb backup ~/documents
 }}}
 
 
@@ -110,15 +115,15 @@ Search order is:
 
 You can just open the editor with the user directory .ini file with:
 {{{
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb config
+(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb config
 }}}
 
 
 == run unittests
 {{{
-$ cd PyHardLinkBackupEnv/
-~/PyHardLinkBackupEnv $ source bin/activate
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb test
+$ cd PyHardLinkBackup/
+~/PyHardLinkBackup $ source bin/activate
+(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb test
 }}}
 
 
@@ -137,9 +142,9 @@ used the PyHardLinkBackup settings.
 === How to go into the django admin?
 
 {{{
-$ cd PyHardLinkBackupEnv/
-~/PyHardLinkBackupEnv $ source bin/activate
-(PyHardLinkBackupEnv) ~/PyHardLinkBackupEnv $ phlb runserver
+$ cd PyHardLinkBackup/
+~/PyHardLinkBackup $ source bin/activate
+(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb runserver
 }}}
 And then just request 'localhost'
 (Note: **--noreload** is needed under windows with venv!)
