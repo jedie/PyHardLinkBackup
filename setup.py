@@ -202,11 +202,13 @@ setup(
         "tqdm", # https://github.com/tqdm/tqdm
         "click", # https://github.com/mitsuhiko/click
     ],
-	extras_require={
-		':python_version < "3.5"': [
-			"scandir", # https://pypi.python.org/pypi/scandir
-		],
-	},
+    extras_require={
+        ':python_version=="3.0" or python_version=="3.1" or '
+        'python_version=="3.2" or python_version=="3.3" or '
+        'python_version=="3.4"': [
+            "scandir", # https://pypi.python.org/pypi/scandir
+        ],
+    },
     entry_points={'console_scripts': [
         'phlb = PyHardLinkBackup.phlb_cli:cli',
         'manage = PyHardLinkBackup.django_project.manage:cli',
