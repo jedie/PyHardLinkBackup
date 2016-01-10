@@ -37,6 +37,9 @@ install:
     - python --version
     - #boot_pyhardlinkbackup.sh
     - pip install .
+    - MANAGE=$(which manage)
+    - echo ${MANAGE}
+    - ${MANAGE} migrate
     - cat requirements/dev_extras.txt
     - pip install -r requirements/dev_extras.txt
 
