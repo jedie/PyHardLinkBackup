@@ -26,12 +26,11 @@ except ImportError as err:
 
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 
-os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
+# os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
 import django
-django.setup()
 
 
 from PyHardLinkBackup.phlb import os_scandir
@@ -343,6 +342,11 @@ class HardLinkBackup(object):
     def print_summary(self):
         print("\n%s\n" % "\n".join(self.get_summary()))
 
+
+def backup(path):
+    django.setup()
+    phlb = HardLinkBackup(src_path=path)
+    phlb.print_summary()
 
 if __name__ == '__main__':
     src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")

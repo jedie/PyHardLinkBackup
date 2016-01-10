@@ -208,8 +208,8 @@ setup(
 		],
 	},
     entry_points={'console_scripts': [
-        'phlb_setup_helper_files = PyHardLinkBackup.phlb_cli:setup_helper_files',
-        'phlb = PyHardLinkBackup.phlb_cli:manage',
+        'phlb = PyHardLinkBackup.phlb_cli:cli',
+        'manage = PyHardLinkBackup.django_project.manage:cli',
     ]},
     zip_safe=False,
     classifiers=[

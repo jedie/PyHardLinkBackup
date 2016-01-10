@@ -14,8 +14,8 @@ rm backup_app/migrations/0*.py
 
 set -e
 
-phlb makemigrations
+manage makemigrations
 
-phlb migrate --noinput
+manage migrate --noinput
 
-phlb runserver
+manage runserver

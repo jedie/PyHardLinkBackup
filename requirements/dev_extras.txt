@@ -8,5 +8,6 @@ docutils
 wheel
 twine
 
-# https://github.com/jedie/bootstrap_env
-bootstrap_env
+# unittests
+nose
+coveralls

@@ -11,4 +11,4 @@ source ${ACTIVATE_SCRIPT}
 
 set -x
 
-phlb migrate
+manage migrate

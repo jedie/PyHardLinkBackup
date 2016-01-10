@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
 
 """
-    Main entry point for PyHardLinkBackup
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
-    https://docs.djangoproject.com/en/1.8/ref/django-admin/
+    PyHardLinkBackup cli using click
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 
 import os
 import sys
-
 
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
@@ -25,13 +20,27 @@ except ImportError:
     except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
+import click
 
 import PyHardLinkBackup
 
+from PyHardLinkBackup.phlb.config import phlb_config
 
-def setup_helper_files():
+
+@click.group()
+@click.version_option(version=PyHardLinkBackup.__version__)
+@click.pass_context
+def cli(ctx):
+    """PyHardLinkBackup"""
+    click.secho("\nPyHardLinkBackup v%s\n" % PyHardLinkBackup.__version__,
+        bg='blue', fg='white', bold=True
+    )
+
+
+@cli.command()
+def helper():
     """
-    put helper files in venv root dir
+    setup helper files in venv root dir
     """
     BASE_DIR=os.path.abspath(os.path.dirname(PyHardLinkBackup.__file__))
 
@@ -73,17 +82,40 @@ def setup_helper_files():
             print("\nERROR:\n%s\n" % err)
             continue
 
-
-def manage():
-    """
-    This is just a django "manage.py" that will always used
-    the own settings.
-    """
-    os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
-    from django.core.management import execute_from_command_line
-    execute_from_command_line(sys.argv)
+cli.add_command(helper)
 
 
-if __name__ == "__main__":
-    manage()
+@click.command()
+def config():
+    """Create/edit .ini config file"""
+    phlb_config.open_editor()
 
+cli.add_command(config)
+
+
+@click.command()
+def runserver():
+    """Start django webserver with: 'manage runserver'"""
+    raise RuntimeError("Please use 'manage.py' for this!")
+cli.add_command(runserver)
+
+
+@click.command()
+def migrate():
+    """Start django webserver with: 'manage migrate'"""
+    raise RuntimeError("Please use 'manage.py' for this!")
+cli.add_command(runserver)
+
+
+@click.command()
+@click.argument("path", type=click.Path(exists=True))
+def backup(path):
+    """Start a Backup run"""
+    from PyHardLinkBackup.phlb.phlb_main import backup
+    backup(path)
+
+cli.add_command(backup)
+
+
+if __name__ == '__main__':
+    cli()

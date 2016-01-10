@@ -13,10 +13,10 @@ if not "%errorlevel%"=="0" (
     exit
 )
 
-set PHLB_EXE=phlb.exe
-if NOT exist %PHLB_EXE% (
+set EXE=manage.exe
+if NOT exist %EXE% (
     echo.
-    echo ERROR: Can't find %PHLB_EXE% in Scripts
+    echo ERROR: Can't find %EXE% in Scripts
     echo.
     echo Not found in: %SCRIPT_PATH%
     echo.
@@ -26,7 +26,7 @@ if NOT exist %PHLB_EXE% (
 
 echo on
 
-%PHLB_EXE% migrate
+%EXE% migrate
 
 @echo off
 echo.

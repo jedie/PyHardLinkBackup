@@ -119,11 +119,10 @@ class PyHardLinkBackupConfig(object):
     def __init__(self, ini_converter_dict):
         super(PyHardLinkBackupConfig, self).__init__()
         self.ini_converter_dict = ini_converter_dict
-        self._config = self._read_config()
 
     def __getattr__(self, item):
         if self._config is None:
-            raise AttributeError(item)
+            self._config = self._read_config()
 
         try:
             return self._config[item]

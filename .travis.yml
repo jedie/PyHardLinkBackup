@@ -1,0 +1,54 @@
+language: python
+
+python:
+    - "3.4"
+    - "3.5"
+
+sudo: false
+
+os:
+    # Python builds are not available on the OSX environment.
+    # see: https://docs.travis-ci.com/user/languages/python
+    #- osx
+    - linux
+
+virtualenv:
+    system_site_packages: false
+
+before_install:
+    - pip install --upgrade pip
+    - pip freeze
+    - CHECKOUT_DIR=$(pwd)
+    - echo ${CHECKOUT_DIR}
+    - echo ${TRAVIS_BRANCH}
+    - echo ${TRAVIS_COMMIT}
+    - echo ${TRAVIS_REPO_SLUG}
+    - echo ${GIT_TARGET_EXTRA}
+    - echo ${GIT_SOURCE_EXTRA}
+    - echo ${TRAVIS_PYTHON_VERSION}
+    #- git clone --depth 1 git://github.com/${TRAVIS_REPO_SLUG}.git ~/pyhardlinkbackup
+
+install:
+    - export BUILD_DIR=~/build_py${TRAVIS_PYTHON_VERSION}
+    - echo ${BUILD_DIR}
+    - cd ${CHECKOUT_DIR}
+    - echo $(pwd)
+    - which python
+    - python --version
+    - boot_pyhardlinkbackup.sh
+
+script:
+    - cd ~/PyHardLinkBackup
+    - source bin/activate
+    - which python
+    - python --version
+    - pip install -r requirements/dev_extras.txt
+    - echo $(pwd)
+    - coverage run --parallel-mode nosetests
+    - coverage combine
+
+
+after_success: coveralls
+
+notifications:
+    irc: "irc.freenode.org#pylucid"
