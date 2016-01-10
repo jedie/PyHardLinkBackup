@@ -86,9 +86,14 @@ cli.add_command(helper)
 
 
 @click.command()
-def config():
+@click.option('--debug', is_flag=True, default=False,
+              help="Display used config and exit.")
+def config(debug):
     """Create/edit .ini config file"""
-    phlb_config.open_editor()
+    if debug:
+        phlb_config.print_config()
+    else:
+        phlb_config.open_editor()
 
 cli.add_command(config)
 

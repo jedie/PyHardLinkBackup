@@ -120,9 +120,12 @@ class PyHardLinkBackupConfig(object):
         super(PyHardLinkBackupConfig, self).__init__()
         self.ini_converter_dict = ini_converter_dict
 
-    def __getattr__(self, item):
+    def _load(self):
         if self._config is None:
             self._config = self._read_config()
+
+    def __getattr__(self, item):
+        self._load()
 
         try:
             return self._config[item]
@@ -130,9 +133,11 @@ class PyHardLinkBackupConfig(object):
             raise AttributeError("%s missing in %r" % (item.upper(), self.ini_filepath))
 
     def __repr__(self):
+        self._load()
         return "%r with %r" % (self.ini_filepath, self._config)
 
     def open_editor(self):
+        self._load()
         edit_ini(self.ini_filepath)
 
     def _read_and_convert(self, filepath, all_values):
@@ -210,6 +215,10 @@ class PyHardLinkBackupConfig(object):
 
         return config
 
+    def print_config(self):
+        self._load()
+        print("Debug config:")
+        pprint.pprint(self._config)
 
 phlb_config=PyHardLinkBackupConfig(INI_CONVERTER_DICT)
 
