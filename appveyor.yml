@@ -22,6 +22,8 @@ init:
     - echo %PYTHON%
     - ps: "ls C:/Python*"
     - set
+    - py -V
+    - py -3 -V
 
 # clone directory
 clone_folder: c:/pyhardlinkbackup_clone
