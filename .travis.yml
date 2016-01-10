@@ -39,7 +39,8 @@ install:
     - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
     - which phlb
     - ls
-    - cd src/pyhardlinkbackup
+    - SRC=$(python -c "import os,PyHardLinkBackup;print(os.path.dirname(PyHardLinkBackup.__file__))")
+    - cd ${SRC}
     - git checkout -qf $TRAVIS_COMMIT
     - pip install -e .
     - pip freeze
