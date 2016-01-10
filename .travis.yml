@@ -42,6 +42,8 @@ install:
     - SRC=$(python -c "import os,PyHardLinkBackup;print(os.path.dirname(PyHardLinkBackup.__file__))")
     - cd ${SRC}
     - git checkout -qf $TRAVIS_COMMIT
+    - cd ..
+    - ls
     - pip install -e .
     - pip freeze
     - MANAGE=$(which manage)
