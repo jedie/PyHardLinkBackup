@@ -39,13 +39,14 @@ install:
     - pip install .
     - cat requirements/dev_extras.txt
     - pip install -r requirements/dev_extras.txt
-    - pip install nose # should by installed by dev_extras.txt
 
 script:
     - which python
     - python --version
     - echo $(pwd)
-    - coverage run --source=PyHardLinkBackup --parallel-mode nosetests
+    - NOSE_BIN=$(which nosetests)
+    - echo ${NOSE_BIN}
+    - coverage run --source=PyHardLinkBackup --parallel-mode ${NOSE_BIN}
     - coverage combine
 
 after_success: coveralls
