@@ -39,6 +39,7 @@ install:
     - pip install .
     - cat requirements/dev_extras.txt
     - pip install -r requirements/dev_extras.txt
+    - pip install nose # should by installed by dev_extras.txt
 
 script:
     - which python
