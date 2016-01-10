@@ -20,6 +20,11 @@ current state:
 
 Please, try, fork and contribute! ;)
 
+| {{https://travis-ci.org/jedie/PyHardLinkBackup.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/PyHardLinkBackup/|travis-ci.org/jedie/PyHardLinkBackup]] |
+| {{https://coveralls.io/repos/jedie/PyHardLinkBackup/badge.svg|Coverage Status on coveralls.io}} | [[https://coveralls.io/r/jedie/PyHardLinkBackup|coveralls.io/r/jedie/PyHardLinkBackup]] |
+| {{https://requires.io/github/jedie/PyHardLinkBackup/requirements.svg?branch=master|Requirements Status on requires.io}} | [[https://requires.io/github/jedie/PyHardLinkBackup/requirements/|requires.io/github/jedie/PyHardLinkBackup/requirements/]] |
+
+
 == Example
 
 {{{
