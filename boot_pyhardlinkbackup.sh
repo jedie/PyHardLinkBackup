@@ -36,5 +36,5 @@ source ${DESTINATION}/bin/activate
 
     pip install PyHardLinkBackup
 
-    ${DESTINATION}/bin/phlb_setup_helper_files
+    phlb_setup_helper_files
 )
