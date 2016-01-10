@@ -37,6 +37,7 @@ install:
     - python --version
     - #boot_pyhardlinkbackup.sh
     - pip install .
+    - cat requirements/dev_extras.txt
     - pip install -r requirements/dev_extras.txt
 
 script:
