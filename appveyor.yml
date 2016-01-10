@@ -37,6 +37,9 @@ install:
     - pip install install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
     - cd src/pyhardlinkbackup
     - git checkout -qf %APPVEYOR_REPO_COMMIT%
+    - pip install -e .
+    - pip install -r requirements/dev_extras.txt
+    - manage migrate
 
 test_script:
     - coverage run --source=PyHardLinkBackup --parallel-mode nosetests
