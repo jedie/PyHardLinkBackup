@@ -1,0 +1,44 @@
+# appveyor file:
+# http://www.appveyor.com/docs/appveyor-yml
+# http://www.appveyor.com/docs/environment-variables
+
+version: "{build}"
+
+# blacklist
+#except:
+#  - gh-pages
+
+build: false
+
+environment:
+    matrix:
+        - PYTHON: "C:/Python34"
+        - PYTHON: "C:/Python35"
+
+platform:
+    - AnyCPU
+
+init:
+    - echo %PYTHON%
+    - ps: "ls C:/Python*"
+    - set
+
+# clone directory
+clone_folder: c:/pyhardlinkbackup_clone
+
+# set clone depth
+clone_depth: 5 # clone entire repository history if not defined
+
+install:
+    - cd c:/pyhardlinkbackup_clone
+    - "boot_pyhardlinkbackup.cmd"
+    - cd %APPDATA%/PyHardLinkBackup/Scripts
+    - pip install uninstall PyHardLinkBackup
+    - pip install install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
+    - cd src/pyhardlinkbackup
+    - git checkout -qf %APPVEYOR_REPO_COMMIT%
+
+test_script:
+    - coverage run --source=PyHardLinkBackup --parallel-mode nosetests
+    - coverage combine
+    - coveralls
