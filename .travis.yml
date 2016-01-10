@@ -35,18 +35,16 @@ install:
     - echo $(pwd)
     - which python
     - python --version
-    - boot_pyhardlinkbackup.sh
+    - #boot_pyhardlinkbackup.sh
+    - pip install .
+    - pip install -r requirements/dev_extras.txt
 
 script:
-    - cd ~/PyHardLinkBackup
-    - source bin/activate
     - which python
     - python --version
-    - pip install -r requirements/dev_extras.txt
     - echo $(pwd)
-    - coverage run --parallel-mode nosetests
+    - coverage run --source=PyHardLinkBackup --parallel-mode nosetests
     - coverage combine
-
 
 after_success: coveralls
 
