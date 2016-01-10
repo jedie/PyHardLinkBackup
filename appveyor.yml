@@ -12,17 +12,19 @@ build: false
 
 environment:
     matrix:
-      - PYTHON: "C:\\Python34"
-        PY_PYTHON: 3.4-32
-        PY_PYTHON3: 3.4-32
-        PYTHON_VERSION: "3.4.x"
-        PYTHON_ARCH: "32"
-
-      - PYTHON: "C:\\Python34-x64"
-        PY_PYTHON: 3.4
-        PY_PYTHON3: 3.4
-        PYTHON_VERSION: "3.4.x"
-        PYTHON_ARCH: "64"
+      # 'scandir' will not installed on python 2.4 via setup, yet:
+      # https://www.python-forum.de/viewtopic.php?f=2&t=37802&p=289841#p289841
+#      - PYTHON: "C:\\Python34"
+#        PY_PYTHON: 3.4-32
+#        PY_PYTHON3: 3.4-32
+#        PYTHON_VERSION: "3.4.x"
+#        PYTHON_ARCH: "32"
+#
+#      - PYTHON: "C:\\Python34-x64"
+#        PY_PYTHON: 3.4
+#        PY_PYTHON3: 3.4
+#        PYTHON_VERSION: "3.4.x"
+#        PYTHON_ARCH: "64"
 
       # Python 3.5-32 won't run through the C:\Windows\py.exe launcher on
       # AppVeyor for some reason. See:
