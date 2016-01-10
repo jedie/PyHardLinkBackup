@@ -16,6 +16,7 @@ virtualenv:
     system_site_packages: false
 
 before_install:
+    # https://docs.travis-ci.com/user/environment-variables#Default-Environment-Variables
     - pip install --upgrade pip
     - pip freeze
     - CHECKOUT_DIR=$(pwd)
@@ -26,17 +27,19 @@ before_install:
     - echo ${GIT_TARGET_EXTRA}
     - echo ${GIT_SOURCE_EXTRA}
     - echo ${TRAVIS_PYTHON_VERSION}
-    #- git clone --depth 1 git://github.com/${TRAVIS_REPO_SLUG}.git ~/pyhardlinkbackup
+    - git clone --depth 1 git://github.com/${TRAVIS_REPO_SLUG}.git ~/pyhardlinkbackup_clone
 
 install:
-    - export BUILD_DIR=~/build_py${TRAVIS_PYTHON_VERSION}
-    - echo ${BUILD_DIR}
-    - cd ${CHECKOUT_DIR}
-    - echo $(pwd)
-    - which python
-    - python --version
-    - #boot_pyhardlinkbackup.sh
-    - pip install .
+    - cd ~/pyhardlinkbackup_clone
+    - ls
+    - ./boot_pyhardlinkbackup.sh
+    - cd ~/PyHardLinkBackup
+    - ls
+    - pip install uninstall PyHardLinkBackup
+    - pip install install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
+    - cd src/pyhardlinkbackup
+    - git checkout -qf $TRAVIS_COMMIT
+    - pip install -e .
     - MANAGE=$(which manage)
     - echo ${MANAGE}
     - ${MANAGE} migrate
