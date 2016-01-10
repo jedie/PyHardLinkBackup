@@ -28,12 +28,13 @@ else
         ${DESTINATION}/bin/python get-pip.py
     )
 fi
+source ${DESTINATION}/bin/activate
 (
     set -e
     set -x
-    ${DESTINATION}/bin/pip install --upgrade pip
+    pip install --upgrade pip
 
-    ${DESTINATION}/bin/pip install PyHardLinkBackup
+    pip install PyHardLinkBackup
 
     ${DESTINATION}/bin/phlb_setup_helper_files
 )
