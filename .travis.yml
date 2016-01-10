@@ -37,6 +37,8 @@ install:
     - ls
     - pip uninstall -y PyHardLinkBackup
     - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
+    - which phlb
+    - ls
     - cd src/pyhardlinkbackup
     - git checkout -qf $TRAVIS_COMMIT
     - pip install -e .
