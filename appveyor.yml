@@ -12,18 +12,52 @@ build: false
 
 environment:
     matrix:
-        - PYTHON: "C:/Python34"
-        - PYTHON: "C:/Python35"
+      - PYTHON: "C:\\Python34"
+        PY_PYTHON: 3.4-32
+        PY_PYTHON3: 3.4-32
+        PYTHON_VERSION: "3.4.x"
+        PYTHON_ARCH: "32"
+
+      - PYTHON: "C:\\Python34-x64"
+        PY_PYTHON: 3.4
+        PY_PYTHON3: 3.4
+        PYTHON_VERSION: "3.4.x"
+        PYTHON_ARCH: "64"
+
+      # Python 3.5-32 won't run through the C:\Windows\py.exe launcher on
+      # AppVeyor for some reason. See:
+      # http://help.appveyor.com/discussions/problems/3891-py-35-32-hellopy-fails-with-error-code-103
+      # - PYTHON: "C:\\Python35"
+      # - PY_PYTHON: 3.5-32
+      # - PY_PYTHON3: 3.5-32
+      # - PYTHON_VERSION: "3.5.x"
+      # - PYTHON_ARCH: "32"
+
+      - PYTHON: "C:\\Python35-x64"
+        PY_PYTHON: 3.5
+        PY_PYTHON3: 3.5
+        PYTHON_VERSION: "3.5.x"
+        PYTHON_ARCH: "64"
 
 platform:
     - AnyCPU
 
 init:
     - echo %PYTHON%
-    - ps: "ls C:/Python*"
+    # Prepend newly installed Python to the PATH of this build (this cannot be
+    # done from inside the powershell script as it would require to restart
+    # the parent CMD process).
+    - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
     - set
-    - py -V
-    - py -3 -V
+
+    # Check that we have the expected version and architecture for Python
+    - "python --version"
+    - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+    - "py -V"
+    - "py -c \"import sys; print(sys.version)\""
+    - "py -3 -V"
+    - "py -3 -c \"import sys; print(sys.version)\""
 
 # clone directory
 clone_folder: c:/pyhardlinkbackup_clone
