@@ -8,9 +8,7 @@ DESTINATION=~/PyHardLinkBackup
 
     python3 --version
 
-    rm -Rf ${DESTINATION}
-
-    python3 -m venv --without-pip ${DESTINATION}
+    python3 -Im venv --without-pip ${DESTINATION}
 
     ls -la ${DESTINATION}/bin
 )
