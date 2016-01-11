@@ -69,10 +69,10 @@ clone_depth: 5 # clone entire repository history if not defined
 
 install:
     - cd c:/pyhardlinkbackup_clone
-    - "py -3 -c \"from dev.patch_cmd import patch;patch('boot_pyhardlinkbackup.cmd')\""
+    - "py -3 -c \"from dev.patch_cmd import patch;patch('boot_pyhardlinkbackup.cmd', debug=True)\""
     - boot_pyhardlinkbackup.cmd
     - cd %APPDATA%/PyHardLinkBackup/Scripts
-    - pip uninstall PyHardLinkBackup
+    - pip uninstall -y PyHardLinkBackup
     - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
     - cd src/pyhardlinkbackup
     - git checkout -qf %APPVEYOR_REPO_COMMIT%

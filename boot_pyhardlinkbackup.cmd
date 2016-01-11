@@ -66,7 +66,7 @@ echo on
 explorer.exe %BASE_PATH%
 @echo off
 pause
-goto:eof
+exit 0
 
 
 :test_exist

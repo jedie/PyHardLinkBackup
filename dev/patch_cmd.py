@@ -1,6 +1,6 @@
 
 
-def patch(filepath):
+def patch(filepath, debug):
     """
     replace 'pause' from windows batch.
     Needed for ci.appveyor.com
@@ -17,3 +17,9 @@ def patch(filepath):
         outfile.write(new_content)
 
     print("%r patched" % filepath)
+    if debug:
+        print("-"*79)
+        print(repr(new_content))
+        print("-"*79)
+        print(new_content)
+        print("-"*79)
