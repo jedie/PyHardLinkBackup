@@ -51,7 +51,7 @@ def helper():
     if sys.platform.startswith("win"):
         # link batch files
         src_path = os.path.join(BASE_DIR, "helper_cmd")
-    if sys.platform.startswith("linux"):
+    elif sys.platform.startswith("linux"):
         # link shell scripts
         src_path = os.path.join(BASE_DIR, "helper_sh")
     else:
