@@ -127,6 +127,8 @@ You can just open the editor with the user directory .ini file with:
 (PyHardLinkBackup) ~/PyHardLinkBackup $ phlb config
 }}}
 
+The defaults are stored here: [[https://github.com/jedie/PyHardLinkBackup/blob/master/PyHardLinkBackup/phlb/config_defaults.ini|/phlb/config_defaults.ini]]
+
 
 == run unittests
 {{{
