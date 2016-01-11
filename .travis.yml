@@ -59,7 +59,9 @@ script:
     - coverage run --source=PyHardLinkBackup --parallel-mode ${PHLB} tests
     - coverage combine
 
-after_success: coveralls
+after_success:
+    - coveralls
+    - coverage report
 
 notifications:
     irc: "irc.freenode.org#pylucid"

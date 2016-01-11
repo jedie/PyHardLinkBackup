@@ -82,6 +82,9 @@ install:
 
 test_script:
     - cd %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
-    - coverage run --source=PyHardLinkBackup --parallel-mode %APPDATA%/PyHardLinkBackup/Scripts/phlb.exe tests
+    - coverage run --source=PyHardLinkBackup --parallel-mode -m PyHardLinkBackup.phlb_cli tests
     - coverage combine
+
+on_success:
     - coveralls
+    - coverage report
