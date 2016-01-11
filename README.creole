@@ -21,6 +21,7 @@ current state:
 Please, try, fork and contribute! ;)
 
 | {{https://travis-ci.org/jedie/PyHardLinkBackup.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/PyHardLinkBackup/|travis-ci.org/jedie/PyHardLinkBackup]] |
+| {{https://ci.appveyor.com/api/projects/status/py5sl38ql3xciafc?svg=true|Build Status on appveyor.com}} | [[https://ci.appveyor.com/project/jedie/pyhardlinkbackup/history|ci.appveyor.com/project/jedie/pyhardlinkbackup]] |
 | {{https://coveralls.io/repos/jedie/PyHardLinkBackup/badge.svg|Coverage Status on coveralls.io}} | [[https://coveralls.io/r/jedie/PyHardLinkBackup|coveralls.io/r/jedie/PyHardLinkBackup]] |
 | {{https://requires.io/github/jedie/PyHardLinkBackup/requirements.svg?branch=master|Requirements Status on requires.io}} | [[https://requires.io/github/jedie/PyHardLinkBackup/requirements/|requires.io/github/jedie/PyHardLinkBackup/requirements/]] |
 
