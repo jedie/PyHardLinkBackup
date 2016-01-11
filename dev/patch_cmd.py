@@ -16,4 +16,4 @@ def patch(filepath):
     with open(filepath, "w") as outfile:
         outfile.write(new_content)
 
-    print("%r patched")
+    print("%r patched" % filepath)
