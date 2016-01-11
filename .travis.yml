@@ -55,8 +55,8 @@ script:
     - which python
     - python --version
     - echo $(pwd)
-    - which phlb
-    - coverage run --source=PyHardLinkBackup --parallel-mode phlb tests
+    - PHLB=$(which phlb)
+    - coverage run --source=PyHardLinkBackup --parallel-mode ${PHLB} tests
     - coverage combine
 
 after_success: coveralls
