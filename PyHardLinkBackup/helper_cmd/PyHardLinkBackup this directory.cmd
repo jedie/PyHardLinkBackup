@@ -1,33 +1,39 @@
 @echo off
 title %~0
 
-set SCRIPT_PATH="%APPDATA%\PyHardLinkBackup\Scripts\"
-cd /d %SCRIPT_PATH%
-if not "%errorlevel%"=="0" (
-    echo.
-    echo ERROR: venv/Script path not found here:
-    echo.
-    echo %SCRIPT_PATH%
-    echo.
-    pause
-    exit
-)
+set BASE_PATH=%APPDATA%\PyHardLinkBackup
+call:test_exist "%BASE_PATH%" "venv not found here:"
+cd /d %BASE_PATH%
 
-set PHLB_EXE=phlb.exe
-if NOT exist %PHLB_EXE% (
-    echo.
-    echo ERROR: Can't find %PHLB_EXE% in Scripts
-    echo.
-    echo Not found in: %SCRIPT_PATH%
-    echo.
-    pause
-    exit 1
-)
+set SCRIPT_PATH=%BASE_PATH%\Scripts
+call:test_exist "%SCRIPT_PATH%" "venv/Script path not found here:"
+
+set ACTIVATE=%SCRIPT_PATH%\activate.bat
+call:test_exist "%ACTIVATE%" "venv activate not found here:"
 
 echo on
+call "%ACTIVATE%"
 
-%PHLB_EXE% backup "%~dp0"
+set EXE=%SCRIPT_PATH%\phlb.exe
+call:test_exist "%EXE%" "phlb.exe not found here:"
+
+echo on
+"%EXE%" backup "%~dp0\"
 
 @echo off
-echo.
+title end - %~0
 pause
+goto:eof
+
+
+:test_exist
+    if NOT exist "%~1" (
+        echo.
+        echo ERROR: %~2
+        echo.
+        echo "%~1"
+        echo.
+        pause
+        exit 1
+    )
+goto:eof
