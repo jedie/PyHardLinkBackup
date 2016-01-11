@@ -69,7 +69,7 @@ INI_CONVERTER_DICT = {
 
 
 def get_dict_from_ini(filepath):
-    log.debug("Read config %r" % filepath)
+    log.debug("Read config '%s'" % filepath)
     parser = configparser.ConfigParser(interpolation=None)
     parser.read(filepath)
     config={}
@@ -91,7 +91,7 @@ def get_ini_search_paths():
         os.path.join(os.getcwd(), CONFIG_FILENAME),
         get_user_ini_filepath()
     ]
-    log.debug("Search paths: %r" % search_paths)
+    log.debug("Search paths: '%s'" % search_paths)
     return search_paths
 
 
@@ -144,11 +144,11 @@ class PyHardLinkBackupConfig(object):
         try:
             return self._config[item]
         except KeyError:
-            raise AttributeError("%s missing in %r" % (item.upper(), self.ini_filepath))
+            raise AttributeError("%s missing in '%s'" % (item.upper(), self.ini_filepath))
 
     def __repr__(self):
         self._load()
-        return "%r with %r" % (self.ini_filepath, self._config)
+        return "'%s' with '%s'" % (self.ini_filepath, self._config)
 
     def open_editor(self):
         self._load()
@@ -182,7 +182,7 @@ class PyHardLinkBackupConfig(object):
                     value = func(value)
                 except (KeyError, ValueError) as err:
                     edit_ini(self.ini_filepath)
-                    raise Exception("%s - .ini file: %r" % (err, self.ini_filepath))
+                    raise Exception("%s - .ini file: '%s'" % (err, self.ini_filepath))
 
             result[key] = value
         return result
@@ -194,10 +194,10 @@ class PyHardLinkBackupConfig(object):
         default_config_filepath = os.path.join(
             os.path.dirname(__file__), DEAFULT_CONFIG_FILENAME
         )
-        log.debug("Read defaults from: %r" % default_config_filepath)
+        log.debug("Read defaults from: '%s'" % default_config_filepath)
         if not os.path.isfile(default_config_filepath):
             raise RuntimeError(
-                "Internal error: Can't locate the default .ini file here: %r" % default_config_filepath
+                "Internal error: Can't locate the default .ini file here: '%s'" % default_config_filepath
             )
         config = self._read_and_convert(default_config_filepath, all_values=True)
         log.debug("Defaults: %s", pprint.pformat(config))
@@ -231,7 +231,7 @@ class PyHardLinkBackupConfig(object):
 
     def print_config(self):
         self._load()
-        print("Debug config %r:" % self.ini_filepath)
+        print("Debug config '%s':" % self.ini_filepath)
         pprint.pprint(self._config)
 
 phlb_config=PyHardLinkBackupConfig(INI_CONVERTER_DICT)
@@ -244,7 +244,7 @@ if __name__ == '__main__':
 
     phlb_config=PyHardLinkBackupConfig(INI_CONVERTER_DICT)
 
-    print("INI filepath: %r" % phlb_config.ini_filepath)
+    print("INI filepath: '%s'" % phlb_config.ini_filepath)
     pprint.pprint(phlb_config)
 
     print()

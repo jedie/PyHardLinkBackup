@@ -72,21 +72,21 @@ class PathHelper(object):
     """
     def __init__(self, src_path):
         self.abs_src_root = self.abs_norm_path(src_path)
-        log.debug(" * abs_src_root: %r", self.abs_src_root)
+        log.debug(" * abs_src_root: '%s'", self.abs_src_root)
 
         if not os.path.isdir(self.abs_src_root):
-            raise OSError("Source path %r doesn't exists!" % self.abs_src_root)
+            raise OSError("Source path '%s' doesn't exists!" % self.abs_src_root)
 
         self.src_prefix_path, self.backup_name = os.path.split(self.abs_src_root)
-        log.debug(" * src_prefix_path: %r", self.src_prefix_path)
-        log.debug(" * backup_name: %r", self.backup_name)
+        log.debug(" * src_prefix_path: '%s'", self.src_prefix_path)
+        log.debug(" * backup_name: '%s'", self.backup_name)
 
         backup_datetime = datetime.datetime.now()
         self.time_string = backup_datetime.strftime(phlb_config.sub_dir_formatter)
         log.debug(" * time_string: %r", self.time_string)
 
         self.abs_dst_root = os.path.join(phlb_config.backup_path, self.backup_name, self.time_string)
-        log.debug(" * abs_dst_root: %r", self.abs_dst_root)
+        log.debug(" * abs_dst_root: '%s'", self.abs_dst_root)
 
         self.backup_run = BackupRun.objects.create(
             name = self.backup_name,
@@ -109,7 +109,7 @@ class PathHelper(object):
         Set one filepath to backup this file.
         Called for every file in the source directory.
         """
-        log.debug("set_src_filepath() with: %r", src_filepath)
+        log.debug("set_src_filepath() with: '%s'", src_filepath)
         self.abs_src_filepath = self.abs_norm_path(src_filepath)
         log.debug(" * abs_src_filepath: %s" % self.abs_src_filepath)
 
@@ -159,13 +159,13 @@ class FileBackup(object):
         stined_bytes = 0
 
         src_path = self.file_entry.path
-        log.debug("*** deduplication backup: %r", src_path)
+        log.debug("*** deduplication backup: '%s'", src_path)
 
         self.path.set_src_filepath(src_path)
-        log.debug("abs_src_filepath: %r", self.path.abs_src_filepath)
-        log.debug("abs_dst_filepath: %r", self.path.abs_dst_filepath)
-        log.debug("abs_dst_hash_filepath: %r", self.path.abs_dst_hash_filepath)
-        log.debug("abs_dst_dir: %r", self.path.abs_dst_path)
+        log.debug("abs_src_filepath: '%s'", self.path.abs_src_filepath)
+        log.debug("abs_dst_filepath: '%s'", self.path.abs_dst_filepath)
+        log.debug("abs_dst_hash_filepath: '%s'", self.path.abs_dst_hash_filepath)
+        log.debug("abs_dst_dir: '%s'", self.path.abs_dst_path)
 
         if not os.path.isdir(self.path.abs_dst_path):
             os.makedirs(
@@ -196,13 +196,13 @@ class FileBackup(object):
         no_old_backup = True
         for old_backup in old_backups:
             no_old_backup = False
-            log.debug("+++ old: %r", old_backup)
-            log.debug("+++ rel: %r", old_backup.get_backup_path())
+            log.debug("+++ old: '%s'", old_backup)
+            log.debug("+++ rel: '%s'", old_backup.get_backup_path())
 
             abs_old_backup_path = old_backup.get_backup_path()
-            log.debug("+++ abs: %r", abs_old_backup_path)
+            log.debug("+++ abs: '%s'", abs_old_backup_path)
             if not os.path.isfile(abs_old_backup_path):
-                log.error("*** ERROR old file doesn't exist! %r", abs_old_backup_path)
+                log.error("*** ERROR old file doesn't exist! '%s'", abs_old_backup_path)
                 continue
 
             # TODO:
@@ -210,7 +210,7 @@ class FileBackup(object):
             # compare current content
             os.remove(self.path.abs_dst_filepath)
             os.link(abs_old_backup_path, self.path.abs_dst_filepath)
-            log.info("Replaced with a hardlink to: %r" % abs_old_backup_path)
+            log.info("Replaced with a hardlink to: '%s'" % abs_old_backup_path)
             new_bytes = 0
             stined_bytes = file_size
             break
@@ -241,7 +241,7 @@ class HardLinkBackup(object):
         self.start_time = default_timer()
         self.path = PathHelper(src_path)
 
-        print("Backup to: %r" % self.path.abs_dst_root)
+        print("Backup to: '%s'" % self.path.abs_dst_root)
         os.makedirs(
             self.path.abs_dst_root,
             mode=phlb_config.default_new_path_mode,
@@ -249,7 +249,7 @@ class HardLinkBackup(object):
         )
         if not os.path.isdir(self.path.abs_dst_root):
             raise OSError(
-                "Backup path %r doesn't exists!" % self.path.abs_dst_root
+                "Backup path '%s' doesn't exists!" % self.path.abs_dst_root
             )
 
         try:
@@ -257,9 +257,9 @@ class HardLinkBackup(object):
         except KeyboardInterrupt:
             print("\nCleanup after keyboard interrupt:")
 
-            print("\t* clean %r" % self.path.abs_dst_root)
+            print("\t* clean '%s'" % self.path.abs_dst_root)
             def print_error(fn, path, excinfo):
-                print("\tError remove: %r" % path)
+                print("\tError remove: '%s'" % path)
             shutil.rmtree(self.path.abs_dst_root, ignore_errors=True, onerror=print_error)
 
             # TODO: Remove unused ForeignKey, too,
@@ -276,7 +276,7 @@ class HardLinkBackup(object):
         file_list = []
         total_size = 0
         start_time = default_timer()
-        print("\nScan %r...\n" % path)
+        print("\nScan '%s'...\n" % path)
 
         skip_dirs = phlb_config.skip_dirs
         skip_files = phlb_config.skip_files
@@ -312,7 +312,7 @@ class HardLinkBackup(object):
         total_stined_bytes = 0
         with tqdm(total=self.total_size, unit='B', unit_scale=True) as process_bar:
             for no, file_entry in enumerate(file_list):
-                log.debug("%i %r", no, file_entry.path)
+                log.debug("%i '%s'", no, file_entry.path)
 
                 file_backup = FileBackup(file_entry, self.path)
                 new_bytes, stined_bytes = file_backup.deduplication_backup(process_bar)
@@ -352,7 +352,7 @@ if __name__ == '__main__':
     src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
     # src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "django_project")
 
-    print("\n*** Test run with: %r ***\n" % src_path)
+    print("\n*** Test run with: '%s' ***\n" % src_path)
 
     phlb = HardLinkBackup(src_path=src_path)
     phlb.print_summary()

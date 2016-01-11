@@ -50,7 +50,7 @@ def helper():
     """
     ENV_ROOT=os.path.normpath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
     if not os.path.isdir(ENV_ROOT):
-        raise RuntimeError("venv not found here: %r" % ENV_ROOT)
+        raise RuntimeError("venv not found here: '%s'" % ENV_ROOT)
 
     if sys.platform.startswith("win"):
         # link batch files
@@ -63,23 +63,23 @@ def helper():
         return
 
     if not os.path.isdir(src_path):
-        raise RuntimeError("Helper script path not found here: %r" % src_path)
+        raise RuntimeError("Helper script path not found here: '%s'" % src_path)
 
     for entry in scandir(src_path):
         print("_"*79)
-        print("Link file: %r" % entry.name)
+        print("Link file: '%s'" % entry.name)
         src = entry.path
         dst = os.path.join(ENV_ROOT, entry.name)
         if os.path.exists(dst):
-            print("Remove old file %r" % dst)
+            print("Remove old file '%s'" % dst)
             try:
                 os.remove(dst)
             except OSError as err:
                 print("\nERROR:\n%s\n" % err)
                 continue
 
-        print("source.....: %r" % src)
-        print("destination: %r" % dst)
+        print("source.....: '%s'" % src)
+        print("destination: '%s'" % dst)
         try:
             os.link(src, dst)
         except OSError as err:
@@ -133,7 +133,7 @@ def tests(nosehelp, debug):
     """Run unittests"""
     runner = CliRunner()
     with runner.isolated_filesystem() as temp_dir:
-        print("Temp dir: %r" % temp_dir)
+        print("Temp dir: '%s'" % temp_dir)
         if nosehelp:
             argv = [sys.argv[0], "--help"]
         else:

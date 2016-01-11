@@ -90,7 +90,7 @@ DATABASES = {
         'NAME': _phlb_config.database_name,
     }
 }
-print("Use Database file: %r" % DATABASES["default"]["NAME"])
+print("Use Database file: '%s'" % DATABASES["default"]["NAME"])
 
 
 # Internationalization
