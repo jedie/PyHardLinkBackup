@@ -15,7 +15,7 @@ Hardlink/Deduplication Backups with Python.
 
 current state:
 
-* python 3 only
+* python 3 only (3.4, 3.5, TODO: 3.3)
 * Beta state
 
 Please, try, fork and contribute! ;)

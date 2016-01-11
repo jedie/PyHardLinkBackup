@@ -203,9 +203,7 @@ setup(
         "click", # https://github.com/mitsuhiko/click
     ],
     extras_require={
-        ':python_version=="3.0" or python_version=="3.1" or '
-        'python_version=="3.2" or python_version=="3.3" or '
-        'python_version=="3.4"': [
+        ':python_version=="3.3" or python_version=="3.4"': [
             "scandir", # https://pypi.python.org/pypi/scandir
         ],
     },
@@ -220,6 +218,9 @@ setup(
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License (GPL)",
+        # "Programming Language :: Python :: 3.3", # TODO
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3 :: Only",
         'Framework :: Django',
         "Topic :: Database :: Front-Ends",

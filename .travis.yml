@@ -1,8 +1,7 @@
 language: python
 
 python:
-    - "3.2"
-    - "3.3"
+    #- "3.3" # TODO: https://travis-ci.org/jedie/PyHardLinkBackup/jobs/101706193
     - "3.4"
     - "3.5"
 
