@@ -19,7 +19,7 @@ class TestConfig(unittest.TestCase):
     def test_user_ini_default(self):
         runner = CliRunner()
         result = runner.invoke(cli, ["config", "--debug"])
-        # print(result.output, file=sys.stderr)
+        print(result.output)
         self.assertIn("PyHardLinkBackup", result.output)
 
         # First the unittest temp .ini will be used:
@@ -52,7 +52,7 @@ class TestConfig(unittest.TestCase):
             phlb_config._load(force=True)
 
             result = runner.invoke(cli, ["config", "--debug"])
-            # print(result.output, file=sys.stderr)
+            print(result.output)
             self.assertIn("PyHardLinkBackup", result.output)
 
             ini_path=os.path.join(os.getcwd(), "PyHardLinkBackup.ini")
