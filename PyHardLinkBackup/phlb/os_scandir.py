@@ -1,5 +1,5 @@
 import fnmatch
-
+import logging
 import os
 
 # Use the built-in version of scandir/walk if possible, otherwise
@@ -13,7 +13,7 @@ except ImportError:
     except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
-from PyHardLinkBackup.phlb.phlb_main import log
+log = logging.getLogger("phlb.%s" % __name__)
 
 def fnmatches(filename, patterns):
     for pattern in patterns:

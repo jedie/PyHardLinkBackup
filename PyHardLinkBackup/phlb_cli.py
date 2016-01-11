@@ -109,7 +109,7 @@ cli.add_command(runserver)
 def migrate():
     """Start django webserver with: 'manage migrate'"""
     raise RuntimeError("Please use 'manage.py' for this!")
-cli.add_command(runserver)
+cli.add_command(migrate)
 
 
 @click.command()
