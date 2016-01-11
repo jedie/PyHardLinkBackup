@@ -40,6 +40,9 @@ def hashname(value):
     return value
 
 def expand_abs_path(value):
+    value=value.strip()
+    if value==":memory:":
+        return value
     return os.path.normpath(os.path.abspath(os.path.expanduser(value)))
 
 def logging_level(value):

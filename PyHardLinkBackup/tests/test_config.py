@@ -21,11 +21,24 @@ class TestConfig(unittest.TestCase):
         result = runner.invoke(cli, ["config", "--debug"])
         # print(result.output, file=sys.stderr)
         self.assertIn("PyHardLinkBackup", result.output)
-        self.assertIn(USER_INI, result.output)
-        self.assertIn("PyHardLinkBackups.sqlite3", result.output)
+
+        # First the unittest temp .ini will be used:
+        ini_path=os.path.join(os.getcwd(), "PyHardLinkBackup.ini")
+        self.assertIn(ini_path, result.output)
+
+        self.assertIn("'database_name': ':memory:',", result.output)
         self.assertIn("'default_new_path_mode': 448,", result.output)
         self.assertIn("'hash_name': 'sha512',", result.output)
         self.assertEqual(result.exit_code,0)
+
+        # go into a new temp dir, without a .ini:
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            phlb_config._load(force=True)
+            result = runner.invoke(cli, ["config", "--debug"])
+            self.assertIn(USER_INI, result.output)
+            self.assertIn("PyHardLinkBackups.sqlite3", result.output)
+
 
     def test_overwrite(self):
         """

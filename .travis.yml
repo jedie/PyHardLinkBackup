@@ -37,7 +37,6 @@ install:
     - ls
     - pip uninstall -y PyHardLinkBackup
     - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
-    - which phlb
     - ls
     - SRC=$(python -c "import os,PyHardLinkBackup;print(os.path.dirname(PyHardLinkBackup.__file__))")
     - cd ${SRC}
@@ -56,9 +55,8 @@ script:
     - which python
     - python --version
     - echo $(pwd)
-    - NOSE_BIN=$(which nosetests)
-    - echo ${NOSE_BIN}
-    - coverage run --source=PyHardLinkBackup --parallel-mode ${NOSE_BIN}
+    - which phlb
+    - coverage run --source=PyHardLinkBackup --parallel-mode phlb tests
     - coverage combine
 
 after_success: coveralls

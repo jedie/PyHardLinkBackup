@@ -11,6 +11,9 @@ import sys
 
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
+import nose
+from click.testing import CliRunner
+
 try:
     from os import scandir # new in Python 3.5
 except ImportError:
@@ -25,6 +28,9 @@ import click
 import PyHardLinkBackup
 
 from PyHardLinkBackup.phlb.config import phlb_config
+
+
+PHLB_BASE_DIR=os.path.abspath(os.path.dirname(PyHardLinkBackup.__file__))
 
 
 @click.group()
@@ -42,18 +48,16 @@ def helper():
     """
     setup helper files in venv root dir
     """
-    BASE_DIR=os.path.abspath(os.path.dirname(PyHardLinkBackup.__file__))
-
     ENV_ROOT=os.path.normpath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
     if not os.path.isdir(ENV_ROOT):
         raise RuntimeError("venv not found here: %r" % ENV_ROOT)
 
     if sys.platform.startswith("win"):
         # link batch files
-        src_path = os.path.join(BASE_DIR, "helper_cmd")
+        src_path = os.path.join(PHLB_BASE_DIR, "helper_cmd")
     elif sys.platform.startswith("linux"):
         # link shell scripts
-        src_path = os.path.join(BASE_DIR, "helper_sh")
+        src_path = os.path.join(PHLB_BASE_DIR, "helper_sh")
     else:
         print("TODO: %s" % sys.platform)
         return
@@ -120,6 +124,51 @@ def backup(path):
     backup(path)
 
 cli.add_command(backup)
+
+
+@click.command()
+@click.option('--nosehelp', is_flag=True, default=False)
+@click.option('--debug', is_flag=True, default=False)
+def tests(nosehelp, debug):
+    """Run unittests"""
+    runner = CliRunner()
+    with runner.isolated_filesystem() as temp_dir:
+        print("Temp dir: %r" % temp_dir)
+        if nosehelp:
+            argv = [sys.argv[0], "--help"]
+        else:
+            with open("PyHardLinkBackup.ini", 'w') as ini:
+                ini.write("[common]\n")
+                ini.write("DATABASE_NAME=:memory:\n")
+                ini.write("BACKUP_PATH=%s/PyHardLinkBackups\n" % temp_dir)
+
+            phlb_config._load(force=True)
+            if debug:
+                phlb_config.print_config()
+
+            import django
+            django.setup()
+
+            from django.core import management
+            if debug:
+                print("-"*79)
+                management.call_command("diffsettings")
+            print("-"*79)
+            management.call_command("migrate")
+            print("-"*79)
+
+            argv = [argv for argv in sys.argv if "debug" not in argv]
+            del(argv[1]) # delete: 'tests'
+
+            argv.append("--with-doctest")
+            argv.append("--verbosity=2")
+            argv.append(PHLB_BASE_DIR)
+
+        if debug:
+            print("Debug nose argv: %s" % repr(argv))
+        nose.main(argv=argv)
+
+cli.add_command(tests)
 
 
 if __name__ == '__main__':

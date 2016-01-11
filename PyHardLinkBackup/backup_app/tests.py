@@ -34,7 +34,8 @@ class ModelTests(TestCase):
             file_stat=test_file_stat,
         )
 
-        default_path=os.path.expanduser("~/PyHardLinkBackups")
+        # unittests set path to /temp_dir/PyHardLinkBackups
+        default_path=os.path.join(os.getcwd(), "PyHardLinkBackups")
 
         self.assertEqual(
             test_entry.get_backup_path(),
