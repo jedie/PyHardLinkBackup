@@ -33,20 +33,53 @@ if "%VERSION3%"=="" (
     echo Python v3 is: %VERSION%
 )
 
+set BASE_PATH=%APPDATA%\PyHardLinkBackup
+
+
 set destination=%APPDATA%\PyHardLinkBackup
-mkdir %destination%
-if NOT exist %destination% (
-    echo ERROR: '%destination%' doesn't exists?!?
-    pause
-    exit 1
-)
+mkdir %DESTINATION%
+call:test_exist "%DESTINATION%" "venv destination not found here:"
 
 echo on
-py -3 -m venv %destination%
-%destination%\Scripts\pip.exe install PyHardLinkBackup
-%destination%\Scripts\phlb_setup_helper_files.exe
+py -3 -m venv %DESTINATION%
+@echo off
+
+set SCRIPT_PATH="%DESTINATION%\Scripts"
+call:test_exist "%SCRIPT_PATH%" "venv/Script path not found here:"
+
+set ACTIVATE=%SCRIPT_PATH%\activate.bat
+call:test_exist "%ACTIVATE%" "venv activate not found here:"
+
+echo on
+call %ACTIVATE%
+
+set PIP_EXE="%DESTINATION%\Scripts\pip.exe"
+call:test_exist "%PIP_EXE%" "pip not found here:"
+echo on
+%PIP_EXE% install PyHardLinkBackup
+@echo off
+
+set PHLB_EXE="%DESTINATION%\Scripts\phlb.exe"
+call:test_exist "%PHLB_EXE%" "phlb not found here:"
+echo on
+%PHLB_EXE% helper
 @echo off
 
 echo on
-explorer.exe %destination%
-@pause
+explorer.exe %DESTINATION%
+@echo off
+pause
+goto:eof
+
+
+:test_exist
+    if NOT exist "%~1" (
+        echo.
+        echo ERROR: %~2
+        echo.
+        echo "%~1"
+        echo.
+        pause
+        exit 1
+    )
+goto:eof
