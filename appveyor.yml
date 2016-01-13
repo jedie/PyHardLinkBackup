@@ -87,7 +87,7 @@ install:
 
 test_script:
     - cd %APPDATA%/PyHardLinkBackup/Scripts
-    - coverage run --source=PyHardLinkBackup --parallel-mode manage test --verbosity=2 %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
+    - coverage run --source=PyHardLinkBackup --parallel-mode -m nose PyHardLinkBackup --verbosity=2
     - coverage combine
 
 on_success:
