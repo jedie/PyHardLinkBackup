@@ -86,8 +86,8 @@ install:
     - manage migrate
 
 test_script:
-    - cd %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
-    - coverage run --source=PyHardLinkBackup --parallel-mode -m PyHardLinkBackup.phlb_cli tests
+    - cd %APPDATA%/PyHardLinkBackup/Scripts
+    - coverage run --source=PyHardLinkBackup --parallel-mode manage test --verbosity=2 %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
     - coverage combine
 
 on_success:

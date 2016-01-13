@@ -10,4 +10,5 @@ twine
 
 # unittests
 nose
+django-nose
 coveralls

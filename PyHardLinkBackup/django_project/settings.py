@@ -22,7 +22,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_USERNAME="AutoLoginUser"
 DEFAULT_USERPASS="no password needed!"
 
-
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,6 +43,16 @@ SECRET_KEY = 'no-secet'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+
+try:
+    import django_nose
+except ImportError:
+    pass
+else:
+    INSTALLED_APPS += ('django_nose',)
+    TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+    del(django_nose)
 
 
 MIDDLEWARE_CLASSES = (
@@ -112,15 +121,26 @@ STATIC_URL = '/static/'
 
 
 
+#CRITICAL 	50
+#ERROR 	    40
+#WARNING 	30
+#INFO 	    20
+#DEBUG 	    10
+#NOTSET 	0
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    #'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 20
+        },
         'PyHardLinkBackup': {
             'handlers': ['console'],
             'level': _phlb_config.logging_level,

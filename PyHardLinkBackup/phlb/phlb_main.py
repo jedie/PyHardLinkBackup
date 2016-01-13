@@ -26,7 +26,7 @@ except ImportError as err:
 
 
 log = logging.getLogger("phlb.%s" % __name__)
-# logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 
 # os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
@@ -151,13 +151,9 @@ class FileBackup(object):
             out_file.write(data)
             hash.update(data)
             process_bar.update(len(data))
-
         return hash
 
     def deduplication_backup(self, process_bar):
-        new_bytes = 0
-        stined_bytes = 0
-
         src_path = self.file_entry.path
         log.debug("*** deduplication backup: '%s'", src_path)
 
@@ -173,7 +169,7 @@ class FileBackup(object):
                 mode=phlb_config.default_new_path_mode
             )
         else:
-            assert not os.path.isfile(self.path.abs_dst_filepath), self.path.abs_dst_filepath
+            assert not os.path.isfile(self.path.abs_dst_filepath), "Out file already exists: %r" % self.path.abs_src_filepath
 
         try:
             with open(self.path.abs_src_filepath, "rb") as in_file:
@@ -187,20 +183,13 @@ class FileBackup(object):
             os.remove(self.path.abs_dst_hash_filepath)
             sys.exit(-1)
 
-        file_stat=self.file_entry.stat()
-        file_size=file_stat.st_size
-
         old_backups = BackupEntry.objects.filter(
             content_info__hash_hexdigest=hash_hexdigest
         )
-        no_old_backup = True
+        file_linked = False
         for old_backup in old_backups:
-            no_old_backup = False
             log.debug("+++ old: '%s'", old_backup)
-            log.debug("+++ rel: '%s'", old_backup.get_backup_path())
-
             abs_old_backup_path = old_backup.get_backup_path()
-            log.debug("+++ abs: '%s'", abs_old_backup_path)
             if not os.path.isfile(abs_old_backup_path):
                 log.error("*** ERROR old file doesn't exist! '%s'", abs_old_backup_path)
                 continue
@@ -209,16 +198,15 @@ class FileBackup(object):
             # compare hash
             # compare current content
             os.remove(self.path.abs_dst_filepath)
+
+            assert abs_old_backup_path != self.path.abs_dst_filepath
             os.link(abs_old_backup_path, self.path.abs_dst_filepath)
+
+            file_linked = True
             log.info("Replaced with a hardlink to: '%s'" % abs_old_backup_path)
-            new_bytes = 0
-            stined_bytes = file_size
             break
 
-        if no_old_backup:
-            log.debug("+++ no old entry in database!")
-            new_bytes = file_size
-            stined_bytes = 0
+        file_stat=self.file_entry.stat()
 
         BackupEntry.objects.create(
             self.path.backup_run,
@@ -233,7 +221,7 @@ class FileBackup(object):
         mtime_ns = file_stat.st_mtime_ns
         os.utime(self.path.abs_dst_filepath, ns=(atime_ns, mtime_ns))
 
-        return new_bytes, stined_bytes
+        return file_linked, file_stat.st_size
 
 
 class HardLinkBackup(object):
@@ -271,7 +259,6 @@ class HardLinkBackup(object):
             print("Bye")
             sys.exit(1)
 
-
     def _scandir(self, path):
         file_list = []
         total_size = 0
@@ -308,30 +295,37 @@ class HardLinkBackup(object):
             human_filesize(self.total_size), self.file_count,
         ))
 
-        total_new_bytes = 0
-        total_stined_bytes = 0
+        self.total_file_link_count = 0
+        self.total_stined_bytes = 0
+        self.total_new_file_count = 0
+        self.total_new_bytes = 0
         with tqdm(total=self.total_size, unit='B', unit_scale=True) as process_bar:
             for no, file_entry in enumerate(file_list):
                 log.debug("%i '%s'", no, file_entry.path)
 
                 file_backup = FileBackup(file_entry, self.path)
-                new_bytes, stined_bytes = file_backup.deduplication_backup(process_bar)
-                total_new_bytes += new_bytes
-                total_stined_bytes += stined_bytes
+                file_linked, file_size = file_backup.deduplication_backup(process_bar)
+                if file_linked:
+                    # os.link() was used
+                    self.total_file_link_count += 1
+                    self.total_stined_bytes += file_size
+                else:
+                    self.total_new_file_count += 1
+                    self.total_new_bytes += file_size
 
         self.duration = default_timer() - self.start_time
-        self.total_new_bytes = total_new_bytes
-        self.total_stined_bytes = total_stined_bytes
 
     def get_summary(self):
         summary = ["Backup done:"]
         summary.append(" * Files to backup: %i files" % self.file_count)
         summary.append(" * Source file sizes: %s" % human_filesize(self.total_size))
-        summary.append(" * new content to saved: %s (%.1f%%)" % (
+        summary.append(" * new content to saved: %i files (%s %.1f%%)" % (
+            self.total_new_file_count,
             human_filesize(self.total_new_bytes),
             (self.total_new_bytes/self.total_size*100)
         ))
-        summary.append(" * stint space via hardlinks: %s (%.1f%%)" % (
+        summary.append(" * stint space via hardlinks: %i files (%s %.1f%%)" % (
+            self.total_file_link_count,
             human_filesize(self.total_stined_bytes),
             (self.total_stined_bytes/self.total_size*100)
         ))

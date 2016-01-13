@@ -4,15 +4,14 @@ import os
 import datetime
 import hashlib
 
-from django.test import TestCase
+from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
+from PyHardLinkBackup.tests.base import BaseTestCase
 
-from .models import BackupRun, BackupEntry
 
-
-class ModelTests(TestCase):
+class ModelTests(BaseTestCase):
     def test_path(self):
         test_backup_name = "Unittest"
-        test_datetime = datetime.datetime(2016,1,2,hour=3,minute=4,second=5)
+        test_datetime = datetime.datetime(2016,1,2,hour=3,minute=4,second=5, microsecond=123456)
 
         test_backup_run = BackupRun.objects.create(
             name=test_backup_name,
@@ -24,7 +23,7 @@ class ModelTests(TestCase):
 
         test_file_stat = mock.Mock()
         test_file_stat.st_size = 1234
-        test_file_stat.st_mtime_ns = 1234567890
+        test_file_stat.st_mtime_ns = 1234567890.654321
 
         test_entry = BackupEntry.objects.create(
             backup_run=test_backup_run,
@@ -34,12 +33,9 @@ class ModelTests(TestCase):
             file_stat=test_file_stat,
         )
 
-        # unittests set path to /temp_dir/PyHardLinkBackups
-        default_path=os.path.join(os.getcwd(), "PyHardLinkBackups")
-
         self.assertEqual(
             test_entry.get_backup_path(),
-            os.path.join(default_path,
-                "Unittest/2016-01-02-030405/a/sub/dir/test_filename.foo".replace("/", os.sep)
+            os.path.join(self.backup_path,
+                "Unittest/2016-01-02-030405.123456/a/sub/dir/test_filename.foo".replace("/", os.sep)
             )
         )
