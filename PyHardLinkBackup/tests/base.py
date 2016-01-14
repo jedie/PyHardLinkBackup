@@ -54,7 +54,11 @@ class BaseTestCase(django.test.TestCase):
         )
 
     def tearDown(self):
-        shutil.rmtree(self.temp_root_path)
+        # FIXME: Under windows the root temp dir can't be deleted:
+        # PermissionError: [WinError 32] The process cannot access the file because it is being used by another process
+        def rmtree_error(function, path, excinfo):
+            print("Error remove temp: %r" % path)
+        shutil.rmtree(self.temp_root_path, ignore_errors=True, onerror=rmtree_error)
 
     def assert_click_exception(self, result):
         if result.exception:
@@ -179,7 +183,7 @@ class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
 
     def setUp(self):
         super(BaseCreatedTwoBackupsTestCase, self).setUp()
-        
+
         self.second_backup_result = self.invoke_cli("backup", self.source_path)
         self.second_run_path = self.get_newest_backup_path()
 
@@ -189,7 +193,7 @@ class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
         #print("\n".join(tree_list))
         # pprint.pprint(tree_list,indent=0, width=200)
         self.assertEqual(tree_list, [self.first_run_path]+self.backuped_file_info)
-        
+
     def assert_second_backup(self):
         fs_helper = UnittestFileSystemHelper()
         tree_list = fs_helper.pformat_tree(self.second_run_path, with_timestamps=False)
