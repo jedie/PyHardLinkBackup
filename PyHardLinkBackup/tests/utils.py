@@ -6,6 +6,10 @@ import posixpath
 import sys
 
 
+def force_posixpath(path):
+    return posixpath.normpath(path.replace(os.sep, "/"))
+
+
 class UnittestFileSystemHelper(object):
     DATETIME_FORMATTER="%Y%m%d:%H%M%S"
 
@@ -29,7 +33,7 @@ class UnittestFileSystemHelper(object):
     def pformat_tree(self, path, with_timestamps):
 
         def pformat_stat(path):
-            result = ["%-30s" % posixpath.normpath(path)]
+            result = ["%-30s" % force_posixpath(path)]
             stat = os.stat(path)
 
             if os.path.isfile(path):
@@ -59,7 +63,7 @@ class UnittestFileSystemHelper(object):
         lines = []
         for root, dirs, files in os.walk("."):
             if root == ".":
-                lines.append(posixpath.normpath(os.path.abspath(root)))
+                lines.append(os.path.abspath(root))
             else:
                 lines.append(pformat_stat(root))
 
