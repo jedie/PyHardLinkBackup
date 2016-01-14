@@ -32,7 +32,7 @@ Please, try, fork and contribute! ;)
 $ phlb backup ~/my/important/documents
 ...start backup, some time later...
 $ phlb backup ~/my/important/documents
-... 
+...
 }}}
 This will create deduplication backups like this:
 {{{
@@ -166,11 +166,26 @@ And then just request 'localhost'
 * copy file meta data like owner, mode etc.
 * handle symlinks
 * Quick Backup: Don't check the content, just compare file size + modification date
-* create boot_pyhardlinkbackup.sh script for linux
 * write docs
 * write more tests
-* activate CI
-* Far future: Add a GUI
+* Far futures:
+** Add a GUI
+** use shadow-copy/snapshot function
+
+
+== History
+
+* 15.01.2016 - v0.3.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.2.0...v0.3.0|compare v0.2.0...v0.3.0]]
+** **database migration needed**
+** Add 'no_link_source' to database (e.g. Skip source, if 1024 links created under windows)
+* 14.01.2016 - v0.2.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.1.8...v0.2.0|compare v0.1.8...v0.2.0]]
+** good unittests coverage that covers the backup process
+* 08.01.2016 - v0.1.8 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.1.0alpha0...v0.1.8|compare v0.1.0alpha0...v0.1.8]]
+** install and runable under Windows
+* 06.01.2016 - v0.1.0alpha0 - [[https://github.com/jedie/PyHardLinkBackup/commit/d42a5c59c0dcdf8d2f8bb2a3a3dc2c51862fed17|d42a5c5]]
+** first Release on PyPi
+* 29.12.2015 - [[https://github.com/jedie/PyHardLinkBackup/commit/2ce43d326fafbde5a3526194cf957f00efe0f198|commit 2ce43]]
+** commit 'Proof of concept'
 
 
 == Links
