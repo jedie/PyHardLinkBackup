@@ -91,12 +91,12 @@ test_script:
     - call phlb_run_unittests.cmd no_report
 
 on_finish:
+    - cd %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
     - coverage combine
+    - coverage report
 
     - set COVERALLS_REPO_TOKEN=3uErcCZvScP0LKMj9qcgab67qRsu8XnSQ
     - coveralls
-
-    - coverage report
 
     # http://www.appveyor.com/docs/how-to/rdp-to-build-worker
     #- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

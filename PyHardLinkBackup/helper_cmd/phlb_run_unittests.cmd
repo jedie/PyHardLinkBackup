@@ -34,6 +34,8 @@ echo on
 "%PIP_EXE%" install -r "%REQ_PATH%"
 "%PIP_EXE%" install --upgrade -r "%REQ_PATH%"
 
+cd "%PKG_PATH%"
+cd ..
 coverage.exe run --source=PyHardLinkBackup --parallel-mode -m nose PyHardLinkBackup --verbosity=2
 @echo off
 if "%1" == "no_report" (
