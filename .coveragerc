@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = pyhardlinkbackup
+source = PyHardLinkBackup
 
 [report]
 # Theres files will only be used with open(..., "r"):

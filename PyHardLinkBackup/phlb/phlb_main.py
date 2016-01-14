@@ -103,7 +103,6 @@ class PathHelper(object):
         self.abs_dst_filepath = None
         self.abs_dst_hash_filepath = None
 
-
     def set_src_filepath(self, src_filepath):
         """
         Set one filepath to backup this file.
@@ -183,8 +182,11 @@ class FileBackup(object):
             os.remove(self.path.abs_dst_hash_filepath)
             sys.exit(-1)
 
+        temp_bak_name=self.path.abs_dst_filepath+".bak" # FIXME
+
         old_backups = BackupEntry.objects.filter(
-            content_info__hash_hexdigest=hash_hexdigest
+            content_info__hash_hexdigest=hash_hexdigest,
+            no_link_source=False,
         )
         file_linked = False
         for old_backup in old_backups:
@@ -194,17 +196,26 @@ class FileBackup(object):
                 log.error("*** ERROR old file doesn't exist! '%s'", abs_old_backup_path)
                 continue
 
-            # TODO:
-            # compare hash
-            # compare current content
-            os.remove(self.path.abs_dst_filepath)
-
             assert abs_old_backup_path != self.path.abs_dst_filepath
-            os.link(abs_old_backup_path, self.path.abs_dst_filepath)
 
-            file_linked = True
-            log.info("Replaced with a hardlink to: '%s'" % abs_old_backup_path)
-            break
+            # TODO: compare hash / current content before replace with a link
+
+            os.rename(self.path.abs_dst_filepath, temp_bak_name) # FIXME
+            try:
+                os.link(abs_old_backup_path, self.path.abs_dst_filepath)
+            except OSError as err:
+                os.rename(temp_bak_name, self.path.abs_dst_filepath) # FIXME
+                log.error("Can't link %r to %r: %s" % (
+                    abs_old_backup_path, self.path.abs_dst_filepath, err
+                ))
+                log.info("Mark %r with 'no link source'.")
+                old_backup.no_link_source=True
+                old_backup.save()
+            else:
+                os.remove(temp_bak_name) # FIXME
+                file_linked = True
+                log.info("Replaced with a hardlink to: '%s'" % abs_old_backup_path)
+                break
 
         file_stat=self.file_entry.stat()
 

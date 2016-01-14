@@ -100,6 +100,10 @@ class BackupEntry(models.Model):
     file_mtime_ns = models.PositiveIntegerField(editable=False,
         help_text=_("Time of most recent content modification expressed in nanoseconds as an integer.")
     )
+    no_link_source=models.BooleanField(default=False,
+        help_text=_("Can this file be used as a hardlink source? (Will be set if a os.link() failed.)")
+    )
+
     objects = BackupEntryManager()
 
     def get_backup_path(self):

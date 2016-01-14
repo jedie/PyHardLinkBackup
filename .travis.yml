@@ -49,8 +49,8 @@ install:
     - MANAGE=$(which manage)
     - echo ${MANAGE}
     - ${MANAGE} migrate
-    - cat requirements/dev_extras.txt
-    - pip install -r requirements/dev_extras.txt
+    - cat PyHardLinkBackup/requirements/dev_extras.txt
+    - pip install -r PyHardLinkBackup/requirements/dev_extras.txt
 
 script:
     - which python
