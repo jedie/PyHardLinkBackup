@@ -55,7 +55,6 @@ class BaseTestCase(django.test.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.temp_root_path)
-        os.mkdir(self.temp_root_path)
 
     def assert_click_exception(self, result):
         if result.exception:
