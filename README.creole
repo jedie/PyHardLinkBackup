@@ -161,6 +161,11 @@ And then just request 'localhost'
 (Note: **--noreload** is needed under windows with venv!)
 
 
+=== Windows Develompment
+
+Some notes about to setup a develomplemt under windows, please look at: [[https://github.com/jedie/PyHardLinkBackup/blob/master/dev/WindowsDevelopment.creole|/dev/WindowsDevelopment.creole]]
+
+
 == TODO
 
 * copy file meta data like owner, mode etc.
