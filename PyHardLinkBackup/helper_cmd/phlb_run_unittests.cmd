@@ -37,10 +37,11 @@ echo on
 cd "%PKG_PATH%"
 cd ..
 coverage.exe run --source=PyHardLinkBackup --parallel-mode -m nose PyHardLinkBackup --verbosity=2
+set test_errorlevel=%errorlevel%
 @echo off
 if "%1" == "no_report" (
     REM called from AppVeyor
-    exit 0
+    exit %test_errorlevel%
 )
 echo on
 coverage.exe combine
