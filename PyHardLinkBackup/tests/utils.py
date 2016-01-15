@@ -13,10 +13,24 @@ def force_posixpath(path):
 class UnittestFileSystemHelper(object):
     DATETIME_FORMATTER="%Y%m%d:%H%M%S"
 
+    def __init__(self):
+        self.default_mtime = 111111111 # UTC: 1973-07-10 00:11:51
+        self.default_mtime_string = "19730710:001151"
+
+        mtime_string=self.timestamp2string(self.default_mtime)
+        assert mtime_string == self.default_mtime_string, "%s != %s" % (mtime_string, self.default_mtime_string)
+
+    def timestamp2string(self, timestamp):
+        dt = datetime.datetime.utcfromtimestamp(timestamp)
+        return dt.strftime(self.DATETIME_FORMATTER)
+
     def set_test_stat(self, path):
-        atime = 222222222 # 1977-01-16 01:23:42
-        mtime = 111111111 # 1973-07-10 01:11:51
-        os.utime(path, (atime, mtime))
+        atime = 222222222 # UTC: 1977-01-16 01:23:42
+        os.utime(path, (atime, self.default_mtime))
+
+        # check mtime:
+        mtime_string=self.timestamp2string(os.stat(path).st_mtime)
+        assert mtime_string == self.default_mtime_string, "%s != %s" % (mtime_string, self.default_mtime_string)
 
     def create_test_fs(self, fs_dict, dir=None):
         for name, data in fs_dict.items():
@@ -50,10 +64,9 @@ class UnittestFileSystemHelper(object):
             result.append(fs_type)
 
             if with_timestamps:
-                mtime = stat.st_mtime
-                dt = datetime.datetime.fromtimestamp(mtime)
-                mtime_string = dt.strftime(self.DATETIME_FORMATTER)
-                result.append(mtime_string)
+                result.append(
+                    self.timestamp2string(stat.st_mtime)
+                )
 
             return " ".join(result)
 
