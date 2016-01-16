@@ -13,7 +13,7 @@ import configparser
 
 # https://github.com/mitsuhiko/click
 import click
-
+import pathlib
 
 log = logging.getLogger("phlb.%s" % __name__)
 
@@ -72,6 +72,7 @@ def get_dict_from_ini(filepath):
     log.debug("Read config '%s'" % filepath)
     parser = configparser.ConfigParser(interpolation=None)
     parser.read(filepath)
+
     config={}
     for section in parser.sections():
         config.update(
@@ -83,14 +84,15 @@ def get_dict_from_ini(filepath):
 
 
 def get_user_ini_filepath():
-    return os.path.join(os.path.expanduser("~"), CONFIG_FILENAME)
+    p = pathlib.Path.home()
+    return p.joinpath(pathlib.Path(CONFIG_FILENAME))
 
 
 def get_ini_search_paths():
-    search_paths=[
-        os.path.join(os.getcwd(), CONFIG_FILENAME),
-        get_user_ini_filepath()
-    ]
+    p = pathlib.Path.cwd()
+    search_paths=[path.joinpath(pathlib.Path(CONFIG_FILENAME)) for path in p.parents]
+    search_paths.append(get_user_ini_filepath())
+    search_paths=[str(path) for path in search_paths]
     log.debug("Search paths: '%s'" % search_paths)
     return search_paths
 
@@ -190,7 +192,7 @@ class PyHardLinkBackupConfig(object):
     def _read_config(self):
         """
         returns the config as a dict.
-        """       
+        """
         default_config_filepath = os.path.join(
             os.path.dirname(__file__), DEAFULT_CONFIG_FILENAME
         )
@@ -201,7 +203,7 @@ class PyHardLinkBackupConfig(object):
             )
         config = self._read_and_convert(default_config_filepath, all_values=True)
         log.debug("Defaults: %s", pprint.pformat(config))
-    
+
         self.ini_filepath = get_ini_filepath()
         if not self.ini_filepath:
             # No .ini file made by user found
