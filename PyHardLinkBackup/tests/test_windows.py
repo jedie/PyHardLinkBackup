@@ -18,6 +18,8 @@ from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 
 @unittest.skipUnless(sys.platform.startswith("win"), "Test only for Windows")
 class WindowsTestCase(BaseSourceDirTestCase):
+
+    @unittest.skipIf("FAST_TEST" in os.environ, "Skip slow test")
     def test_link_limit(self):
         """
         NTFS filesystem has a limit of 1024 hard links on a file.

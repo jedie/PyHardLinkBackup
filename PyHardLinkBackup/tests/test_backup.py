@@ -1,4 +1,5 @@
 import os
+import unittest
 import pprint
 
 from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase
@@ -47,4 +48,10 @@ class TestBackup(BaseCreatedTwoBackupsTestCase):
         self.assert_first_backup()
         self.assert_second_backup()
 
+    @unittest.skip("TODO!")
+    def test_summary(self):
+        pass
 
+    @unittest.skip("TODO!")
+    def test_log_file(self):
+        pass

@@ -90,9 +90,15 @@ def get_user_ini_filepath():
 
 def get_ini_search_paths():
     p = pathlib.Path.cwd()
-    search_paths=[path.joinpath(pathlib.Path(CONFIG_FILENAME)) for path in p.parents]
+
+    search_paths = [p]
+    search_paths += [path for path in p.parents]
+
+    search_paths = [path.joinpath(pathlib.Path(CONFIG_FILENAME)) for path in search_paths]
+
     search_paths.append(get_user_ini_filepath())
-    search_paths=[str(path) for path in search_paths]
+    search_paths = [str(path) for path in search_paths]
+    # print("Search paths:\n%s" % "\n".join(search_paths))
     log.debug("Search paths: '%s'" % search_paths)
     return search_paths
 
@@ -100,7 +106,9 @@ def get_ini_search_paths():
 def get_ini_filepath():
     search_paths=get_ini_search_paths()
     for filepath in search_paths:
+        # print("Look for .ini: %r" % filepath)
         if os.path.isfile(filepath):
+            # print("Use .ini from: %r" % filepath)
             return filepath
 
 

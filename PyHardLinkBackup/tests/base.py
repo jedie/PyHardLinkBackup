@@ -30,8 +30,9 @@ def get_newest_directory(path):
     """
     Returns the newest directory path by mtime_ns
     """
-    sub_dirs = [entry for entry in scandir(path) if entry.is_dir]
+    sub_dirs = [entry for entry in scandir(path) if entry.is_dir()]
     sub_dirs.sort(key=lambda x: x.stat().st_mtime_ns)
+    print("Backup sub dirs:\n\t%s" % "\n\t".join([p.path for p in sub_dirs]))
     sub_dir = sub_dirs[-1]
     return sub_dir.path
 
@@ -154,7 +155,12 @@ class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
     The 'source unittests files' will be backuped one time.
     """
     def assert_backup_fs_count(self, count):
+        # TODO: count dirs and files seperate!
         fs_items=os.listdir(self.backup_sub_path)
+
+        # add .log and summay files for every backup run
+        count += (count * 2)
+
         self.assertEqual(len(fs_items), count, "%i != %i - items: %s" % (len(fs_items), count, repr(fs_items)))
 
     def assert_first_backup(self):
