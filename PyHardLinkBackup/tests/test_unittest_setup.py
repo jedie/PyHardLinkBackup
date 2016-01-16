@@ -29,7 +29,7 @@ class TestBaseBackup(BaseWithSourceFilesTestCase):
         tree_list = fs_helper.pformat_tree(self.source_path, with_timestamps=True)
         # print("\n".join(tree_list))
         # pprint.pprint(tree_list,indent=0, width=200)
-        self.assertEqual(tree_list, [
+        self.assertListEqual(tree_list, [
             self.source_path,
             'root_file_A.txt                F 19730710:001151 - The root file A content.',
             'root_file_B.txt                F 19730710:001151 - The root file B content.',

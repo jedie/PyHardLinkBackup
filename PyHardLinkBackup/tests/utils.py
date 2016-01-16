@@ -97,11 +97,12 @@ class UnittestFileSystemHelper(object):
     def print_tree(self, path):
         if sys.platform.startswith("linux"):
             # http://mama.indstate.edu/users/ice/tree/
-            try:
-                subprocess.Popen(["tree", "--inodes", path]).wait()
-            except FileNotFoundError as err:
-                raise FileNotFoundError(
-                    "Please install the linux package 'tree' - Origin Error: %s" % err
-                )
+            args = ["tree", "--inodes", path]
+            kwargs = {}
+        elif sys.platform.startswith("win"):
+            args = ["tree", path, "/f", "/a"]
+            kwargs = {"shell": True} # otherwise: File Not Found
         else:
             raise NotImplementedError("TODO: %s" % sys.platform)
+
+        subprocess.run(args, timeout=5, check=True, **kwargs)

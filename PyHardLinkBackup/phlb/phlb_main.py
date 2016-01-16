@@ -205,10 +205,10 @@ class FileBackup(object):
                 os.link(abs_old_backup_path, self.path.abs_dst_filepath)
             except OSError as err:
                 os.rename(temp_bak_name, self.path.abs_dst_filepath) # FIXME
-                log.error("Can't link %r to %r: %s" % (
+                log.error("Can't link '%s' to '%s': %s" % (
                     abs_old_backup_path, self.path.abs_dst_filepath, err
                 ))
-                log.info("Mark %r with 'no link source'.")
+                log.info("Mark %r with 'no link source'.", old_backup)
                 old_backup.no_link_source=True
                 old_backup.save()
             else:
@@ -327,18 +327,25 @@ class HardLinkBackup(object):
         self.duration = default_timer() - self.start_time
 
     def get_summary(self):
+        def to_percent(part, total):
+            try:
+                return part/total*100
+            except ZeroDivisionError:
+                # e.g.: Backup only 0-Bytes files ;)
+                return 0
+
         summary = ["Backup done:"]
         summary.append(" * Files to backup: %i files" % self.file_count)
         summary.append(" * Source file sizes: %s" % human_filesize(self.total_size))
         summary.append(" * new content to saved: %i files (%s %.1f%%)" % (
             self.total_new_file_count,
             human_filesize(self.total_new_bytes),
-            (self.total_new_bytes/self.total_size*100)
+            to_percent(self.total_new_bytes, self.total_size)
         ))
         summary.append(" * stint space via hardlinks: %i files (%s %.1f%%)" % (
             self.total_file_link_count,
             human_filesize(self.total_stined_bytes),
-            (self.total_stined_bytes/self.total_size*100)
+            to_percent(self.total_stined_bytes, self.total_size)
         ))
         performance = self.total_size / self.duration / 1024.0 / 1024.0
         summary.append(" * duration: %s %.1fMB/s\n" % (human_time(self.duration), performance))

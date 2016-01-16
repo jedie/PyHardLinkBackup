@@ -5,6 +5,17 @@ import os
 import unittest
 import tempfile
 
+# Use the built-in version of scandir/walk if possible, otherwise
+# use the scandir module version
+try:
+    from os import scandir # new in Python 3.5
+except ImportError:
+    # use https://pypi.python.org/pypi/scandir
+    try:
+        from scandir import scandir
+    except ImportError:
+        raise ImportError("For Python <2.5: Please install 'scandir' !")
+
 import django
 
 from click.testing import CliRunner
@@ -13,6 +24,16 @@ from PyHardLinkBackup.backup_app.models import BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config, set_phlb_logger
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
+
+
+def get_newest_directory(path):
+    """
+    Returns the newest directory path by mtime_ns
+    """
+    sub_dirs = [entry for entry in scandir(path) if entry.is_dir]
+    sub_dirs.sort(key=lambda x: x.stat().st_mtime_ns)
+    sub_dir = sub_dirs[-1]
+    return sub_dir.path
 
 
 class BaseTestCase(django.test.TestCase):
@@ -96,16 +117,32 @@ EXAMPLE_FS_DATA = {
 }
 
 
-class BaseWithSourceFilesTestCase(BaseTestCase):
+class BaseSourceDirTestCase(BaseTestCase):
     """
-    Tests with created example source files under /temp/
+    Tests with empty "source unittests files" directory under /temp/
     """
     maxDiff=10000
-    def setUp(self):
-        super(BaseWithSourceFilesTestCase, self).setUp()
 
+    def setUp(self):
+        super(BaseSourceDirTestCase, self).setUp()
+
+        # directory to store source test files
         self.source_path = os.path.join(self.temp_root_path, "source unittests files")
         os.mkdir(self.source_path)
+
+        # path to the backups for self.source_path
+        self.backup_sub_path=os.path.join(self.backup_path, "source unittests files")
+
+    def get_newest_backup_path(self):
+        return get_newest_directory(self.backup_sub_path)
+
+
+class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
+    """
+    Tests with created example source files under /temp/source unittests files&
+    """
+    def setUp(self):
+        super(BaseWithSourceFilesTestCase, self).setUp()
 
         fs_helper = UnittestFileSystemHelper()
         fs_helper.create_test_fs(EXAMPLE_FS_DATA, self.source_path)
@@ -126,7 +163,7 @@ class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
         tree_list = fs_helper.pformat_tree(self.first_run_path, with_timestamps=False)
         #print("\n".join(tree_list))
         # pprint.pprint(tree_list,indent=0, width=200)
-        self.assertEqual(tree_list, [
+        self.assertListEqual(tree_list, [
             self.first_run_path,
             'root_file_A.txt                F - The root file A content.',
             'root_file_A.txt.sha512         F - 13e3e...d7df6',
@@ -142,15 +179,9 @@ class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
             'sub dir B/sub_file.txt.sha512  F - bbe59...dbdbb'
         ])
 
-    def get_newest_backup_path(self):
-        backup_sub_dirs = os.listdir(self.backup_sub_path)
-        backup_sub_dirs.sort()
-        return os.path.join(self.backup_sub_path, backup_sub_dirs[-1])
 
     def setUp(self):
         super(BaseCreatedOneBackupsTestCase, self).setUp()
-
-        self.backup_sub_path=os.path.join(self.backup_path, "source unittests files")
 
         self.first_backup_result = self.invoke_cli("backup", self.source_path)
         self.first_run_path = self.get_newest_backup_path()
@@ -192,11 +223,11 @@ class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
         tree_list = fs_helper.pformat_tree(self.first_run_path, with_timestamps=False)
         #print("\n".join(tree_list))
         # pprint.pprint(tree_list,indent=0, width=200)
-        self.assertEqual(tree_list, [self.first_run_path]+self.backuped_file_info)
+        self.assertListEqual(tree_list, [self.first_run_path]+self.backuped_file_info)
 
     def assert_second_backup(self):
         fs_helper = UnittestFileSystemHelper()
         tree_list = fs_helper.pformat_tree(self.second_run_path, with_timestamps=False)
         #print("\n".join(tree_list))
         # pprint.pprint(tree_list,indent=0, width=200)
-        self.assertEqual(tree_list, [self.second_run_path]+self.backuped_file_info)
+        self.assertListEqual(tree_list, [self.second_run_path]+self.backuped_file_info)

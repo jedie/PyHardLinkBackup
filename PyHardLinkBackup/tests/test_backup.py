@@ -13,7 +13,7 @@ class TestBackup(BaseCreatedTwoBackupsTestCase):
 
         # run backup
         result = self.invoke_cli("backup", self.source_path)
-        
+
         print(result.output)
 
         self.assertIn("110 Bytes in 5 files to backup.", result.output)
@@ -27,7 +27,7 @@ class TestBackup(BaseCreatedTwoBackupsTestCase):
         #fs_helper.print_tree(self.backup_path)
         tree_list = fs_helper.pformat_tree(backup_path, with_timestamps=False)
         pprint.pprint(tree_list,indent=0, width=200)
-        self.assertEqual(tree_list, [
+        self.assertListEqual(tree_list, [
             backup_path,
             'root_file_A.txt                L - The root file A content.',
             'root_file_A.txt.sha512         F - 13e3e...d7df6',
@@ -46,3 +46,5 @@ class TestBackup(BaseCreatedTwoBackupsTestCase):
         # first + second data must be untouched:
         self.assert_first_backup()
         self.assert_second_backup()
+
+

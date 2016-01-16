@@ -4,10 +4,10 @@
 """
     secure_js_login distutils setup
     ~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     Links
     ~~~~~
-    
+
     http://www.python-forum.de/viewtopic.php?f=21&t=26895 (de)
 
     :copyleft: 2009-2015 by the secure_js_login team, see AUTHORS for more details.
@@ -218,7 +218,6 @@ setup(
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License (GPL)",
-        # "Programming Language :: Python :: 3.3", # TODO
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3 :: Only",
