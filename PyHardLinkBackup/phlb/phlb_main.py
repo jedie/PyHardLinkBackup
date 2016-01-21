@@ -180,7 +180,7 @@ class HardLinkBackup(object):
                 print("Bye")
                 sys.exit(1)
 
-            summary_file.write(".n".join(self.get_summary()))
+            summary_file.write("\n".join(self.get_summary()))
 
 
     def setup_logging(self):
