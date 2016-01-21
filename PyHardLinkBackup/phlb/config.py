@@ -84,7 +84,11 @@ def get_dict_from_ini(filepath):
 
 
 def get_user_ini_filepath():
-    p = pathlib.Path.home()
+    try:
+        p = pathlib.Path.home() # new in Py 3.5
+    except AttributeError:
+        p = pathlib.Path(os.path.expanduser("~"))
+
     return p.joinpath(pathlib.Path(CONFIG_FILENAME))
 
 
