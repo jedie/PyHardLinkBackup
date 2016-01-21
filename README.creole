@@ -144,7 +144,7 @@ The defaults are stored here: [[https://github.com/jedie/PyHardLinkBackup/blob/m
 {{{
 $ cd PyHardLinkBackup/
 ~/PyHardLinkBackup $ source bin/activate
-(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb test
+(PyHardLinkBackup) ~/PyHardLinkBackup $ manage test
 }}}
 
 
