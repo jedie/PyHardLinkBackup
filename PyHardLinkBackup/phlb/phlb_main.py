@@ -17,6 +17,8 @@ import sys
 # time.clock() on windows and time.time() on linux
 from timeit import default_timer
 
+from django.conf import settings
+
 try:
     # https://github.com/tqdm/tqdm
     from tqdm import tqdm
@@ -155,11 +157,21 @@ class HardLinkBackup(object):
                 "Backup path '%s' doesn't exists!" % self.path.abs_dst_root
             )
 
+        # make temp file available in destination via link ;)
+        assert os.path.isfile(settings.LOG_FILEPATH), "%s doesn't exists?!?" % settings.LOG_FILEPATH
+        try:
+            os.link(settings.LOG_FILEPATH, self.path.log_filepath)
+        except OSError as err:
+            # e.g.:
+            # temp is on a other drive than the destination
+            log.error("Can't link log file: %s" % err)
+            copy_log=True
+        else:
+            copy_log=False
+
         with open(self.path.summary_filepath, "w") as summary_file:
             summary_file.write("Start backup: %s\n\n" % self.path.time_string)
             summary_file.write("Source: %s\n\n" % self.path.abs_src_root)
-
-            self.setup_logging()
 
             try:
                 self._backup()
@@ -182,22 +194,11 @@ class HardLinkBackup(object):
 
             summary_file.write("\n".join(self.get_summary()))
 
-
-    def setup_logging(self):
-
-        level = phlb_config.logging_level
-        if level>=logging.DEBUG:
-            # use root logger
-            logger = logging.getLogger()
-        else:
-            logger = logging.getLogger("phlb")
-
-        logger.setLevel(level=level)
-        logger.handlers = []
-        logger.addHandler(logging.StreamHandler())
-        logger.addHandler(logging.FileHandler(self.path.log_filepath))
-
-        logger.info("Set log level to %i and log into: %r" % (level, self.path.log_filepath))
+        if copy_log:
+            log.warn("copy log file from '%s' to '%s'" % (
+                settings.LOG_FILEPATH, self.path.log_filepath
+            ))
+            shutil.copyfile(settings.LOG_FILEPATH, self.path.log_filepath)
 
     def _scandir(self, path):
         file_list = []
@@ -231,9 +232,11 @@ class HardLinkBackup(object):
         file_list = self._scandir(self.path.abs_src_root)
         self.file_count = len(file_list)
 
-        print("%s in %i files to backup." % (
+        msg="%s in %i files to backup." % (
             human_filesize(self.total_size), self.file_count,
-        ))
+        )
+        print(msg)
+        log.warn(msg)
 
         self.total_file_link_count = 0
         self.total_stined_bytes = 0

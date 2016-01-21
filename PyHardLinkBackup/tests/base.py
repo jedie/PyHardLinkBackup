@@ -21,7 +21,7 @@ import django
 from click.testing import CliRunner
 
 from PyHardLinkBackup.backup_app.models import BackupEntry
-from PyHardLinkBackup.phlb.config import phlb_config, set_phlb_logger
+from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 

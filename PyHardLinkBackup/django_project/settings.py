@@ -120,7 +120,16 @@ USE_L10N = True
 
 STATIC_URL = '/static/'
 
-
+import tempfile
+fd, LOG_FILEPATH = tempfile.mkstemp(prefix="PyHardLinkBackup_", suffix=".log")
+print("log file: %s" % LOG_FILEPATH)
+print(os.path.isfile(LOG_FILEPATH))
+with open(fd, "w") as f:
+    f.write("\n\n")
+    f.write("_"*79)
+    f.write("\n")
+    f.write("Start low level logging from: %s\n" % __file__)
+    f.write("\n")
 
 #CRITICAL 	50
 #ERROR 	    40
@@ -129,22 +138,29 @@ STATIC_URL = '/static/'
 #DEBUG 	    10
 #NOTSET 	0
 LOGGING = {
-    'version': 1,
-    #'disable_existing_loggers': True,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": True,
+    # "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": _phlb_config.logging_console_level,
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": LOG_FILEPATH,
+            "level": _phlb_config.logging_file_level,
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 20
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": False,
         },
-        'PyHardLinkBackup': {
-            'handlers': ['console'],
-            'level': _phlb_config.logging_level,
+        "phlb": {
+            "handlers": ["file", "console"],
+            "propagate": False,
         },
     },
 }

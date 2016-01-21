@@ -2,11 +2,13 @@ import os
 import unittest
 import pprint
 
-from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase
+import pathlib
+
+from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 
 
-class TestBackup(BaseCreatedTwoBackupsTestCase):
+class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
     def test_changed_file(self):
         filepath = os.path.join(self.source_path, "sub dir A", "dir_A_file_B.txt")
         with open(filepath, "w") as f:
@@ -48,10 +50,30 @@ class TestBackup(BaseCreatedTwoBackupsTestCase):
         self.assert_first_backup()
         self.assert_second_backup()
 
-    @unittest.skip("TODO!")
-    def test_summary(self):
-        pass
 
-    @unittest.skip("TODO!")
+class TestOneBackups(BaseCreatedOneBackupsTestCase):
+    def test_summary(self):
+        summary_filepath = pathlib.Path(self.first_run_path + " summary.txt")
+        self.assertTrue(summary_filepath.is_file(), "%s doesn't exist" % summary_filepath)
+
+        with summary_filepath.open("r") as f: # Path().read_text() is new in Py 2.5
+            summary_content = f.read()
+        print(summary_content)
+
+        self.assertIn("Backup done:", summary_content)
+        self.assertIn("Source file sizes: 106 Bytes", summary_content)
+        self.assertIn("new content to saved: 5 files (106 Bytes 100.0%)", summary_content)
+        self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", summary_content)
+
+
     def test_log_file(self):
-        pass
+        logfilepath = pathlib.Path(self.first_run_path + ".log")
+        self.assertTrue(logfilepath.is_file(), "%s doesn't exist" % logfilepath)
+
+        with logfilepath.open("r") as f: # Path().read_text() is new in Py 2.5
+            log_content = f.read()
+
+        print(log_content)
+        self.assertIn("Backup", log_content)
+        self.assertIn("Start low level logging", log_content)
+

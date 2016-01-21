@@ -22,7 +22,6 @@ def setup_sqlite(sender, connection, **kwargs):
         )
         for pragma in pragmas:
             log.info("Execute: '%s'" % pragma)
-            print("Execute: '%s'" % pragma)
             cursor.execute(pragma)
 
 connection_created.connect(setup_sqlite)

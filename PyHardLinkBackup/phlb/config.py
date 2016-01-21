@@ -60,7 +60,9 @@ INI_CONVERTER_DICT = {
     "skip_dirs": commalist,
     "skip_files": commalist,
 
-    "logging_level": logging_level,
+    "logging_console_level": logging_level,
+    "logging_file_level": logging_level,
+
     "default_new_path_mode": int8,
     "hash_name": hashname,
     "chunk_size": int,
@@ -129,15 +131,6 @@ def edit_ini(ini_filepath=None):
         webbrowser.open(ini_filepath)
 
 
-def set_phlb_logger(level):
-    phlb_logger = logging.getLogger("phlb")
-    phlb_logger.setLevel(level=level)
-    phlb_logger.handlers = []
-    handler = logging.StreamHandler()
-    phlb_logger.addHandler(handler)
-    phlb_logger.info("Set log level: %i" % level)
-
-
 class PyHardLinkBackupConfig(object):
     ini_filepath=None
     _config=None
@@ -149,7 +142,6 @@ class PyHardLinkBackupConfig(object):
     def _load(self, force=False):
         if force or self._config is None:
             self._config = self._read_config()
-            set_phlb_logger(level=self._config["logging_level"])
 
     def __getattr__(self, item):
         self._load()
