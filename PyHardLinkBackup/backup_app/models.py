@@ -16,6 +16,7 @@ def setup_sqlite(sender, connection, **kwargs):
     if connection.vendor == 'sqlite':
         cursor = connection.cursor()
         pragmas = (
+            "PRAGMA journal_mode = MEMORY;",
             "PRAGMA temp_store = MEMORY;",
             "PRAGMA synchronous = OFF;"
         )
