@@ -176,18 +176,6 @@ And then just request 'localhost'
 Some notes about to setup a develomplemt under windows, please look at: [[https://github.com/jedie/PyHardLinkBackup/blob/master/dev/WindowsDevelopment.creole|/dev/WindowsDevelopment.creole]]
 
 
-== TODO
-
-* copy file meta data like owner, mode etc.
-* handle symlinks
-* Quick Backup: Don't check the content, just compare file size + modification date
-* write docs
-* write more tests
-* Far futures:
-** Add a GUI
-** use shadow-copy/snapshot function
-
-
 == History
 
 * **dev** - v0.4.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.3.1...master|compare v0.3.1...master]]
