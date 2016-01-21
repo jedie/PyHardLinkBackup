@@ -62,14 +62,8 @@ class WindowsTestCase(BaseSourceDirTestCase):
             compare_list.append('file %04i.txt.sha512           F - e3770...f651c' % no)
 
         print("Backup all files")
-        with self.assertLogs(logging.getLogger("phlb"), level=logging.INFO) as cm:
-            result = self.invoke_cli("backup", self.source_path)
-            # print(result.output)
-            logs = cm.output[:3] + ["..."] + cm.output[-3:]
-
-            logs = "\n".join(cm.output)
-            self.assertIn("Replaced with a hardlink", logs)
-            self.assertNotIn("ERROR", logs)
+        result = self.invoke_cli("backup", self.source_path)
+        # print(result.output)
 
         self.assertIn("9.0 KB in 1022 files to backup.", result.output)
         self.assertIn("new content to saved: 1 files (9 Bytes 0.1%)", result.output)
@@ -80,6 +74,10 @@ class WindowsTestCase(BaseSourceDirTestCase):
         self.assertEqual(BackupEntry.objects.filter(no_link_source=False).count(), 1022)
 
         first_run_path = self.get_newest_backup_path()
+
+        log_content = self.get_log_content(pathlib.Path(first_run_path + ".log"))
+        self.assertIn("Replaced with a hardlink", log_content)
+        self.assertNotIn("ERROR", log_content)
 
         compare_list.insert(0, first_run_path)
         # print("\n".join(compare_list))

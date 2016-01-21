@@ -4,6 +4,8 @@ import pprint
 
 import pathlib
 
+import sys
+
 from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 
@@ -67,15 +69,13 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
 
     def test_log_file(self):
-        self.assertTrue(self.first_run_log.is_file(), "%s doesn't exist" % self.first_run_log)
-
-        with self.first_run_log.open("r") as f: # Path().read_text() is new in Py 2.5
-            log_content = f.read()
+        log_content = self.get_log_content(self.first_run_log)
 
         print(log_content)
         self.assertIn("Backup", log_content)
         self.assertIn("Start low level logging", log_content)
 
+    @unittest.skipIf(sys.platform.startswith("win"), "TODO: work-a-round for os.chmod()")
     def test_skip_files(self):
         """
         Test if not open able source files, will be skipped
@@ -98,9 +98,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)
 
-        with self.first_run_log.open("r") as f: # Path().read_text() is new in Py 2.5
-            log_content = f.read()
-
+        log_content = self.get_log_content(self.first_run_log)
         print(log_content)
         self.assertIn("Skip file", log_content)
         self.assertIn("/root_file_B.txt error:", log_content)

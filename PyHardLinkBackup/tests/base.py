@@ -139,6 +139,12 @@ class BaseSourceDirTestCase(BaseTestCase):
     def get_newest_backup_path(self):
         return get_newest_directory(self.backup_sub_path)
 
+    def get_log_content(self, log_filepath):
+        self.assertTrue(log_filepath.is_file(), "%s doesn't exist" % log_filepath)
+
+        with log_filepath.open("r") as f: # Path().read_text() is new in Py 2.5
+            return f.read()
+
 
 class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
     """
