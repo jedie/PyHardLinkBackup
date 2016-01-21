@@ -178,7 +178,9 @@ Some notes about to setup a develomplemt under windows, please look at: [[https:
 
 == History
 
-* **dev** - v0.4.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.3.1...master|compare v0.3.1...master]]
+* **dev** - v0.4.1 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.4.0...master|compare v0.4.0...master]]
+** //no changes yet//
+* 21.02.2016 - v0.4.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.3.1...v0.4.0|compare v0.3.1...v0.4.0]]
 ** Search for //PyHardLinkBackup.ini// file in every parent directory from the current working dir
 ** increase default chunk size to 20MB
 ** save summary and log file for every backup run
