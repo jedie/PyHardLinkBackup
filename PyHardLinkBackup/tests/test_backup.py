@@ -67,13 +67,41 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
 
     def test_log_file(self):
-        logfilepath = pathlib.Path(self.first_run_path + ".log")
-        self.assertTrue(logfilepath.is_file(), "%s doesn't exist" % logfilepath)
+        self.assertTrue(self.first_run_log.is_file(), "%s doesn't exist" % self.first_run_log)
 
-        with logfilepath.open("r") as f: # Path().read_text() is new in Py 2.5
+        with self.first_run_log.open("r") as f: # Path().read_text() is new in Py 2.5
             log_content = f.read()
 
         print(log_content)
         self.assertIn("Backup", log_content)
         self.assertIn("Start low level logging", log_content)
 
+    def test_skip_files(self):
+        """
+        Test if not open able source files, will be skipped
+        and the backup will save the other files.
+        """
+        filepath1 = os.path.join(self.source_path, "root_file_B.txt")
+        filepath2 = os.path.join(self.source_path, "sub dir B", "sub_file.txt")
+
+        os.chmod(filepath1, 0o000)
+        os.chmod(filepath2, 0o000)
+
+        result = self.invoke_cli("backup", self.source_path)
+        print(result.output)
+
+        self.assertIn("106 Bytes in 5 files to backup.", result.output)
+        self.assertIn("WARNING: Skipped 2 files", result.output)
+        self.assertIn("new content to saved: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("stint space via hardlinks: 3 files (64 Bytes 60.4%)", result.output)
+
+        self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
+        self.assert_backup_fs_count(2)
+
+        with self.first_run_log.open("r") as f: # Path().read_text() is new in Py 2.5
+            log_content = f.read()
+
+        print(log_content)
+        self.assertIn("Skip file", log_content)
+        self.assertIn("/root_file_B.txt error:", log_content)
+        self.assertIn("/sub dir B/sub_file.txt error:", log_content)

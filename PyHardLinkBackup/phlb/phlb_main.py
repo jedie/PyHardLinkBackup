@@ -41,6 +41,10 @@ from PyHardLinkBackup.backup_app.models import BackupEntry
 from PyHardLinkBackup.phlb.path_helper import PathHelper
 
 
+class BackupFileError(Exception):
+    pass
+
+
 class FileBackup(object):
     def __init__(self, file_entry, path_helper):
         self.file_entry = file_entry # os.DirEntry() instance
@@ -77,12 +81,18 @@ class FileBackup(object):
             assert not os.path.isfile(self.path.abs_dst_filepath), "Out file already exists: %r" % self.path.abs_src_filepath
 
         try:
-            with open(self.path.abs_src_filepath, "rb") as in_file:
-                with open(self.path.abs_dst_hash_filepath, "w") as hash_file:
-                    with open(self.path.abs_dst_filepath, "wb") as out_file:
-                        hash = self._deduplication_backup(self.file_entry, in_file, out_file, process_bar)
-                    hash_hexdigest = hash.hexdigest()
-                    hash_file.write(hash_hexdigest)
+            try:
+                with open(self.path.abs_src_filepath, "rb") as in_file:
+                    with open(self.path.abs_dst_hash_filepath, "w") as hash_file:
+                        with open(self.path.abs_dst_filepath, "wb") as out_file:
+                            hash = self._deduplication_backup(self.file_entry, in_file, out_file, process_bar)
+                        hash_hexdigest = hash.hexdigest()
+                        hash_file.write(hash_hexdigest)
+            except OSError as err:
+                # FIXME: Better error message
+                raise BackupFileError(
+                    "Skip file %s error: %s" % (self.path.abs_src_filepath, err)
+                )
         except KeyboardInterrupt:
             os.remove(self.path.abs_dst_filepath)
             os.remove(self.path.abs_dst_hash_filepath)
@@ -242,19 +252,25 @@ class HardLinkBackup(object):
         self.total_stined_bytes = 0
         self.total_new_file_count = 0
         self.total_new_bytes = 0
+        self.total_skip_files = 0
         with tqdm(total=self.total_size, unit='B', unit_scale=True) as process_bar:
             for no, file_entry in enumerate(file_list):
                 log.debug("%i '%s'", no, file_entry.path)
 
                 file_backup = FileBackup(file_entry, self.path)
-                file_linked, file_size = file_backup.deduplication_backup(process_bar)
-                if file_linked:
-                    # os.link() was used
-                    self.total_file_link_count += 1
-                    self.total_stined_bytes += file_size
+                try:
+                    file_linked, file_size = file_backup.deduplication_backup(process_bar)
+                except BackupFileError as err:
+                    log.error(err)
+                    self.total_skip_files += 1
                 else:
-                    self.total_new_file_count += 1
-                    self.total_new_bytes += file_size
+                    if file_linked:
+                        # os.link() was used
+                        self.total_file_link_count += 1
+                        self.total_stined_bytes += file_size
+                    else:
+                        self.total_new_file_count += 1
+                        self.total_new_bytes += file_size
 
         self.duration = default_timer() - self.start_time
 
@@ -268,6 +284,8 @@ class HardLinkBackup(object):
 
         summary = ["Backup done:"]
         summary.append(" * Files to backup: %i files" % self.file_count)
+        if self.total_skip_files:
+            summary.append(" * WARNING: Skipped %i files!" % self.total_skip_files)
         summary.append(" * Source file sizes: %s" % human_filesize(self.total_size))
         summary.append(" * new content to saved: %i files (%s %.1f%%)" % (
             self.total_new_file_count,

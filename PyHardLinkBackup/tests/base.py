@@ -7,6 +7,8 @@ import tempfile
 
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
+import pathlib
+
 try:
     from os import scandir # new in Python 3.5
 except ImportError:
@@ -191,6 +193,8 @@ class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
 
         self.first_backup_result = self.invoke_cli("backup", self.source_path)
         self.first_run_path = self.get_newest_backup_path()
+
+        self.first_run_log = pathlib.Path(self.first_run_path + ".log")
 
 
 class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
