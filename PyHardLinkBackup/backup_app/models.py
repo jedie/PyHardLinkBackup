@@ -5,10 +5,26 @@ import logging
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.db.backends.signals import connection_created
 
 from PyHardLinkBackup.phlb.config import phlb_config
 
 log = logging.getLogger("phlb.%s" % __name__)
+
+
+def setup_sqlite(sender, connection, **kwargs):
+    if connection.vendor == 'sqlite':
+        cursor = connection.cursor()
+        pragmas = (
+            "PRAGMA temp_store = MEMORY;",
+            "PRAGMA synchronous = OFF;"
+        )
+        for pragma in pragmas:
+            log.info("Execute: '%s'" % pragma)
+            print("Execute: '%s'" % pragma)
+            cursor.execute(pragma)
+
+connection_created.connect(setup_sqlite)
 
 
 class BackupRun(models.Model):
