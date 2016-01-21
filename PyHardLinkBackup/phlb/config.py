@@ -71,7 +71,7 @@ INI_CONVERTER_DICT = {
 def get_dict_from_ini(filepath):
     log.debug("Read config '%s'" % filepath)
     parser = configparser.ConfigParser(interpolation=None)
-    parser.read(filepath)
+    parser.read_file(filepath.open("r"))
 
     config={}
     for section in parser.sections():
@@ -101,9 +101,8 @@ def get_ini_search_paths():
     search_paths = [path.joinpath(pathlib.Path(CONFIG_FILENAME)) for path in search_paths]
 
     search_paths.append(get_user_ini_filepath())
-    search_paths = [str(path) for path in search_paths]
     # print("Search paths:\n%s" % "\n".join(search_paths))
-    log.debug("Search paths: '%s'" % search_paths)
+    log.debug("Search paths: '%s'" % [str(path) for path in search_paths])
     return search_paths
 
 
@@ -111,7 +110,7 @@ def get_ini_filepath():
     search_paths=get_ini_search_paths()
     for filepath in search_paths:
         # print("Look for .ini: %r" % filepath)
-        if os.path.isfile(filepath):
+        if filepath.is_file():
             # print("Use .ini from: %r" % filepath)
             return filepath
 
@@ -184,8 +183,11 @@ class PyHardLinkBackupConfig(object):
                 traceback.print_exc()
                 print("_"*79)
                 print("ERROR: %r is missing in your config!" % err)
-                print("Debug .ini config:")
-                print(pprint.pformat(self))
+                print("Debug '%s':" % filepath)
+                try:
+                    print(pprint.pformat(d))
+                except KeyError:
+                    pass
                 print("\n")
                 if click.confirm("Open the editor?"):
                     self.open_editor()
@@ -205,11 +207,11 @@ class PyHardLinkBackupConfig(object):
         """
         returns the config as a dict.
         """
-        default_config_filepath = os.path.join(
+        default_config_filepath = pathlib.Path(
             os.path.dirname(__file__), DEAFULT_CONFIG_FILENAME
         )
         log.debug("Read defaults from: '%s'" % default_config_filepath)
-        if not os.path.isfile(default_config_filepath):
+        if not default_config_filepath.is_file():
             raise RuntimeError(
                 "Internal error: Can't locate the default .ini file here: '%s'" % default_config_filepath
             )
@@ -224,8 +226,8 @@ class PyHardLinkBackupConfig(object):
 
             # We don't use shutil.copyfile here, so the line endings will
             # be converted e.g. under windows from \n to \n\r
-            with open(default_config_filepath, "r") as infile:
-                with open(self.ini_filepath, "w") as outfile:
+            with default_config_filepath.open("r") as infile:
+                with self.ini_filepath.open("w") as outfile:
                     outfile.write(infile.read())
 
             print("\n*************************************************************")
