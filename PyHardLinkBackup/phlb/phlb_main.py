@@ -7,12 +7,13 @@
     :copyleft: 2015-2016 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-
+import datetime
 import hashlib
 import logging
 import os
 import shutil
 import sys
+import time
 
 # time.clock() on windows and time.time() on linux
 from timeit import default_timer
@@ -36,7 +37,7 @@ import django
 
 from PyHardLinkBackup.phlb import os_scandir
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.human import human_time, human_filesize
+from PyHardLinkBackup.phlb.human import human_time, human_filesize, to_percent
 from PyHardLinkBackup.backup_app.models import BackupEntry
 from PyHardLinkBackup.phlb.path_helper import PathHelper
 
@@ -46,6 +47,8 @@ class BackupFileError(Exception):
 
 
 class FileBackup(object):
+    _SIMULATE_SLOW_SPEED=False # for unittests only!
+
     def __init__(self, file_entry, path_helper):
         self.file_entry = file_entry # os.DirEntry() instance
         self.path = path_helper # PathHelper(backup_root) instance
@@ -56,6 +59,10 @@ class FileBackup(object):
             data = in_file.read(phlb_config.chunk_size)
             if not data:
                 break
+
+            if self._SIMULATE_SLOW_SPEED:
+                log.error("Slow down speed for unittest!")
+                time.sleep(self._SIMULATE_SLOW_SPEED)
 
             out_file.write(data)
             hash.update(data)
@@ -179,36 +186,20 @@ class HardLinkBackup(object):
         else:
             copy_log=False
 
-        with open(self.path.summary_filepath, "w") as summary_file:
-            summary_file.write("Start backup: %s\n\n" % self.path.time_string)
-            summary_file.write("Source: %s\n\n" % self.path.abs_src_root)
+        try:
+            with open(self.path.summary_filepath, "w") as summary_file:
+                summary_file.write("Start backup: %s\n\n" % self.path.time_string)
+                summary_file.write("Source: %s\n\n" % self.path.abs_src_root)
 
-            try:
                 self._backup()
-            except KeyboardInterrupt:
-                print("\nCleanup after keyboard interrupt:")
 
-                print("\t* clean '%s'" % self.path.abs_dst_root)
-                def print_error(fn, path, excinfo):
-                    print("\tError remove: '%s'" % path)
-                shutil.rmtree(self.path.abs_dst_root, ignore_errors=True, onerror=print_error)
-
-                # TODO: Remove unused ForeignKey, too,
-                queryset = BackupEntry.objects.filter(backup_run=self.path.backup_run)
-                count = queryset.count()
-                print("\t* cleanup %i database entries" % count)
-                queryset.delete()
-
-                print("Bye")
-                sys.exit(1)
-
-            summary_file.write("\n".join(self.get_summary()))
-
-        if copy_log:
-            log.warn("copy log file from '%s' to '%s'" % (
-                settings.LOG_FILEPATH, self.path.log_filepath
-            ))
-            shutil.copyfile(settings.LOG_FILEPATH, self.path.log_filepath)
+                summary_file.write("\n".join(self.get_summary()))
+        finally:
+            if copy_log:
+                log.warn("copy log file from '%s' to '%s'" % (
+                    settings.LOG_FILEPATH, self.path.log_filepath
+                ))
+                shutil.copyfile(settings.LOG_FILEPATH, self.path.log_filepath)
 
     def _scandir(self, path):
         file_list = []
@@ -246,13 +237,14 @@ class HardLinkBackup(object):
             human_filesize(self.total_size), self.file_count,
         )
         print(msg)
-        log.warn(msg)
+        log.info(msg)
 
         self.total_file_link_count = 0
         self.total_stined_bytes = 0
         self.total_new_file_count = 0
         self.total_new_bytes = 0
         self.total_skip_files = 0
+        next_update_print = default_timer() + phlb_config.print_update_interval
         with tqdm(total=self.total_size, unit='B', unit_scale=True) as process_bar:
             for no, file_entry in enumerate(file_list):
                 log.debug("%i '%s'", no, file_entry.path)
@@ -272,16 +264,42 @@ class HardLinkBackup(object):
                         self.total_new_file_count += 1
                         self.total_new_bytes += file_size
 
+                if default_timer()>next_update_print:
+                    self.print_update()
+                    next_update_print = default_timer() + phlb_config.print_update_interval
+
         self.duration = default_timer() - self.start_time
 
-    def get_summary(self):
-        def to_percent(part, total):
-            try:
-                return part/total*100
-            except ZeroDivisionError:
-                # e.g.: Backup only 0-Bytes files ;)
-                return 0
+    def print_update(self):
+        """
+        print some status information in between.
+        """
+        print("\r\n")
+        now = datetime.datetime.now()
+        print("Update info: (from: %s)" % now.strftime("%c"))
 
+        current_total_size = self.total_stined_bytes + self.total_new_bytes
+
+        if self.total_skip_files:
+            print(" * WARNING: Skipped %i files!" % self.total_skip_files)
+
+        print(" * new content saved: %i files (%s %.1f%%)" % (
+            self.total_new_file_count,
+            human_filesize(self.total_new_bytes),
+            to_percent(self.total_new_bytes, current_total_size)
+        ))
+
+        print(" * stint space via hardlinks: %i files (%s %.1f%%)" % (
+            self.total_file_link_count,
+            human_filesize(self.total_stined_bytes),
+            to_percent(self.total_stined_bytes, current_total_size)
+        ))
+
+        duration = default_timer() - self.start_time
+        performance = current_total_size / duration / 1024.0 / 1024.0
+        print(" * present performance: %.1fMB/s\n" % performance)
+
+    def get_summary(self):
         summary = ["Backup done:"]
         summary.append(" * Files to backup: %i files" % self.file_count)
         if self.total_skip_files:

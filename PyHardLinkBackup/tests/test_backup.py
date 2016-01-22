@@ -7,8 +7,10 @@ import pathlib
 import sys
 
 from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase, \
-    BaseSourceDirTestCase
+    BaseSourceDirTestCase, BaseWithSourceFilesTestCase
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
+from PyHardLinkBackup.phlb.config import phlb_config
+
 
 class TestBackup(BaseSourceDirTestCase):
     """
@@ -36,6 +38,34 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
 
         self.assert_backup_fs_count(1) # there are tree backups in filesystem
+
+
+class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
+    def test_print_update(self):
+
+        first_run_result = self.invoke_cli("backup", self.source_path)
+        print(first_run_result.output)
+
+        # We should not have in between update info with default settings and duration
+        self.assertNotIn("Update info:", first_run_result.output)
+        self.assertNotIn("Slow down speed for unittest!", first_run_result.output)
+
+        self.assertIn("new content saved: 5 files (106 Bytes 100.0%)", first_run_result.output)
+        self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", first_run_result.output)
+
+
+        self.simulate_slow_speed(0.1) # slow down backup
+        phlb_config.print_update_interval=0.1 # Very often status infos
+
+        second_run_result = self.invoke_cli("backup", self.source_path)
+        print(second_run_result.output)
+
+        # Now we should have in between update info
+        self.assertIn("Update info:", second_run_result.output)
+        self.assertIn("Slow down speed for unittest!", second_run_result.output)
+
+        self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", second_run_result.output)
+        self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", second_run_result.output)
 
 
 class TestTwoBackups(BaseCreatedTwoBackupsTestCase):

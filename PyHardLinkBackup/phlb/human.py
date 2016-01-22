@@ -25,3 +25,11 @@ def human_filesize(i):
     if bytes < 1024 * 1024 * 1024:
         return u"%.1f MB" % (bytes / (1024 * 1024))
     return u"%.1f GB" % (bytes / (1024 * 1024 * 1024))
+
+
+def to_percent(part, total):
+    try:
+        return part/total*100
+    except ZeroDivisionError:
+        # e.g.: Backup only 0-Bytes files ;)
+        return 0

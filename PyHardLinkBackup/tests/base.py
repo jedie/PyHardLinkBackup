@@ -26,6 +26,7 @@ from PyHardLinkBackup.backup_app.models import BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
+from PyHardLinkBackup.phlb.phlb_main import FileBackup
 
 
 def get_newest_directory(path):
@@ -85,6 +86,11 @@ class BaseTestCase(django.test.TestCase):
         def rmtree_error(function, path, excinfo):
             print("Error remove temp: %r" % path)
         shutil.rmtree(self.temp_root_path, ignore_errors=True, onerror=rmtree_error)
+
+        FileBackup._SIMULATE_SLOW_SPEED=False # disable it
+
+    def simulate_slow_speed(self, sec):
+        FileBackup._SIMULATE_SLOW_SPEED=sec
 
     def assert_click_exception(self, result):
         if result.exception:
@@ -146,7 +152,7 @@ class BaseSourceDirTestCase(BaseTestCase):
 
         with log_filepath.open("r") as f: # Path().read_text() is new in Py 2.5
             return f.read()
-            
+
     def assert_backup_fs_count(self, count):
         # TODO: count dirs and files seperate!
         fs_items=os.listdir(self.backup_sub_path)

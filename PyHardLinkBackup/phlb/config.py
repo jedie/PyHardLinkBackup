@@ -60,6 +60,7 @@ INI_CONVERTER_DICT = {
     "skip_dirs": commalist,
     "skip_files": commalist,
 
+    "print_update_interval": int,
     "logging_console_level": logging_level,
     "logging_file_level": logging_level,
 
@@ -149,7 +150,9 @@ class PyHardLinkBackupConfig(object):
         try:
             return self._config[item]
         except KeyError:
-            raise AttributeError("%s missing in '%s'" % (item.upper(), self.ini_filepath))
+            raise AttributeError("%s missing in '%s'\nExisting keys:\n * %s" % (
+                item.upper(), self.ini_filepath, "\n * ".join(sorted(self._config.keys()))
+            ))
 
     def __repr__(self):
         self._load()
