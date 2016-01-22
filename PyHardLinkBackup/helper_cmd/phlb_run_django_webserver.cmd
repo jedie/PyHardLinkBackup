@@ -23,7 +23,7 @@ REM Otherwise the start script will not be found, becuase
 REM the ".exe" extension will be script from sys.argv[0]
 
 echo on
-
+cd /d "%~dp0"
 "%EXE%" runserver --noreload
 
 @echo off

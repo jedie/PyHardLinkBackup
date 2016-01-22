@@ -19,7 +19,7 @@ set EXE=%SCRIPT_PATH%\manage.exe
 call:test_exist "%EXE%" "manage.exe not found here:"
 
 echo on
-
+cd /d "%~dp0"
 "%EXE%" migrate
 
 @echo off

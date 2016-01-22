@@ -19,7 +19,6 @@ set EXE=%SCRIPT_PATH%\pip.exe
 call:test_exist "%EXE%" "pip.exe not found here:"
 
 echo on
-
 "%EXE%" install --upgrade pip
 "%EXE%" install --upgrade PyHardLinkBackup
 
@@ -28,6 +27,7 @@ set EXE=%SCRIPT_PATH%\phlb.exe
 call:test_exist "%EXE%" "phlb.exe not found here:"
 
 echo on
+cd /d "%~dp0"
 "%EXE%" helper
 
 @echo off

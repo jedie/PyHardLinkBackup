@@ -18,6 +18,7 @@ set EXE=%SCRIPT_PATH%\phlb.exe
 call:test_exist "%EXE%" "phlb.exe not found here:"
 
 echo on
+cd /d "%~dp0"
 "%EXE%" config
 
 @echo off
