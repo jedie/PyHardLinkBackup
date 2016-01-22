@@ -2,6 +2,8 @@ import os
 import sys
 import unittest
 
+from django.conf import settings
+
 from click.testing import CliRunner
 
 from PyHardLinkBackup.phlb.config import phlb_config
@@ -13,6 +15,10 @@ from PyHardLinkBackup.tests.base import BaseTestCase
 USER_INI_PATH=os.path.join(os.path.expanduser("~"), "PyHardLinkBackup.ini")
 
 class TestConfig(BaseTestCase):
+
+    def test_test_database(self):
+        self.assertIn("memory", settings.DATABASES['default']['NAME'])
+
     def test_user_ini_default(self):
         runner = CliRunner()
         result = self.invoke_cli("config", "--debug")
