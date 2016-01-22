@@ -80,10 +80,15 @@ class FileBackup(object):
         log.debug("abs_dst_dir: '%s'", self.path.abs_dst_path)
 
         if not os.path.isdir(self.path.abs_dst_path):
-            os.makedirs(
-                self.path.abs_dst_path,
-                mode=phlb_config.default_new_path_mode
-            )
+            try:
+                os.makedirs(
+                    self.path.abs_dst_path,
+                    mode=phlb_config.default_new_path_mode
+                )
+            except OSError as err:
+                raise BackupFileError(
+                    "Error creating out path: %s" % err
+                )
         else:
             assert not os.path.isfile(self.path.abs_dst_filepath), "Out file already exists: %r" % self.path.abs_src_filepath
 
