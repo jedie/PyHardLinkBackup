@@ -32,7 +32,7 @@ class TestBackup(BaseSourceDirTestCase):
         print(result.output)
 
         self.assertIn("16 Bytes in 2 files to backup.", result.output)
-        self.assertIn("new content to saved: 2 files (16 Bytes 100.0%)", result.output)
+        self.assertIn("new content saved: 2 files (16 Bytes 100.0%)", result.output)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
 
         self.assert_backup_fs_count(1) # there are tree backups in filesystem
@@ -50,7 +50,7 @@ class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
         print(result.output)
 
         self.assertIn("110 Bytes in 5 files to backup.", result.output)
-        self.assertIn("new content to saved: 1 files (24 Bytes 21.8%)", result.output)
+        self.assertIn("new content saved: 1 files (24 Bytes 21.8%)", result.output)
         self.assertIn("stint space via hardlinks: 4 files (86 Bytes 78.2%)", result.output)
 
         self.assert_backup_fs_count(3) # there are tree backups in filesystem
@@ -92,7 +92,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         self.assertIn("Backup done:", summary_content)
         self.assertIn("Source file sizes: 106 Bytes", summary_content)
-        self.assertIn("new content to saved: 5 files (106 Bytes 100.0%)", summary_content)
+        self.assertIn("new content saved: 5 files (106 Bytes 100.0%)", summary_content)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", summary_content)
 
 
@@ -120,7 +120,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
         self.assertIn("WARNING: Skipped 2 files", result.output)
-        self.assertIn("new content to saved: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
         self.assertIn("stint space via hardlinks: 3 files (64 Bytes 60.4%)", result.output)
 
         self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])

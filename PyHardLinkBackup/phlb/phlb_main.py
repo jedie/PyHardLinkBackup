@@ -287,7 +287,7 @@ class HardLinkBackup(object):
         if self.total_skip_files:
             summary.append(" * WARNING: Skipped %i files!" % self.total_skip_files)
         summary.append(" * Source file sizes: %s" % human_filesize(self.total_size))
-        summary.append(" * new content to saved: %i files (%s %.1f%%)" % (
+        summary.append(" * new content saved: %i files (%s %.1f%%)" % (
             self.total_new_file_count,
             human_filesize(self.total_new_bytes),
             to_percent(self.total_new_bytes, self.total_size)

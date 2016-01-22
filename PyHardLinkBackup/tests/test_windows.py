@@ -66,7 +66,7 @@ class WindowsTestCase(BaseSourceDirTestCase):
         # print(result.output)
 
         self.assertIn("9.0 KB in 1022 files to backup.", result.output)
-        self.assertIn("new content to saved: 1 files (9 Bytes 0.1%)", result.output)
+        self.assertIn("new content saved: 1 files (9 Bytes 0.1%)", result.output)
         self.assertIn("stint space via hardlinks: 1021 files (9.0 KB 99.9%)", result.output)
 
         self.assertEqual(BackupEntry.objects.all().count(), 1022)
@@ -131,7 +131,7 @@ class WindowsTestCase(BaseSourceDirTestCase):
             ])
 
         self.assertIn("36 Bytes in 4 files to backup.", result.output)
-        self.assertIn("new content to saved: 1 files (9 Bytes 25.0%)", result.output)
+        self.assertIn("new content saved: 1 files (9 Bytes 25.0%)", result.output)
         self.assertIn("stint space via hardlinks: 3 files (27 Bytes 75.0%)", result.output)
 
         tree_list = fs_helper.pformat_tree(second_run_path, with_timestamps=False)
