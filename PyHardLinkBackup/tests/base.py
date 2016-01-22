@@ -56,6 +56,8 @@ class BaseTestCase(django.test.TestCase):
         phlb_config._load(force=True)
 
     def setUp(self):
+        super(BaseTestCase, self).setUp()
+
         self.temp_root_path=tempfile.mkdtemp()
         self.backup_path = os.path.join(self.temp_root_path, "PyHardLinkBackups")
         self.ini_path = os.path.join(self.temp_root_path, "PyHardLinkBackup.ini")
@@ -144,6 +146,15 @@ class BaseSourceDirTestCase(BaseTestCase):
 
         with log_filepath.open("r") as f: # Path().read_text() is new in Py 2.5
             return f.read()
+            
+    def assert_backup_fs_count(self, count):
+        # TODO: count dirs and files seperate!
+        fs_items=os.listdir(self.backup_sub_path)
+
+        # add .log and summay files for every backup run
+        count += (count * 2)
+
+        self.assertEqual(len(fs_items), count, "%i != %i - items: %s" % (len(fs_items), count, repr(fs_items)))
 
 
 class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
@@ -162,15 +173,6 @@ class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
     Test that used existing backups:
     The 'source unittests files' will be backuped one time.
     """
-    def assert_backup_fs_count(self, count):
-        # TODO: count dirs and files seperate!
-        fs_items=os.listdir(self.backup_sub_path)
-
-        # add .log and summay files for every backup run
-        count += (count * 2)
-
-        self.assertEqual(len(fs_items), count, "%i != %i - items: %s" % (len(fs_items), count, repr(fs_items)))
-
     def assert_first_backup(self):
         fs_helper = UnittestFileSystemHelper()
         #fs_helper.print_tree(self.backup_path)

@@ -6,8 +6,36 @@ import pathlib
 
 import sys
 
-from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase
+from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase, \
+    BaseSourceDirTestCase
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
+
+class TestBackup(BaseSourceDirTestCase):
+    """
+    Tests with empty "source unittests files" directory under /temp/
+    """
+    def test_same_size_different_content(self):
+        test_file1=pathlib.Path(self.source_path, "dirA", "file.txt")
+        os.mkdir(str(test_file1.parent))
+        with test_file1.open("w") as f:
+            f.write("content1")
+
+        test_file2=pathlib.Path(self.source_path, "dirB", "file.txt")
+        os.mkdir(str(test_file2.parent))
+        with test_file2.open("w") as f:
+            f.write("content2")
+
+        self.assertEqual(os.stat(str(test_file1)).st_size, 8)
+        self.assertEqual(os.stat(str(test_file2)).st_size, 8)
+
+        result = self.invoke_cli("backup", self.source_path)
+        print(result.output)
+
+        self.assertIn("16 Bytes in 2 files to backup.", result.output)
+        self.assertIn("new content to saved: 2 files (16 Bytes 100.0%)", result.output)
+        self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
+
+        self.assert_backup_fs_count(1) # there are tree backups in filesystem
 
 
 class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
