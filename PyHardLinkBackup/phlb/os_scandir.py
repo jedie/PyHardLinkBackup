@@ -4,6 +4,8 @@ import os
 
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
+import pathlib
+
 try:
     from os import scandir # new in Python 3.5
 except ImportError:
@@ -13,13 +15,21 @@ except ImportError:
     except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
+
 log = logging.getLogger("phlb.%s" % __name__)
+
 
 def fnmatches(filename, patterns):
     for pattern in patterns:
         if fnmatch.fnmatch(filename, pattern):
             return True
     return False
+
+
+def resolveable(path):
+    path = pathlib.Path(path)
+    test = path.resolve()
+    return path == test
 
 
 def walk2(top, skip_dirs, skip_files, followlinks=False):
@@ -38,7 +48,8 @@ def walk2(top, skip_dirs, skip_files, followlinks=False):
     # left to visit.  That logic is copied here.
     try:
         scandir_it = scandir(top)
-    except OSError:
+    except OSError as err:
+        log.error(err)
         return
 
     while True:
@@ -47,7 +58,8 @@ def walk2(top, skip_dirs, skip_files, followlinks=False):
                 entry = next(scandir_it)
             except StopIteration:
                 break
-        except OSError:
+        except OSError as err:
+            log.error(err)
             return
 
         try:
@@ -58,15 +70,25 @@ def walk2(top, skip_dirs, skip_files, followlinks=False):
             is_dir = False
 
         if is_dir:
-            if entry.name not in skip_dirs:
-                dirs.append(entry)
+            try:
+                is_resolveable = resolveable(entry.path)
+            except OSError as err:
+                log.error(err)
             else:
-                log.debug("Skip directory: %r", entry.name)
+                if not is_resolveable:
+                    # work-a-round for junction under windows
+                    # https://www.python-forum.de/viewtopic.php?f=1&t=37725&p=290429#p290428 (de)
+                    log.error("Skip not resolveable dir: %r" % entry.path)
+                else:
+                    if entry.name not in skip_dirs:
+                        dirs.append(entry)
+                    else:
+                        log.debug("Skip directory: %r", entry.path)
         else:
             if not fnmatches(entry.name, skip_files):
                 nondirs.append(entry)
             else:
-                log.debug("Skip file: %r", entry.name)
+                log.debug("Skip file: %r", entry.path)
 
     yield top, dirs, nondirs
 
