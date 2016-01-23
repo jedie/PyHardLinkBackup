@@ -1,6 +1,8 @@
 import datetime
 import os
 
+import sys
+
 from PyHardLinkBackup.backup_app.models import BackupRun
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.phlb_main import log
@@ -37,7 +39,7 @@ class PathHelper(object):
     |                `<- self.backup_name
     `- phlb_config.backup_path (root dir storage for all backups runs)
     """
-    def __init__(self, src_path):
+    def __init__(self, src_path, force_name=None):
         self.abs_src_root = self.abs_norm_path(src_path)
         log.debug(" * abs_src_root: '%s'", self.abs_src_root)
 
@@ -46,6 +48,12 @@ class PathHelper(object):
 
         self.src_prefix_path, self.backup_name = os.path.split(self.abs_src_root)
         log.debug(" * src_prefix_path: '%s'", self.src_prefix_path)
+        if force_name is not None:
+            self.backup_name = force_name
+        elif not self.backup_name:
+            print("\nError get name for this backup!", file=sys.stderr)
+            print("\nPlease use '--name' for force a backup name!\n", file=sys.stderr)
+            sys.exit(-1)
         log.debug(" * backup_name: '%s'", self.backup_name)
 
         backup_datetime = datetime.datetime.now()

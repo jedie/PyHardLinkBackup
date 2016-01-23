@@ -115,10 +115,11 @@ cli.add_command(migrate)
 
 @click.command()
 @click.argument("path", type=click.Path(exists=True))
-def backup(path):
+@click.option("--name", help="Force a backup name (If not set: Use parent directory name)")
+def backup(path, name=None):
     """Start a Backup run"""
     from PyHardLinkBackup.phlb.phlb_main import backup
-    backup(path)
+    backup(path, name)
 
 cli.add_command(backup)
 

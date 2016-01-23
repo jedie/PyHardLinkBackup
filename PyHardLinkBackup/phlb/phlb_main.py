@@ -164,9 +164,9 @@ class FileBackup(object):
 
 
 class HardLinkBackup(object):
-    def __init__(self, src_path):
+    def __init__(self, src_path, force_name=None):
         self.start_time = default_timer()
-        self.path = PathHelper(src_path)
+        self.path = PathHelper(src_path, force_name)
 
         print("Backup to: '%s'" % self.path.abs_dst_root)
         os.makedirs(
@@ -328,9 +328,9 @@ class HardLinkBackup(object):
         print("\n%s\n" % "\n".join(self.get_summary()))
 
 
-def backup(path):
+def backup(path, name):
     django.setup()
-    phlb = HardLinkBackup(src_path=path)
+    phlb = HardLinkBackup(src_path=path, force_name=name)
     phlb.print_summary()
 
 if __name__ == '__main__':

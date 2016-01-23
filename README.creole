@@ -186,6 +186,10 @@ Some notes about to setup a development under windows, please look at: [[https:/
 
 == History
 
+* *dev* - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.4.2...master|compare v0.4.2...master]]
+** Fix [[https://github.com/jedie/PyHardLinkBackup/issues/10|#10]]:
+*** New **--name** cli option (optional) to force a backup name.
+*** Display error message if backup name can be found (e.g.: backup a root folder)
 * 22.01.2016 - v0.4.2 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.4.1...v0.4.2|compare v0.4.1...v0.4.2]]
 ** work-a-round for junction under windows, see also: https://www.python-forum.de/viewtopic.php?f=1&t=37725&p=290429#p290428 (de)
 ** Bugfix in windows batches: go into work dir.

@@ -6,6 +6,9 @@ import pathlib
 
 import sys
 
+from click.testing import CliRunner
+
+from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase, \
     BaseSourceDirTestCase, BaseWithSourceFilesTestCase
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
@@ -42,7 +45,6 @@ class TestBackup(BaseSourceDirTestCase):
 
 class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
     def test_print_update(self):
-
         first_run_result = self.invoke_cli("backup", self.source_path)
         print(first_run_result.output)
 
@@ -66,6 +68,31 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", second_run_result.output)
         self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", second_run_result.output)
+
+    def test_no_backupname(self):
+        if sys.platform.startswith("win"):
+            source_path = "C:\\"
+        else:
+            source_path = "/"
+
+        runner = CliRunner()
+        result = runner.invoke(cli, args=["backup", source_path])
+
+        print(result.output)
+        self.assertIn("Error get name for this backup!", result.output)
+        self.assertIn("Please use '--name' for force a backup name!", result.output)
+
+        self.assertIsInstance(result.exception, SystemExit)
+
+    def test_force_name(self):
+        result = self.invoke_cli("backup", self.source_path, "--name", "ForcedName")
+        print(result.output)
+
+        fs_items=os.listdir(self.backup_path)
+        self.assertEqual(fs_items, ['ForcedName'])
+
+        self.assertIn("/PyHardLinkBackups/ForcedName/", result.output)
+
 
 
 class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
