@@ -176,6 +176,14 @@ And then just request 'localhost'
 Some notes about to setup a development under windows, please look at: [[https://github.com/jedie/PyHardLinkBackup/blob/master/dev/WindowsDevelopment.creole|/dev/WindowsDevelopment.creole]]
 
 
+=== alternative solutions
+
+* Attic: https://attic-backup.org/ (Not working under Windows, own backup archive format)
+* msbackup: https://pypi.python.org/pypi/msbackup/ (used tar for backup archives)
+* Duplicity: http://duplicity.nongnu.org/ (No Windows support, tar archive format)
+* Burp: http://burp.grke.org/ (Client/Server solution)
+
+
 == History
 
 * 22.01.2016 - v0.4.2 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.4.1...v0.4.2|compare v0.4.1...v0.4.2]]
