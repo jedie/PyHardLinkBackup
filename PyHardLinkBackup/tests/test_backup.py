@@ -1,24 +1,29 @@
 import os
-import unittest
-import pprint
-
 import pathlib
-
+import pprint
 import sys
+import unittest
+from unittest import mock
 
 from click.testing import CliRunner
 
+from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase, \
     BaseSourceDirTestCase, BaseWithSourceFilesTestCase
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
-from PyHardLinkBackup.phlb.config import phlb_config
 
 
 class TestBackup(BaseSourceDirTestCase):
     """
     Tests with empty "source unittests files" directory under /temp/
     """
+    def test_no_files(self):
+        result = self.invoke_cli("backup", self.source_path)
+        print(result.output)
+        self.assertIn("0 Bytes in 0 files to backup.", result.output)
+        self.assertIn("Files to backup: 0 files", result.output)
+
     def test_same_size_different_content(self):
         test_file1=pathlib.Path(self.source_path, "dirA", "file.txt")
         os.mkdir(str(test_file1.parent))
@@ -116,7 +121,6 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("Backup", log_content)
         self.assertIn("Start low level logging", log_content)
 
-    @unittest.skipIf(sys.platform.startswith("win"), "TODO: work-a-round for os.chmod()")
     def test_skip_files(self):
         """
         Test if not open able source files, will be skipped
@@ -125,16 +129,21 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         filepath1 = os.path.join(self.source_path, "root_file_B.txt")
         filepath2 = os.path.join(self.source_path, "sub dir B", "sub_file.txt")
 
-        os.chmod(filepath1, 0o000)
-        os.chmod(filepath2, 0o000)
+        origin_open = open
+        def patched_open(filepath, mode, *args, **kwargs):
+            if filepath in (filepath1,filepath2):
+                raise IOError("unitests raise")
+            return origin_open(filepath, mode, *args, **kwargs)
 
-        result = self.invoke_cli("backup", self.source_path)
-        print(result.output)
+        with mock.patch('builtins.open', patched_open):
+            result = self.invoke_cli("backup", self.source_path)
+            print(result.output)
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
         self.assertIn("WARNING: Skipped 2 files", result.output)
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
         self.assertIn("stint space via hardlinks: 3 files (64 Bytes 60.4%)", result.output)
+        self.assertIn("unitests raise", result.output)
 
         self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)
@@ -144,6 +153,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("Skip file", log_content)
         self.assertIn("/root_file_B.txt error:", log_content)
         self.assertIn("/sub dir B/sub_file.txt error:", log_content)
+        self.assertIn("unitests raise", log_content)
 
 
 class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
