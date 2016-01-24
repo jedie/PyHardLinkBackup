@@ -96,7 +96,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         fs_items=os.listdir(self.backup_path)
         self.assertEqual(fs_items, ['ForcedName'])
 
-        self.assertIn("/PyHardLinkBackups/ForcedName/", result.output)
+        self.assertIn("/PyHardLinkBackups/ForcedName/".replace("/", os.sep), result.output)
 
 
 class TestOneBackups(BaseCreatedOneBackupsTestCase):
@@ -132,7 +132,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         origin_open = open
         def patched_open(filepath, mode, *args, **kwargs):
             if filepath in (filepath1,filepath2):
-                raise IOError("unitests raise")
+                raise IOError("unittests raise")
             return origin_open(filepath, mode, *args, **kwargs)
 
         with mock.patch('builtins.open', patched_open):
@@ -143,7 +143,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("WARNING: Skipped 2 files", result.output)
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
         self.assertIn("stint space via hardlinks: 3 files (64 Bytes 60.4%)", result.output)
-        self.assertIn("unitests raise", result.output)
+        self.assertIn("unittests raise", result.output)
 
         self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)
@@ -151,9 +151,44 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         log_content = self.get_log_content(self.first_run_log)
         print(log_content)
         self.assertIn("Skip file", log_content)
-        self.assertIn("/root_file_B.txt error:", log_content)
-        self.assertIn("/sub dir B/sub_file.txt error:", log_content)
-        self.assertIn("unitests raise", log_content)
+        self.assertIn(
+            "/source unittests files/root_file_B.txt error: unittests raise".replace("/", os.sep),
+            log_content
+        )
+        self.assertIn(
+            "/source unittests files/sub dir B/sub_file.txt error: unittests raise".replace("/", os.sep),
+            log_content
+        )
+        self.assertIn("unittests raise", log_content)
+
+    def test_if_os_link_failed(self):
+
+        origin_os_link = os.link
+        def patched_open(source, link_name):
+            if source.endswith("root_file_B.txt"):
+                raise IOError("unittests raise")
+            return origin_os_link(source, link_name)
+
+        with mock.patch('os.link', patched_open):
+            result = self.invoke_cli("backup", self.source_path)
+            print(result.output)
+
+        self.assertIn("Can't link", result.output)
+        self.assertIn("root_file_B.txt': unittests raise", result.output)
+
+        self.assertIn("106 Bytes in 5 files to backup.", result.output)
+        self.assertIn("new content saved: 1 files (24 Bytes 22.6%)", result.output)
+        self.assertIn("stint space via hardlinks: 4 files (82 Bytes 77.4%)", result.output)
+
+        self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
+        self.assert_backup_fs_count(2)
+
+        log_content = self.get_log_content(self.first_run_log)
+        print(log_content)
+        self.assertIn("Can't link", log_content)
+        self.assertIn("root_file_B.txt': unittests raise", log_content)
+
+        # TODO: Check model no_link_source !
 
 
 class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
