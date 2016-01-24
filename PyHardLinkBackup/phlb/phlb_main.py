@@ -166,6 +166,7 @@ class FileBackup(object):
 class HardLinkBackup(object):
     def __init__(self, src_path, force_name=None):
         self.start_time = default_timer()
+        self.duration = 0
         self.path = PathHelper(src_path, force_name)
 
         print("Backup to: '%s'" % self.path.abs_dst_root)
@@ -320,7 +321,10 @@ class HardLinkBackup(object):
             human_filesize(self.total_stined_bytes),
             to_percent(self.total_stined_bytes, self.total_size)
         ))
-        performance = self.total_size / self.duration / 1024.0 / 1024.0
+        if self.duration:
+            performance = self.total_size / self.duration / 1024.0 / 1024.0
+        else:
+            performance = 0
         summary.append(" * duration: %s %.1fMB/s\n" % (human_time(self.duration), performance))
         return summary
 
