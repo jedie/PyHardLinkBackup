@@ -17,7 +17,8 @@ USER_INI_PATH=os.path.join(os.path.expanduser("~"), "PyHardLinkBackup.ini")
 class TestConfig(BaseTestCase):
 
     def test_test_database(self):
-        self.assertIn("memory", settings.DATABASES['default']['NAME'])
+        current_name=settings.DATABASES['default']['NAME']
+        self.assertIn("memory", current_name)
 
     def test_user_ini_default(self):
         runner = CliRunner()

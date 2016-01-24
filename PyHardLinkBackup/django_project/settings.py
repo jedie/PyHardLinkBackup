@@ -97,6 +97,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': _phlb_config.database_name,
+        'TEST_NAME': ":memory:"
     }
 }
 print("Use Database file: '%s'" % DATABASES["default"]["NAME"])

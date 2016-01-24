@@ -14,9 +14,6 @@ call:test_exist "%ACTIVATE%" "venv activate not found here:"
 set PIP_EXE=%SCRIPT_PATH%\pip.exe
 call:test_exist "%PIP_EXE%" "pip.exe not found here:"
 
-set MANAGE_EXE=%SCRIPT_PATH%\manage.exe
-call:test_exist "%MANAGE_EXE%" "manage.exe not found here:"
-
 echo on
 call "%ACTIVATE%"
 
@@ -36,7 +33,7 @@ echo on
 
 cd "%PKG_PATH%"
 cd ..
-coverage.exe run --source=PyHardLinkBackup --parallel-mode -m nose PyHardLinkBackup --verbosity=2
+coverage.exe run --source=PyHardLinkBackup --parallel-mode -m PyHardLinkBackup.django_project.manage test --verbosity=2
 set test_errorlevel=%errorlevel%
 @echo off
 if "%1" == "no_report" (
