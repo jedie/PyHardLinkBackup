@@ -13,3 +13,5 @@ set -x
 
 pip install --upgrade pip
 pip install --upgrade PyHardLinkBackup
+
+phlb helper ${ENV_PATH}

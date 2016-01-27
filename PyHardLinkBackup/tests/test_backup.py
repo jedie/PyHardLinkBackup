@@ -2,16 +2,18 @@ import os
 import pathlib
 import pprint
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
+import io
 from click.testing import CliRunner
 
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase, \
     BaseSourceDirTestCase, BaseWithSourceFilesTestCase
-from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
+from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper, PatchOpen
 
 
 class TestBackup(BaseSourceDirTestCase):
@@ -121,29 +123,42 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("Backup", log_content)
         self.assertIn("Start low level logging", log_content)
 
-    def test_skip_files(self):
+    def test_skip_patterns(self):
         """
         Test if not open able source files, will be skipped
         and the backup will save the other files.
         """
-        filepath1 = os.path.join(self.source_path, "root_file_B.txt")
-        filepath2 = os.path.join(self.source_path, "sub dir B", "sub_file.txt")
+        deny_paths = (
+            os.path.join(self.source_path, "root_file_B.txt"),
+            os.path.join(self.source_path, "sub dir B", "sub_file.txt"),
+        )
+        print("Deny path:")
+        print("\n".join(deny_paths))
 
-        origin_open = open
-        def patched_open(filepath, mode, *args, **kwargs):
-            if filepath in (filepath1,filepath2):
-                raise IOError("unittests raise")
-            return origin_open(filepath, mode, *args, **kwargs)
+        # pathlib.Path().open() used io.open and not builtins.open !
+        with mock.patch('io.open', PatchOpen(open, deny_paths)) as p:
+            # Work PatchOpen() ?
+            content = io.open(os.path.join(self.source_path, "root_file_A.txt"), "r").read()
+            self.assertEqual(content, "The root file A content.")
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(p.raise_count, 0)
+            try:
+                io.open(deny_paths[0], "r").read()
+            except OSError as err:
+                self.assertEqual("%s" % err, "unittests raise")
+            self.assertEqual(p.call_count, 2)
+            self.assertEqual(p.raise_count, 1)
 
-        with mock.patch('builtins.open', patched_open):
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
+            self.assertEqual(p.raise_count, 3)
+
+        self.assertIn("unittests raise", result.output) # Does the test patch worked?
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
         self.assertIn("WARNING: Skipped 2 files", result.output)
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
         self.assertIn("stint space via hardlinks: 3 files (64 Bytes 60.4%)", result.output)
-        self.assertIn("unittests raise", result.output)
 
         self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)

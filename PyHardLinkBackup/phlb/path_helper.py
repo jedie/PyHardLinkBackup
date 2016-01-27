@@ -1,11 +1,11 @@
 import datetime
 import os
-
 import sys
 
 from PyHardLinkBackup.backup_app.models import BackupRun
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.phlb_main import log
+from PyHardLinkBackup.phlb.pathlib2 import Path2
 
 
 class PathHelper(object):
@@ -40,14 +40,20 @@ class PathHelper(object):
     `- phlb_config.backup_path (root dir storage for all backups runs)
     """
     def __init__(self, src_path, force_name=None):
-        self.abs_src_root = self.abs_norm_path(src_path)
+        """
+        :param src_path: Path2() instance of the source directory
+        :param force_name: Force this name for the backup
+        """
+        self.abs_src_root = Path2(src_path).resolve()
         log.debug(" * abs_src_root: '%s'", self.abs_src_root)
 
-        if not os.path.isdir(self.abs_src_root):
+        if not self.abs_src_root.is_dir():
             raise OSError("Source path '%s' doesn't exists!" % self.abs_src_root)
 
-        self.src_prefix_path, self.backup_name = os.path.split(self.abs_src_root)
+        self.src_prefix_path = self.abs_src_root.parent
         log.debug(" * src_prefix_path: '%s'", self.src_prefix_path)
+
+        self.backup_name = self.abs_src_root.name
         if force_name is not None:
             self.backup_name = force_name
         elif not self.backup_name:
@@ -60,11 +66,11 @@ class PathHelper(object):
         self.time_string = backup_datetime.strftime(phlb_config.sub_dir_formatter)
         log.debug(" * time_string: %r", self.time_string)
 
-        self.abs_dst_root = os.path.join(phlb_config.backup_path, self.backup_name, self.time_string)
+        self.abs_dst_root = Path2(phlb_config.backup_path, self.backup_name, self.time_string)
         log.debug(" * abs_dst_root: '%s'", self.abs_dst_root)
 
-        self.log_filepath = os.path.join(phlb_config.backup_path, self.backup_name, self.time_string+".log")
-        self.summary_filepath = os.path.join(phlb_config.backup_path, self.backup_name, self.time_string+" summary.txt")
+        self.log_filepath = Path2(phlb_config.backup_path, self.backup_name, self.time_string + ".log")
+        self.summary_filepath = Path2(phlb_config.backup_path, self.backup_name, self.time_string + " summary.txt")
 
         self.backup_run = BackupRun.objects.create(
             name = self.backup_name,
@@ -81,33 +87,33 @@ class PathHelper(object):
         self.abs_dst_filepath = None
         self.abs_dst_hash_filepath = None
 
-    def set_src_filepath(self, src_filepath):
+    def set_src_filepath(self, src_dir_path):
         """
         Set one filepath to backup this file.
         Called for every file in the source directory.
+
+        :argument src_dir_path: filesystem_walk.DirEntryPath() instance
         """
-        log.debug("set_src_filepath() with: '%s'", src_filepath)
-        self.abs_src_filepath = self.abs_norm_path(src_filepath)
+        log.debug("set_src_filepath() with: '%s'", src_dir_path)
+        self.abs_src_filepath = src_dir_path.resolved_path
         log.debug(" * abs_src_filepath: %s" % self.abs_src_filepath)
 
-        # FIXME:
-        assert self.abs_src_filepath.startswith(self.abs_src_root)
-        self.sub_filepath = self.abs_src_filepath[len(self.abs_src_root):]
-        self.sub_filepath = self.sub_filepath.lstrip(os.sep)
+        self.sub_filepath = self.abs_src_filepath.relative_to(self.abs_src_root)
         log.debug(" * sub_filepath: %s" % self.sub_filepath)
 
-        self.sub_path, self.filename = os.path.split(self.sub_filepath)
+        self.sub_path = self.sub_filepath.parent
         log.debug(" * sub_path: %s" % self.sub_path)
+
+        self.filename = self.sub_filepath.name
         log.debug(" * filename: %s" % self.filename)
 
-        self.abs_dst_path = os.path.join(self.abs_dst_root, self.sub_path)
+        self.abs_dst_path = Path2(self.abs_dst_root, self.sub_path)
         log.debug(" * abs_dst_path: %s" % self.abs_dst_path)
 
-        self.abs_dst_filepath = os.path.join(self.abs_dst_root, self.sub_filepath)
+        self.abs_dst_filepath = Path2(self.abs_dst_root, self.sub_filepath)
         log.debug(" * abs_dst_filepath: %s" % self.abs_dst_filepath)
 
-        self.abs_dst_hash_filepath = self.abs_dst_filepath + os.extsep + phlb_config.hash_name
+        self.abs_dst_hash_filepath = Path2(
+            "%s%s%s" % (self.abs_dst_filepath, os.extsep, phlb_config.hash_name)
+        )
         log.debug(" * abs_dst_hash_filepath: %s" % self.abs_dst_hash_filepath)
-
-    def abs_norm_path(self, path):
-        return os.path.normpath(os.path.abspath(os.path.expanduser(path)))

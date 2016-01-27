@@ -13,8 +13,9 @@ DESTINATION=~/PyHardLinkBackup
     ls -la ${DESTINATION}/bin
 )
 (
+    source ${DESTINATION}/bin/activate
     set -x
-    ${DESTINATION}/bin/python -m ensurepip
+    python -m ensurepip
 )
 if [ "$?" == "0" ]; then
     echo "pip installed, ok"
@@ -22,19 +23,20 @@ else
     echo "ensurepip doesn't exist, use get-pip.py"
     (
         set -e
+        source ${DESTINATION}/bin/activate
         set -x
         cd ${DESTINATION}/bin
         wget https://bootstrap.pypa.io/get-pip.py
         ${DESTINATION}/bin/python get-pip.py
     )
 fi
-source ${DESTINATION}/bin/activate
 (
     set -e
+    source ${DESTINATION}/bin/activate
     set -x
     pip install --upgrade pip
 
     pip install PyHardLinkBackup
 
-    phlb helper
+    phlb helper ${DESTINATION}
 )

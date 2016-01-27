@@ -106,3 +106,27 @@ class UnittestFileSystemHelper(object):
             raise NotImplementedError("TODO: %s" % sys.platform)
 
         subprocess.run(args, timeout=5, check=True, **kwargs)
+
+
+class PatchOpen:
+    """
+    used for patch file open routine, e.g.:
+
+    with mock.patch('io.open', PatchOpen(open, deny_paths)) as p:
+        io.open("foo", "r")
+        self.assertEqual(p.raise_count, 0)
+    """
+    def __init__(self, origin_open, deny_paths):
+        self.origin_open = origin_open
+        self.deny_paths = deny_paths
+        self.call_count = 0
+        self.raise_count = 0
+
+    def __call__(self, filepath, mode, *args, **kwargs):
+        self.call_count += 1
+        assert isinstance(filepath, str), repr(filepath)
+        if filepath in self.deny_paths:
+            self.raise_count += 1
+            raise IOError("unittests raise")
+
+        return self.origin_open(filepath, mode, *args, **kwargs)

@@ -77,11 +77,11 @@ install:
     - cd %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
     - git checkout -qf %APPVEYOR_REPO_COMMIT%
     - manage.exe migrate
-    - phlb.exe helper
+    - phlb.exe helper %APPDATA%/PyHardLinkBackup
 
 test_script:
     - cd %APPDATA%/PyHardLinkBackup
-    - call phlb_run_unittests.cmd no_report
+    - call phlb_run_tests.cmd no_report
 
 on_finish:
     - cd %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup

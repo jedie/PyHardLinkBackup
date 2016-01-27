@@ -13,7 +13,8 @@ import configparser
 
 # https://github.com/mitsuhiko/click
 import click
-import pathlib
+
+from PyHardLinkBackup.phlb.pathlib2 import Path2
 
 log = logging.getLogger("phlb.%s" % __name__)
 
@@ -58,7 +59,7 @@ INI_CONVERTER_DICT = {
     "sub_dir_formatter": strftime,
 
     "skip_dirs": commalist,
-    "skip_files": commalist,
+    "skip_patterns": commalist,
 
     "print_update_interval": int,
     "logging_console_level": logging_level,
@@ -87,25 +88,20 @@ def get_dict_from_ini(filepath):
 
 
 def get_user_ini_filepath():
-    try:
-        p = pathlib.Path.home() # new in Py 3.5
-    except AttributeError:
-        p = pathlib.Path(os.path.expanduser("~"))
-
-    return p.joinpath(pathlib.Path(CONFIG_FILENAME))
+    return Path2("~/%s" % CONFIG_FILENAME).expanduser()
 
 
 def get_ini_search_paths():
-    p = pathlib.Path.cwd()
+    p = Path2.cwd()
 
     search_paths = [p]
     search_paths += [path for path in p.parents]
 
-    search_paths = [path.joinpath(pathlib.Path(CONFIG_FILENAME)) for path in search_paths]
+    search_paths = [path.joinpath(CONFIG_FILENAME) for path in search_paths]
 
     search_paths.append(get_user_ini_filepath())
     # print("Search paths:\n%s" % "\n".join(search_paths))
-    log.debug("Search paths: '%s'" % [str(path) for path in search_paths])
+    log.debug("Search paths: '%s'" % [path.path for path in search_paths])
     return search_paths
 
 
@@ -202,7 +198,7 @@ class PyHardLinkBackupConfig(object):
         """
         returns the config as a dict.
         """
-        default_config_filepath = pathlib.Path(
+        default_config_filepath = Path2(
             os.path.dirname(__file__), DEAFULT_CONFIG_FILENAME
         )
         log.debug("Read defaults from: '%s'" % default_config_filepath)

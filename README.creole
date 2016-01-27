@@ -139,6 +139,25 @@ You can just open the editor with the user directory .ini file with:
 
 The defaults are stored here: [[https://github.com/jedie/PyHardLinkBackup/blob/master/PyHardLinkBackup/phlb/config_defaults.ini|/phlb/config_defaults.ini]]
 
+=== Exclude files/folders from backup:
+
+There are two ways to exclude files/folders from your backup.
+Use the follow settings in your {{{PyHardLinkBackup.ini}}}
+{{{
+# Direcory names that will be recusive exclude vom backups (Comma seperated list!)
+SKIP_DIRS= __pycache__, temp
+
+# glob-style patterns to exclude files/folders from backups use with Path.match() (Comma seperated list!)
+SKIP_PATTERNS= *.pyc, *.tmp, *.cache
+}}}
+
+The filesystem scan is divided into two steps:
+1. Just can the filesystem tree
+2. Filter and load meta data for every directory item
+
+The **SKIP_DIRS** is used in the first step.
+The **SKIP_PATTERNS** is used the the second step.
+
 
 == run unittests
 {{{
@@ -187,6 +206,9 @@ Some notes about to setup a development under windows, please look at: [[https:/
 == History
 
 * *dev* - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.4.2...master|compare v0.4.2...master]]
+** refactory source tree scan. Split in two passed.
+** **CHANGE** {{{SKIP_FILES}}} in {{{.ini}}} config to: {{{SKIP_PATTERNS}}}
+** Backup from newest files to oldest files.
 ** Fix [[https://github.com/jedie/PyHardLinkBackup/issues/10|#10]]:
 *** New **--name** cli option (optional) to force a backup name.
 *** Display error message if backup name can be found (e.g.: backup a root folder)

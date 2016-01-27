@@ -34,7 +34,7 @@ class ModelTests(BaseTestCase):
         )
 
         self.assertEqual(
-            test_entry.get_backup_path(),
+            test_entry.get_backup_path().path, # Path2() instance
             os.path.join(self.backup_path,
                 "Unittest/2016-01-02-030405.123456/a/sub/dir/test_filename.foo".replace("/", os.sep)
             )

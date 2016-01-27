@@ -3,7 +3,7 @@ title %~0
 
 set BASE_PATH=%APPDATA%\PyHardLinkBackup
 call:test_exist "%BASE_PATH%" "venv not found here:"
-cd /d %BASE_PATH%
+cd /d "%BASE_PATH%"
 
 set SCRIPT_PATH=%BASE_PATH%\Scripts
 call:test_exist "%SCRIPT_PATH%" "venv/Script path not found here:"
@@ -28,7 +28,7 @@ call:test_exist "%EXE%" "phlb.exe not found here:"
 
 echo on
 cd /d "%~dp0"
-"%EXE%" helper
+"%EXE%" helper "%BASE_PATH%"
 
 @echo off
 title end - %~0

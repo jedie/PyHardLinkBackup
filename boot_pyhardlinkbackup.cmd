@@ -59,7 +59,7 @@ echo on
 set PHLB_EXE="%BASE_PATH%\Scripts\phlb.exe"
 call:test_exist "%PHLB_EXE%" "phlb not found here:"
 echo on
-%PHLB_EXE% helper
+%PHLB_EXE% helper %BASE_PATH%
 @echo off
 
 echo on

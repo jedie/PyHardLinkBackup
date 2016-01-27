@@ -50,7 +50,8 @@ class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
         print(self.first_backup_result.output)
 
         self.assertIn("PyHardLinkBackup", self.first_backup_result.output)
-        self.assertIn("scanned 5 files", self.first_backup_result.output)
+        self.assertIn("5 dir entries", self.first_backup_result.output)
+        self.assertIn("5 filtered dir entries", self.first_backup_result.output)
         self.assertIn("106 Bytes in 5 files to backup.", self.first_backup_result.output)
 
         self.assertIn("Backup done:", self.first_backup_result.output)

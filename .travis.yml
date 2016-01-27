@@ -39,30 +39,24 @@ install:
     - pip uninstall -y PyHardLinkBackup
     - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
     - ls
-    - SRC=$(python -c "import os,PyHardLinkBackup;print(os.path.dirname(PyHardLinkBackup.__file__))")
-    - cd ${SRC}
+    - PKG_PATH=$(python -c "import os,PyHardLinkBackup;print(os.path.dirname(PyHardLinkBackup.__file__))")
+    - cd ${PKG_PATH}
     - git checkout -qf $TRAVIS_COMMIT
-    - cd ..
+    - cd ~/PyHardLinkBackup
     - ls
-    - pip install -e .
-    - pip freeze
-    - MANAGE=$(which manage)
-    - echo ${MANAGE}
-    - ${MANAGE} migrate
-    - cat PyHardLinkBackup/requirements/dev_extras.txt
-    - pip install -r PyHardLinkBackup/requirements/dev_extras.txt
+    - phlb helper ~/PyHardLinkBackup
 
 script:
-    - which python
-    - python --version
-    - echo $(pwd)
-    - CLI=$(which manage)
-    - coverage run --source=PyHardLinkBackup --parallel-mode ${CLI} test --verbosity=2
-    - coverage combine
+    - cd ~/PyHardLinkBackup
+    - ls
+    - ./phlb_run_tests.sh no_report
 
 after_success:
-    - coveralls
+    - cd ${PKG_PATH}
+    - ls
+    - coverage combine
     - coverage report
+    - coveralls
 
 notifications:
     irc: "irc.freenode.org#pylucid"

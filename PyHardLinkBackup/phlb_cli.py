@@ -41,14 +41,14 @@ def cli(ctx):
 
 
 @cli.command()
-def helper():
+@click.argument("path", type=click.Path(
+    exists=True, file_okay=False, dir_okay=True,
+    writable=True, resolve_path=True
+))
+def helper(path):
     """
-    setup helper files in venv root dir
+    link helper files to given path
     """
-    ENV_ROOT=os.path.normpath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
-    if not os.path.isdir(ENV_ROOT):
-        raise RuntimeError("venv not found here: '%s'" % ENV_ROOT)
-
     if sys.platform.startswith("win"):
         # link batch files
         src_path = os.path.join(PHLB_BASE_DIR, "helper_cmd")
@@ -66,7 +66,7 @@ def helper():
         print("_"*79)
         print("Link file: '%s'" % entry.name)
         src = entry.path
-        dst = os.path.join(ENV_ROOT, entry.name)
+        dst = os.path.join(path, entry.name)
         if os.path.exists(dst):
             print("Remove old file '%s'" % dst)
             try:
@@ -114,7 +114,10 @@ cli.add_command(migrate)
 
 
 @click.command()
-@click.argument("path", type=click.Path(exists=True))
+@click.argument("path", type=click.Path(
+    exists=True, file_okay=False, dir_okay=True,
+    writable=False, readable=True, resolve_path=True
+))
 @click.option("--name", help="Force a backup name (If not set: Use parent directory name)")
 def backup(path, name=None):
     """Start a Backup run"""

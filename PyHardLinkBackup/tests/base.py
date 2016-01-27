@@ -109,8 +109,8 @@ class BaseTestCase(django.test.TestCase):
     def assert_database_backup_entries(self, count):
         queryset = BackupEntry.objects.all()
         for entry in queryset:
-            path = entry.get_backup_path()
-            self.assertTrue(os.path.isfile(path), "File not found: %r" % path)
+            path = entry.get_backup_path() # Path2() instance
+            self.assertTrue(os.path.isfile(path.path), "File not found: %r" % path)
 
         self.assertEqual(queryset.count(), count)
 

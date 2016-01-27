@@ -1,12 +1,14 @@
 
 import os
 import logging
+import pathlib
 
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.db.backends.signals import connection_created
 
+from PyHardLinkBackup.phlb.pathlib2 import Path2
 from PyHardLinkBackup.phlb.config import phlb_config
 
 log = logging.getLogger("phlb.%s" % __name__)
@@ -37,13 +39,16 @@ class BackupRun(models.Model):
     backup_datetime = models.DateTimeField(auto_now=False, auto_now_add=False, editable=False, unique=True,
         help_text=_("backup_datetime of a started backup. Used in all path as prefix.")
     )
+
     def path_part(self):
-        return os.path.join(
+        return Path2(
             phlb_config.backup_path,
             self.name,
             self.backup_datetime.strftime(phlb_config.sub_dir_formatter)
         )
-    __str__ = path_part
+
+    def __str__(self):
+        return self.path_part().path
 
     class Meta:
         ordering = ["-backup_datetime"]
@@ -57,9 +62,12 @@ class BackupDir(models.Model):
     directory = models.CharField(max_length=1024, editable=False, unique=True,
         help_text=_("The path in the backup without datetime and filename")
     )
+
     def path_part(self):
-        return self.directory
-    __str__ = path_part
+        return Path2(self.directory)
+
+    def __str__(self):
+        return self.path_part().path
 
 
 class BackupFilename(models.Model):
@@ -69,9 +77,12 @@ class BackupFilename(models.Model):
     filename = models.CharField(max_length=1024, editable=False, unique=True,
         help_text=_("Filename of one file in backup")
     )
+
     def path_part(self):
-        return self.filename
-    __str__ = path_part
+        return Path2(self.filename)
+
+    def __str__(self):
+        return self.path_part().path
 
 
 class ContentInfo(models.Model):
@@ -123,7 +134,7 @@ class BackupEntry(models.Model):
     objects = BackupEntryManager()
 
     def get_backup_path(self):
-        return os.path.join(
+        return Path2(
             self.backup_run.path_part(),
             self.directory.path_part(),
             self.filename.path_part(),

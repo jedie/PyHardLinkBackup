@@ -16,6 +16,8 @@ import os
 
 from PyHardLinkBackup.phlb.config import phlb_config as _phlb_config
 
+# _phlb_config.print_config()
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Username/password for PyHardLinkBackup.backup_app.middleware.AlwaysLoggedInAsSuperUser
