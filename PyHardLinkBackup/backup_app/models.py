@@ -39,6 +39,9 @@ class BackupRun(models.Model):
     backup_datetime = models.DateTimeField(auto_now=False, auto_now_add=False, editable=False, unique=True,
         help_text=_("backup_datetime of a started backup. Used in all path as prefix.")
     )
+    completed = models.BooleanField(default=False, editable=False,
+        help_text=_("Was this backup run finished ?")
+    )
 
     def path_part(self):
         return Path2(
@@ -52,7 +55,7 @@ class BackupRun(models.Model):
 
     class Meta:
         ordering = ["-backup_datetime"]
-        get_latest_by = "-backup_datetime"
+        get_latest_by = "backup_datetime"
 
 
 class BackupDir(models.Model):
@@ -147,4 +150,4 @@ class BackupEntry(models.Model):
 
     class Meta:
         ordering = ["-backup_run__backup_datetime"]
-        get_latest_by = "-backup_run__backup_datetime"
+        get_latest_by = "file_mtime_ns"

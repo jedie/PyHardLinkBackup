@@ -107,7 +107,8 @@ print("Use Database file: '%s'" % DATABASES["default"]["NAME"])
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# https://docs.djangoproject.com/en/1.8/ref/settings/#std:setting-LANGUAGE_CODE
+LANGUAGE_CODE = _phlb_config.language_code
 
 USE_TZ = False
 TIME_ZONE = 'UTC'
@@ -123,8 +124,7 @@ STATIC_URL = '/static/'
 
 import tempfile
 fd, LOG_FILEPATH = tempfile.mkstemp(prefix="PyHardLinkBackup_", suffix=".log")
-print("log file: %s" % LOG_FILEPATH)
-print(os.path.isfile(LOG_FILEPATH))
+print("temp log file: %s" % LOG_FILEPATH)
 with open(fd, "w") as f:
     f.write("\n\n")
     f.write("_"*79)

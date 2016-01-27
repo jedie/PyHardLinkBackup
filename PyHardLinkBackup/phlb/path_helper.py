@@ -62,8 +62,8 @@ class PathHelper(object):
             sys.exit(-1)
         log.debug(" * backup_name: '%s'", self.backup_name)
 
-        backup_datetime = datetime.datetime.now()
-        self.time_string = backup_datetime.strftime(phlb_config.sub_dir_formatter)
+        self.backup_datetime = datetime.datetime.now()
+        self.time_string = self.backup_datetime.strftime(phlb_config.sub_dir_formatter)
         log.debug(" * time_string: %r", self.time_string)
 
         self.abs_dst_root = Path2(phlb_config.backup_path, self.backup_name, self.time_string)
@@ -71,12 +71,6 @@ class PathHelper(object):
 
         self.log_filepath = Path2(phlb_config.backup_path, self.backup_name, self.time_string + ".log")
         self.summary_filepath = Path2(phlb_config.backup_path, self.backup_name, self.time_string + " summary.txt")
-
-        self.backup_run = BackupRun.objects.create(
-            name = self.backup_name,
-            backup_datetime=backup_datetime
-        )
-        log.debug(" * backup_run: %s" % self.backup_run)
 
         # set in set_src_filepath():
         self.abs_src_filepath = None

@@ -35,8 +35,8 @@ import django
 from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_dir_entry, \
     pprint_path
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.human import human_time, human_filesize, to_percent
-from PyHardLinkBackup.backup_app.models import BackupEntry
+from PyHardLinkBackup.phlb.human import human_time, human_filesize, to_percent, ns2naturaltimesince, dt2naturaltimesince
+from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
 from PyHardLinkBackup.phlb.path_helper import PathHelper
 from PyHardLinkBackup.phlb.pathlib2 import Path2
 
@@ -52,13 +52,14 @@ class FileBackup(object):
     # TODO: remove with Mock solution:
     _SIMULATE_SLOW_SPEED=False # for unittests only!
 
-    def __init__(self, dir_path, path_helper):
+    def __init__(self, dir_path, path_helper, backup_run):
         """
         :param dir_path: DirEntryPath() instance of the source file
         :param path_helper: PathHelper(backup_root) instance
         """
         self.dir_path = dir_path
         self.path_helper = path_helper
+        self.backup_run = backup_run
 
     def _deduplication_backup(self, file_entry, in_file, out_file, process_bar):
         hash = hashlib.new(phlb_config.hash_name)
@@ -155,7 +156,7 @@ class FileBackup(object):
                 break
 
         BackupEntry.objects.create(
-            self.path_helper.backup_run,
+            self.backup_run,
             directory=self.path_helper.sub_path,
             filename=self.path_helper.filename,
             hash_hexdigest=hash_hexdigest,
@@ -173,16 +174,47 @@ class FileBackup(object):
 
 
 class HardLinkBackup(object):
-    def __init__(self, src_path, force_name=None):
+    def __init__(self, path_helper, summary):
         """
         :param src_path: Path2() instance of the source directory
         :param force_name: Force this name for the backup
         """
         self.start_time = default_timer()
         self.duration = 0
-        self.path_helper = PathHelper(src_path, force_name)
+        self.path_helper = path_helper
+        self.summary = summary
 
-        print("Backup to: '%s'" % self.path_helper.abs_dst_root)
+        old_backups = BackupRun.objects.filter(name=self.path_helper.backup_name)
+        self.summary("%r was backuped %i time(s)" % (self.path_helper.backup_name, old_backups.count()))
+
+        old_backups = old_backups.filter(completed=True)
+        completed_count = old_backups.count()
+        self.summary("There are %i backups finished completed." % completed_count)
+        try:
+            latest_backup = old_backups.latest()
+        except BackupRun.DoesNotExist:
+            self.summary("No old backup found with name %r" % self.path_helper.backup_name)
+        else:
+            latest_backup_datetime = latest_backup.backup_datetime
+            self.summary("Latest backup from:", dt2naturaltimesince(latest_backup_datetime))
+
+            backup_entries = BackupEntry.objects.filter(backup_run=latest_backup)
+            try:
+                latest_entry = backup_entries.latest()
+            except BackupEntry.DoesNotExist:
+                log.warn("Latest backup run contains no files?!?")
+            else:
+                latest_mtime_ns = latest_entry.file_mtime_ns
+                self.summary("Latest backup entry modified time: %s" % ns2naturaltimesince(latest_mtime_ns))
+
+        self.backup_run = BackupRun.objects.create(
+            name = self.path_helper.backup_name,
+            backup_datetime=self.path_helper.backup_datetime,
+            completed = False,
+        )
+        log.debug(" * backup_run: %s" % self.backup_run)
+
+        self.summary("Backup to: '%s'" % self.path_helper.abs_dst_root)
         self.path_helper.abs_dst_root.makedirs( # call os.makedirs()
             mode=phlb_config.default_new_path_mode,
             exist_ok=True
@@ -206,13 +238,7 @@ class HardLinkBackup(object):
             copy_log=False
 
         try:
-            with self.path_helper.summary_filepath.open("w") as summary_file:
-                summary_file.write("Start backup: %s\n\n" % self.path_helper.time_string)
-                summary_file.write("Source: %s\n\n" % self.path_helper.abs_src_root)
-
-                self._backup()
-
-                summary_file.write("\n".join(self.get_summary()))
+            self._backup()
         finally:
             if copy_log:
                 log.warn("copy log file from '%s' to '%s'" % (
@@ -220,15 +246,19 @@ class HardLinkBackup(object):
                 ))
                 temp_log_path.copyfile(self.path_helper.log_filepath) # call shutil.copyfile()
 
+        self.backup_run.completed=True
+        self.backup_run.save()
+
+
     def _scandir(self, path):
         start_time = default_timer()
-        print("\nScan '%s'...\n" % path)
+        self.summary("\nScan '%s'...\n" % path)
 
         def on_skip(entry, pattern):
             log.error("Skip pattern %r hit: %s" % (pattern, entry.path))
 
         skip_dirs = phlb_config.skip_dirs
-        print("Scan filesystem with skip dirs: %s" % repr(skip_dirs))
+        self.summary("Scan filesystem with skip dirs: %s" % repr(skip_dirs))
 
         tqdm_iterator = tqdm(
             scandir_walk(path.path, skip_dirs, on_skip=on_skip),
@@ -236,13 +266,13 @@ class HardLinkBackup(object):
             leave=True
         )
         dir_entries = [entry for entry in tqdm_iterator]
-        print("\n * %i dir entries" % len(dir_entries))
+        self.summary("\n * %i dir entries" % len(dir_entries))
 
         self.total_size = 0
         self.file_count = 0
         filtered_dir_entries = []
         skip_patterns = phlb_config.skip_patterns
-        print("Filter with skip patterns: %s" % repr(skip_patterns))
+        self.summary("Filter with skip patterns: %s" % repr(skip_patterns))
         tqdm_iterator = tqdm(
             iter_filtered_dir_entry(dir_entries, skip_patterns, on_skip),
             total=len(dir_entries),
@@ -258,9 +288,9 @@ class HardLinkBackup(object):
                 self.file_count += 1
                 self.total_size += entry.stat.st_size
 
-        print("\n * %i filtered dir entries" % len(filtered_dir_entries))
+        self.summary("\n * %i filtered dir entries" % len(filtered_dir_entries))
 
-        print("\nscan/filter source directory in %s\n" % (
+        self.summary("\nscan/filter source directory in %s\n" % (
             human_time(default_timer()-start_time)
         ))
         return filtered_dir_entries
@@ -271,7 +301,7 @@ class HardLinkBackup(object):
         msg="%s in %i files to backup." % (
             human_filesize(self.total_size), self.file_count,
         )
-        print(msg)
+        self.summary(msg)
         log.info(msg)
 
         self.total_file_link_count = 0
@@ -291,23 +321,23 @@ class HardLinkBackup(object):
                 # dir_path is a filesystem_walk.DirEntryPath() instance
 
                 log.debug("%i %s", no, dir_path)
-                # print("%i %s" % (no, dir_path))
+                # self.summary("%i %s" % (no, dir_path))
 
-                # print(no, dir_path.stat.st_mtime, end=" ")
+                # self.summary(no, dir_path.stat.st_mtime, end=" ")
                 if dir_path.is_symlink:
-                    print("TODO Symlink: %s" % dir_path)
+                    self.summary("TODO Symlink: %s" % dir_path)
                     continue
 
                 if dir_path.different_path or dir_path.resolve_error:
-                    print("TODO different path:")
+                    self.summary("TODO different path:")
                     pprint_path(dir_path)
                     continue
 
                 if dir_path.is_dir:
-                    print("TODO dir: %s" % dir_path)
+                    self.summary("TODO dir: %s" % dir_path)
                 elif dir_path.is_file:
-                    # print("Normal file: %s", dir_path)
-                    file_backup = FileBackup(dir_path, self.path_helper)
+                    # self.summary("Normal file: %s", dir_path)
+                    file_backup = FileBackup(dir_path, self.path_helper, self.backup_run)
                     try:
                         file_linked, file_size = file_backup.deduplication_backup(process_bar)
                     except BackupFileError as err:
@@ -322,7 +352,7 @@ class HardLinkBackup(object):
                             self.total_new_file_count += 1
                             self.total_new_bytes += file_size
                 else:
-                    print("TODO:" % dir_path)
+                    self.summary("TODO:" % dir_path)
                     pprint_path(dir_path)
 
                 if default_timer()>next_update_print:
@@ -384,13 +414,45 @@ class HardLinkBackup(object):
         return summary
 
     def print_summary(self):
-        print("\n%s\n" % "\n".join(self.get_summary()))
+        self.summary("\n%s\n" % "\n".join(self.get_summary()))
+
+
+class SummaryFileHelper:
+    def __init__(self, summary_file):
+        self.summary_file = summary_file
+
+    def __call__(self, *parts, sep=" ", end="\n", flush=False):
+        print(*parts, sep=sep, end=end, flush=flush)
+        self.summary_file.write(sep.join([str(i) for i in parts]))
+        self.summary_file.write(end)
+        if flush:
+            self.summary_file.flush()
 
 
 def backup(path, name):
     django.setup()
-    phlb = HardLinkBackup(src_path=path, force_name=name)
-    phlb.print_summary()
+
+    path_helper = PathHelper(path, name)
+
+    # create backup destination to create summary file in there
+    path_helper.summary_filepath.parent.makedirs( # calls os.makedirs()
+        mode=phlb_config.default_new_path_mode,
+        exist_ok=True
+    )
+    with path_helper.summary_filepath.open("w") as f:
+        summary = SummaryFileHelper(f)
+
+        summary("Start backup: %s" % path_helper.time_string)
+        summary("Source path: %s" % path_helper.abs_src_root)
+
+        phlb = HardLinkBackup(path_helper, summary)
+        phlb.print_summary()
+
+    print("---END---")
+    print(path_helper.log_filepath)
+    with path_helper.summary_filepath.open("r") as f:
+        print(f.read())
+    print("-"*79)
 
 
 

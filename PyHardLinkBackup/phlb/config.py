@@ -58,6 +58,8 @@ INI_CONVERTER_DICT = {
     "backup_path": expand_abs_path,
     "sub_dir_formatter": strftime,
 
+    "language_code": str, # FIXME: validate
+
     "skip_dirs": commalist,
     "skip_patterns": commalist,
 
