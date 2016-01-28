@@ -7,6 +7,8 @@ import unittest
 from unittest import mock
 
 import io
+
+from PyHardLinkBackup.backup_app.models import BackupRun
 from click.testing import CliRunner
 
 from PyHardLinkBackup.phlb.config import phlb_config
@@ -79,6 +81,10 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", second_run_result.output)
         self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", second_run_result.output)
 
+        # run_log = self.get_last_log_content()
+        # print("+++ LAST LOGGING OUTPUT: +++\n", run_log)
+        # self.assertIn("was renamed to", run_log)
+
     def test_no_backupname(self):
         if sys.platform.startswith("win"):
             source_path = "C:\\"
@@ -143,10 +149,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(1)
 
-        run_path = self.get_newest_backup_path()
-        run_log = pathlib.Path(run_path + ".log")
-
-        log_content = self.get_log_content(run_log)
+        log_content = self.get_last_log_content()
         print(log_content)
         self.assertIn("Skip file", log_content)
         self.assertIn(
@@ -248,6 +251,34 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("root_file_B.txt': unittests raise", log_content)
 
         # TODO: Check model no_link_source !
+
+    def test_last_backup_not_complete(self):
+        """
+        If all previous backups are not complete: All files will be
+        compared by content.
+        Here we test the code tree that will temporary rename a new
+        created backup file and remove it with a hardlink after the
+        hash is the same.
+        """
+        backup_runs = BackupRun.objects.all()
+        self.assertEqual(backup_runs.count(), 1)
+        backup_run = backup_runs[0]
+        backup_run.completed = False
+        backup_run.save()
+
+        result = self.invoke_cli("backup", self.source_path)
+        print(result.output)
+        backup_path = self.get_newest_backup_path()
+        self.assert_backuped_files(backup_path)
+
+        self.assertIn("106 Bytes in 5 files to backup.", result.output)
+        self.assertNotIn("WARNING: Skipped", result.output)
+
+        # Can't use the fast backup, because all previous backups are not complete
+        self.assertIn("fast backup: 0 files", result.output)
+
+        self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", result.output)
 
 
 class TestTwoBackups(BaseCreatedTwoBackupsTestCase):

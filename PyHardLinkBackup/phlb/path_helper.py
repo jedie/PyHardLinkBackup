@@ -1,11 +1,31 @@
 import datetime
 import os
 import sys
+import tempfile
 
 from PyHardLinkBackup.backup_app.models import BackupRun
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.phlb_main import log
 from PyHardLinkBackup.phlb.pathlib2 import Path2
+
+
+def get_tempname(path, prefix="", suffix=""):
+    names = tempfile._get_candidate_names()
+    for seq in range(tempfile.TMP_MAX):
+        name = next(names)
+        yield Path2(path, prefix + name + suffix)
+
+def rename2temp(src, dst, prefix="", suffix="", tmp_max=10):
+    paths = get_tempname(path=dst, prefix=prefix, suffix=suffix)
+    for i in range(tmp_max):
+        temp_filepath = next(paths)
+        try:
+            src.rename(temp_filepath)
+        except FileExistsError:
+            continue
+        else:
+            return temp_filepath
+    raise OSError("Can't find useable temp name! Have tried %i variants." % tmp_max)
 
 
 class PathHelper(object):

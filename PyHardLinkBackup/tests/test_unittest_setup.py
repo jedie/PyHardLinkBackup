@@ -82,7 +82,10 @@ class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
 class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
 
     def test_first_backup_run(self):
-        self.assert_first_backup()
+        """
+        After a 2nd backup exist all files are hardlinks!
+        """
+        self.assert_backuped_files(self.first_run_path)
 
     def test_second_backup_run(self):
         self.assert_click_exception(self.second_backup_result)

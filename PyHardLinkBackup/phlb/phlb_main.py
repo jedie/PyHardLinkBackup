@@ -37,7 +37,8 @@ from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_di
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.human import human_time, human_filesize, to_percent, ns2naturaltimesince, dt2naturaltimesince
 from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
-from PyHardLinkBackup.phlb.path_helper import PathHelper
+from PyHardLinkBackup.phlb.path_helper import PathHelper, get_tempname, \
+    rename2temp
 from PyHardLinkBackup.phlb.pathlib2 import Path2
 
 
@@ -190,10 +191,6 @@ class FileBackup(object):
             self.path_helper.abs_dst_hash_filepath.unlink()
             sys.exit(-1)
 
-        temp_bak_name=Path2(
-            "%s.bak" % self.path_helper.abs_dst_filepath # FIXME
-        )
-
         old_backups = BackupEntry.objects.filter(
             content_info__hash_hexdigest=hash_hexdigest,
             no_link_source=False,
@@ -210,12 +207,18 @@ class FileBackup(object):
 
             # TODO: compare hash / current content before replace with a link
 
-            # FIXME
-            self.path_helper.abs_dst_filepath.rename(temp_bak_name)
+            temp_filepath = rename2temp(
+                src=self.path_helper.abs_dst_filepath,
+                dst=self.path_helper.abs_dst_filepath.parent,
+                prefix="%s_" % self.path_helper.abs_dst_filepath.name,
+                suffix=".bak",
+                tmp_max=10
+            )
+            log.debug("%s was renamed to %s" % (self.path_helper.abs_dst_filepath, temp_filepath))
             try:
                 abs_old_backup_path.link(self.path_helper.abs_dst_filepath) # call os.link()
             except OSError as err:
-                temp_bak_name.rename(self.path_helper.abs_dst_filepath)
+                temp_filepath.rename(self.path_helper.abs_dst_filepath)
                 log.error("Can't link '%s' to '%s': %s" % (
                     abs_old_backup_path, self.path_helper.abs_dst_filepath, err
                 ))
@@ -223,8 +226,8 @@ class FileBackup(object):
                 old_backup.no_link_source=True
                 old_backup.save()
             else:
-                temp_bak_name.unlink() # FIXME
-                self.file_linked=True # Was a hardlink used?
+                temp_filepath.unlink() # FIXME
+                self.file_linked = True # Was a hardlink used?
                 log.info("Replaced with a hardlink to: '%s'" % abs_old_backup_path)
                 break
 

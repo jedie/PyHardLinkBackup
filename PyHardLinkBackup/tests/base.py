@@ -147,11 +147,19 @@ class BaseSourceDirTestCase(BaseTestCase):
     def get_newest_backup_path(self):
         return get_newest_directory(self.backup_sub_path)
 
+    def get_newest_log_filepath(self):
+        run_path = self.get_newest_backup_path()
+        return pathlib.Path(run_path + ".log")
+
     def get_log_content(self, log_filepath):
         self.assertTrue(log_filepath.is_file(), "%s doesn't exist" % log_filepath)
 
         with log_filepath.open("r") as f: # Path().read_text() is new in Py 2.5
             return f.read()
+
+    def get_last_log_content(self):
+        newest_log_filepath = self.get_newest_log_filepath()
+        return self.get_log_content(newest_log_filepath)
 
     def assert_backup_fs_count(self, count):
         files = []
@@ -177,60 +185,22 @@ class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
     """
     Tests with created example source files under /temp/source unittests files&
     """
-    def setUp(self):
-        super(BaseWithSourceFilesTestCase, self).setUp()
-
-        fs_helper = UnittestFileSystemHelper()
-        fs_helper.create_test_fs(EXAMPLE_FS_DATA, self.source_path)
-
-
-class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
-    """
-    Test that used existing backups:
-    The 'source unittests files' will be backuped one time.
-    """
-    def assert_first_backup(self):
-        fs_helper = UnittestFileSystemHelper()
-        #fs_helper.print_tree(self.backup_path)
-        tree_list = fs_helper.pformat_tree(self.first_run_path, with_timestamps=False)
-        #print("\n".join(tree_list))
-        # pprint.pprint(tree_list,indent=0, width=200)
-        self.assertListEqual(tree_list, [
-            self.first_run_path,
-            'root_file_A.txt                F - The root file A content.',
-            'root_file_A.txt.sha512         F - 13e3e...d7df6',
-            'root_file_B.txt                F - The root file B content.',
-            'root_file_B.txt.sha512         F - 4bb47...5a181',
-            'sub dir A                      D',
-            'sub dir A/dir_A_file_A.txt     F - File A in sub dir A.',
-            'sub dir A/dir_A_file_A.txt.sha512 F - 89091...f8669',
-            'sub dir A/dir_A_file_B.txt     F - File B in sub dir A.',
-            'sub dir A/dir_A_file_B.txt.sha512 F - b358d...b5b98',
-            'sub dir B                      D',
-            'sub dir B/sub_file.txt         F - File in sub dir B.',
-            'sub dir B/sub_file.txt.sha512  F - bbe59...dbdbb'
-        ])
-
-
-    def setUp(self):
-        super(BaseCreatedOneBackupsTestCase, self).setUp()
-
-        self.first_backup_result = self.invoke_cli("backup", self.source_path)
-        self.first_run_path = self.get_newest_backup_path()
-
-        self.first_run_log = pathlib.Path(self.first_run_path + ".log")
-
-
-class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
-    """
-    Test that used existing backups:
-    The 'source unittests files' will be backuped two times.
-
-    Note:
-        After a second backup run, all files (incl. first run files)
-        will be 'display' as filesystem type 'L' (link).
-        Because: 'if stat.st_nlink > 1:' will be True
-    """
+    # on first run, all files are normal files and not links:
+    first_backuped_file_info=[
+        'root_file_A.txt                F - The root file A content.',
+        'root_file_A.txt.sha512         F - 13e3e...d7df6',
+        'root_file_B.txt                F - The root file B content.',
+        'root_file_B.txt.sha512         F - 4bb47...5a181',
+        'sub dir A                      D',
+        'sub dir A/dir_A_file_A.txt     F - File A in sub dir A.',
+        'sub dir A/dir_A_file_A.txt.sha512 F - 89091...f8669',
+        'sub dir A/dir_A_file_B.txt     F - File B in sub dir A.',
+        'sub dir A/dir_A_file_B.txt.sha512 F - b358d...b5b98',
+        'sub dir B                      D',
+        'sub dir B/sub_file.txt         F - File in sub dir B.',
+        'sub dir B/sub_file.txt.sha512  F - bbe59...dbdbb'
+    ]
+    # after first run, all files are links:
     backuped_file_info=[
         'root_file_A.txt                L - The root file A content.',
         'root_file_A.txt.sha512         F - 13e3e...d7df6',
@@ -247,21 +217,72 @@ class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
     ]
 
     def setUp(self):
+        super(BaseWithSourceFilesTestCase, self).setUp()
+        fs_helper = UnittestFileSystemHelper()
+        fs_helper.create_test_fs(EXAMPLE_FS_DATA, self.source_path)
+
+    def assert_first_backuped_files(self, backup_path):
+        """
+        all files are normal files and not hardlinks
+        """
+        fs_helper = UnittestFileSystemHelper()
+        #fs_helper.print_tree(self.backup_path)
+        tree_list = fs_helper.pformat_tree(backup_path, with_timestamps=False)
+        #print("\n".join(tree_list))
+        # pprint.pprint(tree_list,indent=0, width=200)
+
+        self.assertListEqual(tree_list, [backup_path]+self.first_backuped_file_info)
+
+    def assert_backuped_files(self, backup_path):
+        """
+        all files are hardlinks
+        """
+        fs_helper = UnittestFileSystemHelper()
+        #fs_helper.print_tree(self.backup_path)
+        tree_list = fs_helper.pformat_tree(backup_path, with_timestamps=False)
+        #print("\n".join(tree_list))
+        # pprint.pprint(tree_list,indent=0, width=200)
+
+        self.assertListEqual(tree_list, [backup_path]+self.backuped_file_info)
+
+class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
+    """
+    Test that used existing backups:
+    The 'source unittests files' will be backuped one time.
+    """
+    def setUp(self):
+        super(BaseCreatedOneBackupsTestCase, self).setUp()
+
+        self.first_backup_result = self.invoke_cli("backup", self.source_path)
+        self.first_run_path = self.get_newest_backup_path()
+
+        self.first_run_log = pathlib.Path(self.first_run_path + ".log")
+
+    def assert_first_backup(self):
+        self.assert_first_backuped_files(self.first_run_path)
+
+
+class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
+    """
+    Test that used existing backups:
+    The 'source unittests files' will be backuped two times.
+
+    Note:
+        After a second backup run, all files (incl. first run files)
+        will be 'display' as filesystem type 'L' (link).
+        Because: 'if stat.st_nlink > 1:' will be True
+    """
+    def setUp(self):
         super(BaseCreatedTwoBackupsTestCase, self).setUp()
 
         self.second_backup_result = self.invoke_cli("backup", self.source_path)
         self.second_run_path = self.get_newest_backup_path()
 
     def assert_first_backup(self):
-        fs_helper = UnittestFileSystemHelper()
-        tree_list = fs_helper.pformat_tree(self.first_run_path, with_timestamps=False)
-        #print("\n".join(tree_list))
-        # pprint.pprint(tree_list,indent=0, width=200)
-        self.assertListEqual(tree_list, [self.first_run_path]+self.backuped_file_info)
+        """
+        After a 2nd backup exist all files are hardlinks!
+        """
+        self.assert_backuped_files(self.first_run_path)
 
     def assert_second_backup(self):
-        fs_helper = UnittestFileSystemHelper()
-        tree_list = fs_helper.pformat_tree(self.second_run_path, with_timestamps=False)
-        #print("\n".join(tree_list))
-        # pprint.pprint(tree_list,indent=0, width=200)
-        self.assertListEqual(tree_list, [self.second_run_path]+self.backuped_file_info)
+        self.assert_backuped_files(self.second_run_path)
