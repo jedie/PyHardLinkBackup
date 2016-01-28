@@ -11,9 +11,15 @@ def force_posixpath(path):
 
 
 class UnittestFileSystemHelper(object):
+    """
+    Creates test files in filesystem.
+    Every test file has his own mtime. So that the order
+    is always the same.
+    """
     DATETIME_FORMATTER="%Y%m%d:%H%M%S"
 
     def __init__(self):
+        self.mtime_offset = 0
         self.default_mtime = 111111111 # UTC: 1973-07-10 00:11:51
         self.default_mtime_string = "19730710:001151"
 
@@ -26,14 +32,15 @@ class UnittestFileSystemHelper(object):
 
     def set_test_stat(self, path):
         atime = 222222222 # UTC: 1977-01-16 01:23:42
-        os.utime(path, (atime, self.default_mtime))
+        os.utime(path, (atime, self.default_mtime+self.mtime_offset))
 
         # check mtime:
-        mtime_string=self.timestamp2string(os.stat(path).st_mtime)
-        assert mtime_string == self.default_mtime_string, "%s != %s" % (mtime_string, self.default_mtime_string)
+        if self.mtime_offset==0:
+            mtime_string=self.timestamp2string(os.stat(path).st_mtime)
+            assert mtime_string == self.default_mtime_string, "%s != %s" % (mtime_string, self.default_mtime_string)
 
     def create_test_fs(self, fs_dict, dir=None):
-        for name, data in fs_dict.items():
+        for name, data in sorted(fs_dict.items()):
             path = os.path.normpath(os.path.join(dir, name))
             if isinstance(data, dict):
                 os.mkdir(path)
@@ -43,6 +50,7 @@ class UnittestFileSystemHelper(object):
                     f.write(data)
 
             self.set_test_stat(path)
+            self.mtime_offset += 1
 
     def pformat_tree(self, path, with_timestamps):
 

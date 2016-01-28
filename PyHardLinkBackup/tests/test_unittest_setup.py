@@ -1,4 +1,5 @@
 import os
+import pprint
 
 from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
@@ -27,17 +28,16 @@ class TestBaseBackup(BaseWithSourceFilesTestCase):
         """
         fs_helper = UnittestFileSystemHelper()
         tree_list = fs_helper.pformat_tree(self.source_path, with_timestamps=True)
-        # print("\n".join(tree_list))
         # pprint.pprint(tree_list,indent=0, width=200)
         self.assertListEqual(tree_list, [
             self.source_path,
             'root_file_A.txt                F 19730710:001151 - The root file A content.',
-            'root_file_B.txt                F 19730710:001151 - The root file B content.',
-            'sub dir A                      D 19730710:001151',
-            'sub dir A/dir_A_file_A.txt     F 19730710:001151 - File A in sub dir A.',
-            'sub dir A/dir_A_file_B.txt     F 19730710:001151 - File B in sub dir A.',
-            'sub dir B                      D 19730710:001151',
-            'sub dir B/sub_file.txt         F 19730710:001151 - File in sub dir B.'
+            'root_file_B.txt                F 19730710:001152 - The root file B content.',
+            'sub dir A                      D 19730710:001155',
+            'sub dir A/dir_A_file_A.txt     F 19730710:001153 - File A in sub dir A.',
+            'sub dir A/dir_A_file_B.txt     F 19730710:001154 - File B in sub dir A.',
+            'sub dir B                      D 19730710:001157',
+            'sub dir B/sub_file.txt         F 19730710:001156 - File in sub dir B.'
         ])
 
 

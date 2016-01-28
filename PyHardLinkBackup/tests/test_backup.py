@@ -197,7 +197,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
     def test_keyboard_interrupt(self):
         origin_open = io.open
         def patched_open(filename, *args, **kwargs):
-            if filename.endswith("sub_file.txt"):
+            if filename.endswith("dir_A_file_A.txt"):
                 raise KeyboardInterrupt
             return origin_open(filename, *args, **kwargs)
 
@@ -218,8 +218,8 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("Files to backup: 5 files", summary)
         self.assertIn("WARNING: 3 omitted files!", result.output)
         self.assertIn("WARNING: 3 omitted files!", summary)
-        self.assertIn("new content saved: 2 files (40 Bytes 37.7%)", result.output)
-        self.assertIn("new content saved: 2 files (40 Bytes 37.7%)", summary)
+        self.assertIn("new content saved: 2 files (38 Bytes 35.8%)", result.output)
+        self.assertIn("new content saved: 2 files (38 Bytes 35.8%)", summary)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", summary)
 
