@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.db.backends.signals import connection_created
 
+from PyHardLinkBackup.phlb.human import dt2naturaltimesince
 from PyHardLinkBackup.phlb.pathlib2 import Path2
 from PyHardLinkBackup.phlb.config import phlb_config
 
@@ -51,7 +52,15 @@ class BackupRun(models.Model):
         )
 
     def __str__(self):
-        return self.path_part().path
+        if self.completed:
+            complete = "Completed Backup"
+        else:
+            complete = "*Unfinished* Backup"
+        return "%s %r from: %s stored: %r" % (
+            complete, self.name,
+            dt2naturaltimesince(self.backup_datetime),
+            self.path_part().path,
+        )
 
     class Meta:
         ordering = ["-backup_datetime"]
