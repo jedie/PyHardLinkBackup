@@ -56,6 +56,8 @@ class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
 
         self.assertIn("Backup done:", self.first_backup_result.output)
         self.assertIn("Source file sizes: 106 Bytes", self.first_backup_result.output)
+        self.assertNotIn("WARNING: Skipped", self.first_backup_result.output)
+        self.assertIn("fast backup: 0 files", self.first_backup_result.output)
         self.assertIn("new content saved: 5 files (106 Bytes 100.0%)", self.first_backup_result.output)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", self.first_backup_result.output)
 
@@ -87,6 +89,8 @@ class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
         print(self.second_backup_result.output)
 
         self.assertIn("106 Bytes in 5 files to backup.", self.second_backup_result.output)
+        self.assertNotIn("WARNING: Skipped", self.second_backup_result.output)
+        self.assertIn("fast backup: 5 files", self.second_backup_result.output)
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", self.second_backup_result.output)
         self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", self.second_backup_result.output)
 

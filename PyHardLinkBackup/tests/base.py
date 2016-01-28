@@ -154,13 +154,23 @@ class BaseSourceDirTestCase(BaseTestCase):
             return f.read()
 
     def assert_backup_fs_count(self, count):
-        # TODO: count dirs and files seperate!
-        fs_items=os.listdir(self.backup_sub_path)
+        files = []
+        dirs = []
+        for item in scandir(self.backup_sub_path):
+            if item.is_file(follow_symlinks=False):
+                files.append(item)
+            if item.is_dir(follow_symlinks=False):
+                dirs.append(item)
 
-        # add .log and summay files for every backup run
-        count += (count * 2)
+        self.assertEqual(len(dirs), count, "dir count: %i != %i - items: %s" % (
+            len(dirs), count, repr(dirs))
+        )
 
-        self.assertEqual(len(fs_items), count, "%i != %i - items: %s" % (len(fs_items), count, repr(fs_items)))
+        # .log and summay files for every backup run
+        file_count = count * 2
+        self.assertEqual(len(files), file_count, "files count: %i != %i - items: %s" % (
+            len(files), file_count, repr(files))
+        )
 
 
 class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):

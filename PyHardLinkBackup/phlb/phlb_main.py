@@ -45,6 +45,7 @@ class BackupFileError(Exception):
     pass
 
 
+
 class FileBackup(object):
     """
     backup one file
@@ -61,6 +62,12 @@ class FileBackup(object):
         self.path_helper = path_helper
         self.backup_run = backup_run
 
+        self.fast_backup = None # Was a fast backup used?
+        self.file_linked = None # Was a hardlink used?
+
+        if self._SIMULATE_SLOW_SPEED:
+            log.error("Slow down speed for tests activated!")
+
     def _deduplication_backup(self, file_entry, in_file, out_file, process_bar):
         hash = hashlib.new(phlb_config.hash_name)
         while True:
@@ -69,7 +76,7 @@ class FileBackup(object):
                 break
 
             if self._SIMULATE_SLOW_SPEED:
-                log.error("Slow down speed for unittest!")
+                log.error("Slow down speed for tests!")
                 time.sleep(self._SIMULATE_SLOW_SPEED)
 
             out_file.write(data)
@@ -77,11 +84,77 @@ class FileBackup(object):
             process_bar.update(len(data))
         return hash
 
+    def fast_deduplication_backup(self, old_backup_entry, process_bar):
+        """
+        We can just link a old backup entry
+
+        :param latest_backup: old BackupEntry model instance
+        :param process_bar: tqdm process bar
+        """
+        # TODO: merge code with parts from deduplication_backup()
+        src_path = self.dir_path.resolved_path
+        log.debug("*** fast deduplication backup: '%s'", src_path)
+        old_file_path = old_backup_entry.get_backup_path()
+
+        if not self.path_helper.abs_dst_path.is_dir():
+            try:
+                self.path_helper.abs_dst_path.makedirs(
+                    mode=phlb_config.default_new_path_mode
+                )
+            except OSError as err:
+                raise BackupFileError(
+                    "Error creating out path: %s" % err
+                )
+        else:
+            assert not self.path_helper.abs_dst_filepath.is_file(), "Out file already exists: %r" % self.path_helper.abs_src_filepath
+
+        with self.path_helper.abs_dst_hash_filepath.open("w") as hash_file:
+            try:
+                old_file_path.link(self.path_helper.abs_dst_filepath) # call os.link()
+            except OSError as err:
+                log.error("Can't link '%s' to '%s': %s" % (
+                    old_file_path, self.path_helper.abs_dst_filepath, err
+                ))
+                log.info("Mark %r with 'no link source'.", old_backup_entry)
+                old_backup_entry.no_link_source=True
+                old_backup_entry.save()
+
+                # do a normal copy backup
+                self.deduplication_backup(process_bar)
+                return
+
+            hash_hexdigest = old_backup_entry.content_info.hash_hexdigest
+            hash_file.write(hash_hexdigest)
+
+        file_size = self.dir_path.stat.st_size
+        process_bar.update(file_size)
+
+        BackupEntry.objects.create(
+            self.backup_run,
+            directory=self.path_helper.sub_path,
+            filename=self.path_helper.filename,
+            hash_hexdigest=hash_hexdigest,
+            file_stat=self.dir_path.stat,
+        )
+
+        if self._SIMULATE_SLOW_SPEED:
+            log.error("Slow down speed for tests!")
+            time.sleep(self._SIMULATE_SLOW_SPEED)
+
+        self.fast_backup = True # Was a fast backup used?
+        self.file_linked = True # Was a hardlink used?
+
     def deduplication_backup(self, process_bar):
+        """
+        Backup the current file and compare the content.
+
+        :param process_bar: tqdm process bar
+        """
+        self.fast_backup = False # Was a fast backup used?
+
         src_path = self.dir_path.resolved_path
         log.debug("*** deduplication backup: '%s'", src_path)
 
-        self.path_helper.set_src_filepath(self.dir_path)
         log.debug("abs_src_filepath: '%s'", self.path_helper.abs_src_filepath)
         log.debug("abs_dst_filepath: '%s'", self.path_helper.abs_dst_filepath)
         log.debug("abs_dst_hash_filepath: '%s'", self.path_helper.abs_dst_hash_filepath)
@@ -125,7 +198,7 @@ class FileBackup(object):
             content_info__hash_hexdigest=hash_hexdigest,
             no_link_source=False,
         )
-        file_linked = False
+        self.file_linked=False # Was a hardlink used?
         for old_backup in old_backups:
             log.debug("+++ old: '%s'", old_backup)
             abs_old_backup_path = old_backup.get_backup_path()
@@ -151,7 +224,7 @@ class FileBackup(object):
                 old_backup.save()
             else:
                 temp_bak_name.unlink() # FIXME
-                file_linked = True
+                self.file_linked=True # Was a hardlink used?
                 log.info("Replaced with a hardlink to: '%s'" % abs_old_backup_path)
                 break
 
@@ -170,7 +243,8 @@ class FileBackup(object):
             ns=(atime_ns, mtime_ns)
         )
 
-        return file_linked, self.dir_path.stat.st_size
+        self.fast_backup=False # Was a fast backup used?
+
 
 
 class HardLinkBackup(object):
@@ -190,22 +264,26 @@ class HardLinkBackup(object):
         old_backups = old_backups.filter(completed=True)
         completed_count = old_backups.count()
         self.summary("There are %i backups finished completed." % completed_count)
+
+        self.latest_backup = None
+        self.latest_mtime_ns = None
         try:
-            latest_backup = old_backups.latest()
+            self.latest_backup = old_backups.latest()
         except BackupRun.DoesNotExist:
             self.summary("No old backup found with name %r" % self.path_helper.backup_name)
+
         else:
-            latest_backup_datetime = latest_backup.backup_datetime
+            latest_backup_datetime = self.latest_backup.backup_datetime
             self.summary("Latest backup from:", dt2naturaltimesince(latest_backup_datetime))
 
-            backup_entries = BackupEntry.objects.filter(backup_run=latest_backup)
+            backup_entries = BackupEntry.objects.filter(backup_run=self.latest_backup)
             try:
                 latest_entry = backup_entries.latest()
             except BackupEntry.DoesNotExist:
                 log.warn("Latest backup run contains no files?!?")
             else:
-                latest_mtime_ns = latest_entry.file_mtime_ns
-                self.summary("Latest backup entry modified time: %s" % ns2naturaltimesince(latest_mtime_ns))
+                self.latest_mtime_ns = latest_entry.file_mtime_ns
+                self.summary("Latest backup entry modified time: %s" % ns2naturaltimesince(self.latest_mtime_ns))
 
         self.backup_run = BackupRun.objects.create(
             name = self.path_helper.backup_name,
@@ -295,6 +373,55 @@ class HardLinkBackup(object):
         ))
         return filtered_dir_entries
 
+    def fast_compare(self, dir_path):
+        """
+        :param dir_path: filesystem_walk.DirEntryPath() instance
+        """
+        if self.latest_backup is None:
+            # No old backup run was found
+            return
+
+        if self.latest_mtime_ns is None:
+            # No timestamp from old backup run was found
+            return
+
+        # There was a completed old backup run
+        # Check if we can made a 'fast compare'
+        mtime_ns = dir_path.stat.st_mtime_ns
+        if mtime_ns>self.latest_mtime_ns:
+            # The current source file is newer than
+            # the latest file from last completed backup
+            log.info("Fast compare: source file is newer than latest backuped file.")
+            return
+
+        # Look into database and compare mtime and size
+
+        try:
+            old_backup_entry = BackupEntry.objects.get(
+                backup_run=self.latest_backup,
+                directory__directory=self.path_helper.sub_path,
+                filename__filename=self.path_helper.filename,
+                no_link_source=False,
+            )
+        except BackupEntry.DoesNotExist:
+            log.debug("No old backup entry found")
+            return
+
+        content_info = old_backup_entry.content_info
+
+        file_size = content_info.file_size
+        if file_size != dir_path.stat.st_size:
+            log.info("Fast compare: File size is different: %i != %i" % (file_size, dir_path.stat.st_size))
+            return
+
+        file_mtime_ns = old_backup_entry.file_mtime_ns
+        if file_mtime_ns != dir_path.stat.st_mtime_ns:
+            log.info("Fast compare: File mtime is different: %i != %i" % (file_mtime_ns, dir_path.stat.st_mtime_ns))
+            return
+
+        # We found a old entry with same size and mtime
+        return old_backup_entry
+
     def _backup(self):
         dir_entries = self._scandir(self.path_helper.abs_src_root)
 
@@ -309,6 +436,7 @@ class HardLinkBackup(object):
         self.total_new_file_count = 0
         self.total_new_bytes = 0
         self.total_skip_patterns = 0
+        self.total_fast_backup = 0
         next_update_print = default_timer() + phlb_config.print_update_interval
 
         path_iterator = enumerate(sorted(
@@ -319,6 +447,8 @@ class HardLinkBackup(object):
         with tqdm(total=self.total_size, unit='B', unit_scale=True) as process_bar:
             for no, dir_path in path_iterator:
                 # dir_path is a filesystem_walk.DirEntryPath() instance
+
+                self.path_helper.set_src_filepath(dir_path)
 
                 log.debug("%i %s", no, dir_path)
                 # self.summary("%i %s" % (no, dir_path))
@@ -337,20 +467,33 @@ class HardLinkBackup(object):
                     self.summary("TODO dir: %s" % dir_path)
                 elif dir_path.is_file:
                     # self.summary("Normal file: %s", dir_path)
+
                     file_backup = FileBackup(dir_path, self.path_helper, self.backup_run)
+                    old_backup_entry = self.fast_compare(dir_path)
                     try:
-                        file_linked, file_size = file_backup.deduplication_backup(process_bar)
+                        if old_backup_entry is not None:
+                            # We can just link the file from a old backup
+                            file_backup.fast_deduplication_backup(old_backup_entry, process_bar)
+                        else:
+                            file_backup.deduplication_backup(process_bar)
                     except BackupFileError as err:
                         log.error(err)
                         self.total_skip_patterns += 1
                     else:
-                        if file_linked:
+                        assert file_backup.fast_backup is not None, dir_path.path
+                        assert file_backup.file_linked is not None, dir_path.path
+
+                        file_size = dir_path.stat.st_size
+                        if file_backup.file_linked:
                             # os.link() was used
                             self.total_file_link_count += 1
                             self.total_stined_bytes += file_size
                         else:
                             self.total_new_file_count += 1
                             self.total_new_bytes += file_size
+
+                        if file_backup.fast_backup:
+                            self.total_fast_backup += 1
                 else:
                     self.summary("TODO:" % dir_path)
                     pprint_path(dir_path)
@@ -374,6 +517,8 @@ class HardLinkBackup(object):
         if self.total_skip_patterns:
             print(" * WARNING: Skipped %i files!" % self.total_skip_patterns)
 
+        print(" * fast backup: %i files" % self.total_fast_backup)
+
         print(" * new content saved: %i files (%s %.1f%%)" % (
             self.total_new_file_count,
             human_filesize(self.total_new_bytes),
@@ -395,7 +540,9 @@ class HardLinkBackup(object):
         summary.append(" * Files to backup: %i files" % self.file_count)
         if self.total_skip_patterns:
             summary.append(" * WARNING: Skipped %i files!" % self.total_skip_patterns)
+
         summary.append(" * Source file sizes: %s" % human_filesize(self.total_size))
+        summary.append(" * fast backup: %i files" % self.total_fast_backup)
         summary.append(" * new content saved: %i files (%s %.1f%%)" % (
             self.total_new_file_count,
             human_filesize(self.total_new_bytes),
@@ -447,14 +594,4 @@ def backup(path, name):
 
         phlb = HardLinkBackup(path_helper, summary)
         phlb.print_summary()
-
-    print("---END---")
-    print(path_helper.log_filepath)
-    with path_helper.summary_filepath.open("r") as f:
-        print(f.read())
-    print("-"*79)
-
-
-
-
 
