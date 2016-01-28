@@ -14,6 +14,7 @@ import sys
 import time
 
 # time.clock() on windows and time.time() on linux
+import traceback
 from timeit import default_timer
 
 from django.conf import settings
@@ -187,9 +188,16 @@ class FileBackup(object):
                     "Skip file %s error: %s" % (self.path_helper.abs_src_filepath, err)
                 )
         except KeyboardInterrupt:
-            self.path_helper.abs_dst_filepath.unlink()
-            self.path_helper.abs_dst_hash_filepath.unlink()
-            sys.exit(-1)
+            # Try to remove created files
+            try:
+                self.path_helper.abs_dst_filepath.unlink()
+            except OSError:
+                pass
+            try:
+                self.path_helper.abs_dst_hash_filepath.unlink()
+            except OSError:
+                pass
+            raise KeyboardInterrupt
 
         old_backups = BackupEntry.objects.filter(
             content_info__hash_hexdigest=hash_hexdigest,
@@ -257,9 +265,17 @@ class HardLinkBackup(object):
         :param force_name: Force this name for the backup
         """
         self.start_time = default_timer()
-        self.duration = 0
+
         self.path_helper = path_helper
         self.summary = summary
+
+        self.duration = 0
+        self.total_file_link_count = 0
+        self.total_stined_bytes = 0
+        self.total_new_file_count = 0
+        self.total_new_bytes = 0
+        self.total_errored_items = 0
+        self.total_fast_backup = 0
 
         old_backups = BackupRun.objects.filter(name=self.path_helper.backup_name)
         self.summary("%r was backuped %i time(s)" % (self.path_helper.backup_name, old_backups.count()))
@@ -305,6 +321,7 @@ class HardLinkBackup(object):
                 "Backup path '%s' doesn't exists!" % self.path_helper.abs_dst_root
             )
 
+    def backup(self):
         # make temp file available in destination via link ;)
         temp_log_path = Path2(settings.LOG_FILEPATH)
         assert temp_log_path.is_file(), "%s doesn't exists?!?" % settings.LOG_FILEPATH
@@ -329,7 +346,6 @@ class HardLinkBackup(object):
 
         self.backup_run.completed=True
         self.backup_run.save()
-
 
     def _scandir(self, path):
         start_time = default_timer()
@@ -425,6 +441,55 @@ class HardLinkBackup(object):
         # We found a old entry with same size and mtime
         return old_backup_entry
 
+    def _backup_dir_item(self, dir_path, process_bar):
+        """
+        Backup one dir item
+
+        :param dir_path: filesystem_walk.DirEntryPath() instance
+        """
+        self.path_helper.set_src_filepath(dir_path)
+
+        # self.summary(no, dir_path.stat.st_mtime, end=" ")
+        if dir_path.is_symlink:
+            self.summary("TODO Symlink: %s" % dir_path)
+            return
+
+        if dir_path.different_path or dir_path.resolve_error:
+            self.summary("TODO different path:")
+            pprint_path(dir_path)
+            return
+
+        if dir_path.is_dir:
+            self.summary("TODO dir: %s" % dir_path)
+        elif dir_path.is_file:
+            # self.summary("Normal file: %s", dir_path)
+
+            file_backup = FileBackup(dir_path, self.path_helper, self.backup_run)
+            old_backup_entry = self.fast_compare(dir_path)
+            if old_backup_entry is not None:
+                # We can just link the file from a old backup
+                file_backup.fast_deduplication_backup(old_backup_entry, process_bar)
+            else:
+                file_backup.deduplication_backup(process_bar)
+
+            assert file_backup.fast_backup is not None, dir_path.path
+            assert file_backup.file_linked is not None, dir_path.path
+
+            file_size = dir_path.stat.st_size
+            if file_backup.file_linked:
+                # os.link() was used
+                self.total_file_link_count += 1
+                self.total_stined_bytes += file_size
+            else:
+                self.total_new_file_count += 1
+                self.total_new_bytes += file_size
+
+            if file_backup.fast_backup:
+                self.total_fast_backup += 1
+        else:
+            self.summary("TODO:" % dir_path)
+            pprint_path(dir_path)
+
     def _backup(self):
         dir_entries = self._scandir(self.path_helper.abs_src_root)
 
@@ -434,12 +499,6 @@ class HardLinkBackup(object):
         self.summary(msg)
         log.info(msg)
 
-        self.total_file_link_count = 0
-        self.total_stined_bytes = 0
-        self.total_new_file_count = 0
-        self.total_new_bytes = 0
-        self.total_skip_patterns = 0
-        self.total_fast_backup = 0
         next_update_print = default_timer() + phlb_config.print_update_interval
 
         path_iterator = enumerate(sorted(
@@ -449,57 +508,19 @@ class HardLinkBackup(object):
         ))
         with tqdm(total=self.total_size, unit='B', unit_scale=True) as process_bar:
             for no, dir_path in path_iterator:
-                # dir_path is a filesystem_walk.DirEntryPath() instance
-
-                self.path_helper.set_src_filepath(dir_path)
-
-                log.debug("%i %s", no, dir_path)
-                # self.summary("%i %s" % (no, dir_path))
-
-                # self.summary(no, dir_path.stat.st_mtime, end=" ")
-                if dir_path.is_symlink:
-                    self.summary("TODO Symlink: %s" % dir_path)
-                    continue
-
-                if dir_path.different_path or dir_path.resolve_error:
-                    self.summary("TODO different path:")
-                    pprint_path(dir_path)
-                    continue
-
-                if dir_path.is_dir:
-                    self.summary("TODO dir: %s" % dir_path)
-                elif dir_path.is_file:
-                    # self.summary("Normal file: %s", dir_path)
-
-                    file_backup = FileBackup(dir_path, self.path_helper, self.backup_run)
-                    old_backup_entry = self.fast_compare(dir_path)
-                    try:
-                        if old_backup_entry is not None:
-                            # We can just link the file from a old backup
-                            file_backup.fast_deduplication_backup(old_backup_entry, process_bar)
-                        else:
-                            file_backup.deduplication_backup(process_bar)
-                    except BackupFileError as err:
-                        log.error(err)
-                        self.total_skip_patterns += 1
-                    else:
-                        assert file_backup.fast_backup is not None, dir_path.path
-                        assert file_backup.file_linked is not None, dir_path.path
-
-                        file_size = dir_path.stat.st_size
-                        if file_backup.file_linked:
-                            # os.link() was used
-                            self.total_file_link_count += 1
-                            self.total_stined_bytes += file_size
-                        else:
-                            self.total_new_file_count += 1
-                            self.total_new_bytes += file_size
-
-                        if file_backup.fast_backup:
-                            self.total_fast_backup += 1
-                else:
-                    self.summary("TODO:" % dir_path)
-                    pprint_path(dir_path)
+                try:
+                    self._backup_dir_item(dir_path, process_bar)
+                except BackupFileError as err:
+                    # A known error with a good error message occurred,
+                    # e.g: PermissionError to read source file.
+                    log.error(err)
+                    self.total_errored_items += 1
+                except Exception as err:
+                    # A unexpected error occurred.
+                    # Print and add traceback to summary
+                    log.error("Can't backup %s: %s" % (dir_path, err))
+                    self.summary.handle_low_level_error()
+                    self.total_errored_items += 1
 
                 if default_timer()>next_update_print:
                     self.print_update()
@@ -517,8 +538,8 @@ class HardLinkBackup(object):
 
         current_total_size = self.total_stined_bytes + self.total_new_bytes
 
-        if self.total_skip_patterns:
-            print(" * WARNING: Skipped %i files!" % self.total_skip_patterns)
+        if self.total_errored_items:
+            print(" * WARNING: %i omitted files!" % self.total_errored_items)
 
         print(" * fast backup: %i files" % self.total_fast_backup)
 
@@ -541,8 +562,8 @@ class HardLinkBackup(object):
     def get_summary(self):
         summary = ["Backup done:"]
         summary.append(" * Files to backup: %i files" % self.file_count)
-        if self.total_skip_patterns:
-            summary.append(" * WARNING: Skipped %i files!" % self.total_skip_patterns)
+        if self.total_errored_items:
+            summary.append(" * WARNING: %i omitted files!" % self.total_errored_items)
 
         summary.append(" * Source file sizes: %s" % human_filesize(self.total_size))
         summary.append(" * fast backup: %i files" % self.total_fast_backup)
@@ -578,6 +599,15 @@ class SummaryFileHelper:
         if flush:
             self.summary_file.flush()
 
+    def handle_low_level_error(self):
+        self("_"*79)
+        self("ERROR: Backup aborted with a unexpected error:")
+        self(traceback.format_exc(), flush=True)
+        self("-"*79)
+        self("Please report this Bug here:")
+        self("https://github.com/jedie/PyHardLinkBackup/issues/new", flush=True)
+        self("-"*79)
+
 
 def backup(path, name):
     django.setup()
@@ -596,5 +626,20 @@ def backup(path, name):
         summary("Source path: %s" % path_helper.abs_src_root)
 
         phlb = HardLinkBackup(path_helper, summary)
-        phlb.print_summary()
+        try:
+            phlb.backup()
+        except KeyboardInterrupt:
+            summary(
+                "Abort backup, because user hits the interrupt key during execution!",
+                flush=True
+            )
+            # Calculate the correct omitted files count for print_summary()
+            phlb.total_errored_items = phlb.file_count - (
+                phlb.total_file_link_count + phlb.total_new_file_count
+            )
+        except Exception:
+            summary.handle_low_level_error()
+        finally:
+            phlb.print_summary()
+            summary("---END---", flush=True)
 

@@ -205,6 +205,9 @@ Some notes about to setup a development under windows, please look at: [[https:/
 
 == History
 
+* 28.01.2016 - v0.6.2 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.6.1...v0.6.2|compare v0.6.1...v0.6.2]]
+** Handle unexpected errors and continue backup with the next file
+** Better handle interrupt key during execution
 * 28.01.2016 - v0.6.1 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.6.0...v0.6.1|compare v0.6.0...v0.6.1]]
 ** Bugfix #13 by using a better temp rename routine
 * 28.01.2016 - v0.6.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.5.1...v0.6.0|compare v0.5.1...v0.6.0]]

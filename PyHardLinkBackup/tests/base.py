@@ -147,19 +147,37 @@ class BaseSourceDirTestCase(BaseTestCase):
     def get_newest_backup_path(self):
         return get_newest_directory(self.backup_sub_path)
 
+    #--------------------------------------------------------------------------
+
     def get_newest_log_filepath(self):
         run_path = self.get_newest_backup_path()
         return pathlib.Path(run_path + ".log")
 
     def get_log_content(self, log_filepath):
         self.assertTrue(log_filepath.is_file(), "%s doesn't exist" % log_filepath)
-
         with log_filepath.open("r") as f: # Path().read_text() is new in Py 2.5
             return f.read()
 
     def get_last_log_content(self):
         newest_log_filepath = self.get_newest_log_filepath()
         return self.get_log_content(newest_log_filepath)
+
+    #--------------------------------------------------------------------------
+
+    def get_newest_summary_filepath(self):
+        run_path = self.get_newest_backup_path()
+        return pathlib.Path(run_path + " summary.txt")
+
+    def get_summary_content(self, summary_filepath):
+        self.assertTrue(summary_filepath.is_file(), "%s doesn't exist" % summary_filepath)
+        with summary_filepath.open("r") as f: # Path().read_text() is new in Py 2.5
+            return f.read()
+
+    def get_last_summary_content(self):
+        newest_summary_filepath = self.get_newest_summary_filepath()
+        return self.get_summary_content(newest_summary_filepath)
+
+    #--------------------------------------------------------------------------
 
     def assert_backup_fs_count(self, count):
         files = []

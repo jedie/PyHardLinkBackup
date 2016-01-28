@@ -27,7 +27,7 @@ class TestBackup(BaseSourceDirTestCase):
         print(result.output)
         self.assertIn("0 Bytes in 0 files to backup.", result.output)
         self.assertIn("Files to backup: 0 files", result.output)
-        self.assertNotIn("WARNING: Skipped", result.output)
+        self.assertNotIn("omitted files", result.output)
         self.assertIn("fast backup: 0 files", result.output)
 
     def test_same_size_different_content(self):
@@ -48,7 +48,7 @@ class TestBackup(BaseSourceDirTestCase):
         print(result.output)
 
         self.assertIn("16 Bytes in 2 files to backup.", result.output)
-        self.assertNotIn("WARNING: Skipped", result.output)
+        self.assertNotIn("omitted files", result.output)
         self.assertIn("fast backup: 0 files", result.output)
         self.assertIn("new content saved: 2 files (16 Bytes 100.0%)", result.output)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
@@ -142,7 +142,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("unittests raise", result.output) # Does the test patch worked?
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
-        self.assertIn("WARNING: Skipped 2 files", result.output)
+        self.assertIn("WARNING: 2 omitted files", result.output)
         self.assertIn("new content saved: 3 files (64 Bytes 60.4%)", result.output)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
 
@@ -162,6 +162,69 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         )
         self.assertIn("unittests raise", log_content)
 
+    def test_unexpected_error(self):
+        origin_open = io.open
+        def patched_open(filename, *args, **kwargs):
+            if "dir_A_file" in filename: # will match on two files!
+                # raise a extraordinary error that will normally not catch ;)
+                raise TabError("test raise")
+            return origin_open(filename, *args, **kwargs)
+
+        with mock.patch("io.open", patched_open):
+            result = self.invoke_cli("backup", self.source_path)
+            print(result.output)
+
+        summary = self.get_last_summary_content()
+
+        self.assertIn("Backup aborted with a unexpected error", result.output)
+        self.assertIn("Backup aborted with a unexpected error", summary)
+
+        self.assertIn("Traceback (most recent call last):", result.output)
+        self.assertIn("Traceback (most recent call last):", summary)
+
+        self.assertIn("TabError: test raise", result.output)
+        self.assertIn("TabError: test raise", summary)
+
+        self.assertIn("Files to backup: 5 files", result.output)
+        self.assertIn("Files to backup: 5 files", summary)
+
+        self.assertIn("WARNING: 2 omitted files!", result.output)
+        self.assertIn("WARNING: 2 omitted files!", summary)
+
+        self.assertIn("---END---", result.output)
+        self.assertIn("---END---", summary)
+
+    def test_keyboard_interrupt(self):
+        origin_open = io.open
+        def patched_open(filename, *args, **kwargs):
+            if filename.endswith("sub_file.txt"):
+                raise KeyboardInterrupt
+            return origin_open(filename, *args, **kwargs)
+
+        with mock.patch("io.open", patched_open):
+            result = self.invoke_cli("backup", self.source_path)
+            print(result.output)
+
+        summary = self.get_last_summary_content()
+
+        self.assertIn("Abort backup, because user hits the interrupt key during execution!", result.output)
+        self.assertIn("Abort backup, because user hits the interrupt key during execution!", summary)
+
+        self.assertNotIn("Traceback", result.output)
+        self.assertNotIn("Traceback", summary)
+
+        # Is the summary with right calculate file count?
+        self.assertIn("Files to backup: 5 files", result.output)
+        self.assertIn("Files to backup: 5 files", summary)
+        self.assertIn("WARNING: 3 omitted files!", result.output)
+        self.assertIn("WARNING: 3 omitted files!", summary)
+        self.assertIn("new content saved: 2 files (40 Bytes 37.7%)", result.output)
+        self.assertIn("new content saved: 2 files (40 Bytes 37.7%)", summary)
+        self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", summary)
+
+        self.assertIn("---END---", result.output)
+        self.assertIn("---END---", summary)
 
 class TestOneBackups(BaseCreatedOneBackupsTestCase):
     def test_summary(self):
@@ -207,7 +270,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
 
         # No skipped files, because they are used from source
-        self.assertNotIn("WARNING: Skipped", result.output)
+        self.assertNotIn("omitted files", result.output)
 
         # 5 source files - 2 removed files:
         self.assertIn("fast backup: 3 files", result.output)
@@ -237,7 +300,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("root_file_B.txt': unittests raise", result.output)
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
-        self.assertNotIn("WARNING: Skipped", result.output)
+        self.assertNotIn("omitted files", result.output)
         self.assertIn("fast backup: 4 files", result.output)
         self.assertIn("new content saved: 1 files (24 Bytes 22.6%)", result.output)
         self.assertIn("stint space via hardlinks: 4 files (82 Bytes 77.4%)", result.output)
@@ -272,7 +335,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assert_backuped_files(backup_path)
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
-        self.assertNotIn("WARNING: Skipped", result.output)
+        self.assertNotIn("omitted files", result.output)
 
         # Can't use the fast backup, because all previous backups are not complete
         self.assertIn("fast backup: 0 files", result.output)
@@ -293,7 +356,7 @@ class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
         print(result.output)
 
         self.assertIn("110 Bytes in 5 files to backup.", result.output)
-        self.assertNotIn("WARNING: Skipped", result.output)
+        self.assertNotIn("omitted files", result.output)
         self.assertIn("fast backup: 4 files", result.output)
         self.assertIn("new content saved: 1 files (24 Bytes 21.8%)", result.output)
         self.assertIn("stint space via hardlinks: 4 files (86 Bytes 78.2%)", result.output)
