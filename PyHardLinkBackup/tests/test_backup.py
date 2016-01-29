@@ -226,6 +226,18 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("---END---", result.output)
         self.assertIn("---END---", summary)
 
+    @unittest.skipIf(True, "TODO!")
+    def test_skip_dirs(self):
+        # TODO: test phlb_config.SKIP_DIRS
+        pass
+
+    @unittest.skipIf(True, "TODO!")
+    def test_skip_patterns(self):
+        # TODO: test phlb_config SKIP_PATTERNS
+        pass
+
+
+
 class TestOneBackups(BaseCreatedOneBackupsTestCase):
     def test_summary(self):
         summary_filepath = pathlib.Path(self.first_run_path + " summary.txt")

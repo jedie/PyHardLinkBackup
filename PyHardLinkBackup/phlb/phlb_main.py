@@ -17,6 +17,7 @@ import time
 import traceback
 from timeit import default_timer
 
+import collections
 from django.conf import settings
 
 try:
@@ -257,6 +258,33 @@ class FileBackup(object):
         self.fast_backup=False # Was a fast backup used?
 
 
+class SkipPatternInformation:
+    def __init__(self):
+        self.data = collections.defaultdict(list)
+
+    def __call__(self, entry, pattern):
+        self.data[pattern].append(entry)
+
+    def has_hits(self):
+        if len(self.data) == 0:
+            return False
+        else:
+            return True
+
+    def short_info(self):
+        lines = []
+        for pattern, entries in sorted(self.data.items()):
+            lines.append(" * %r match on %i items" % (pattern, len(entries)))
+        return lines
+
+    def long_info(self):
+        lines = []
+        for pattern, entries in sorted(self.data.items()):
+            lines.append("%r match on:" % pattern)
+            for entry in entries:
+                lines.append(" * %s" % entry.path)
+        return lines
+
 
 class HardLinkBackup(object):
     def __init__(self, path_helper, summary):
@@ -347,35 +375,47 @@ class HardLinkBackup(object):
         self.backup_run.completed=True
         self.backup_run.save()
 
+    def _evaluate_skip_pattern_info(self, skip_pattern_info, name):
+        if not skip_pattern_info.has_hits():
+            self.summary("%s doesn't match on any dir entry." % name)
+        else:
+            self.summary("%s match information:" % name)
+            for line in skip_pattern_info.long_info():
+                log.info(line)
+            for line in skip_pattern_info.short_info():
+                self.summary("%s\n" % line)
+
     def _scandir(self, path):
         start_time = default_timer()
         self.summary("\nScan '%s'...\n" % path)
 
-        def on_skip(entry, pattern):
-            log.info("Skip pattern %r hit: %s" % (pattern, entry.path))
+        skip_pattern_info = SkipPatternInformation()
 
-        skip_dirs = phlb_config.skip_dirs
-        self.summary("Scan filesystem with skip dirs: %s" % repr(skip_dirs))
+        skip_dirs = phlb_config.skip_dirs # TODO: add tests for it!
+        self.summary("Scan filesystem with SKIP_DIRS: %s" % repr(skip_dirs))
 
         tqdm_iterator = tqdm(
-            scandir_walk(path.path, skip_dirs, on_skip=on_skip),
+            scandir_walk(path.path, skip_dirs, on_skip=skip_pattern_info),
             unit=" dir entries",
             leave=True
         )
         dir_entries = [entry for entry in tqdm_iterator]
         self.summary("\n * %i dir entries" % len(dir_entries))
+        self._evaluate_skip_pattern_info(skip_pattern_info, name="SKIP_DIRS")
 
         self.total_size = 0
         self.file_count = 0
         filtered_dir_entries = []
-        skip_patterns = phlb_config.skip_patterns
-        self.summary("Filter with skip patterns: %s" % repr(skip_patterns))
+        skip_patterns = phlb_config.skip_patterns # TODO: add tests for it!
+        self.summary("Filter with SKIP_PATTERNS: %s" % repr(skip_patterns))
+        skip_pattern_info = SkipPatternInformation()
         tqdm_iterator = tqdm(
-            iter_filtered_dir_entry(dir_entries, skip_patterns, on_skip),
+            iter_filtered_dir_entry(dir_entries, skip_patterns, on_skip=skip_pattern_info),
             total=len(dir_entries),
             unit=" dir entries",
             leave=True
         )
+        self._evaluate_skip_pattern_info(skip_pattern_info, name="SKIP_PATTERNS")
         for entry in tqdm_iterator:
             if entry is None:
                 # filtered out by skip_patterns

@@ -205,6 +205,8 @@ Some notes about to setup a development under windows, please look at: [[https:/
 
 == History
 
+* 29.01.2016 - v0.6.3 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.6.2...v0.6.3|compare v0.6.2...v0.6.3]]
+** Less verbose and better information about SKIP_DIRS/SKIP_PATTERNS hits
 * 28.01.2016 - v0.6.2 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.6.1...v0.6.2|compare v0.6.1...v0.6.2]]
 ** Handle unexpected errors and continue backup with the next file
 ** Better handle interrupt key during execution
