@@ -352,7 +352,7 @@ class HardLinkBackup(object):
         self.summary("\nScan '%s'...\n" % path)
 
         def on_skip(entry, pattern):
-            log.error("Skip pattern %r hit: %s" % (pattern, entry.path))
+            log.info("Skip pattern %r hit: %s" % (pattern, entry.path))
 
         skip_dirs = phlb_config.skip_dirs
         self.summary("Scan filesystem with skip dirs: %s" % repr(skip_dirs))
