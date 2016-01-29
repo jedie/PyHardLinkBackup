@@ -191,6 +191,8 @@ setup(
     version=__version__,
     description='HardLink/Deduplication Backups with Python',
     long_description=long_description,
+    keywords="Backup Hardlink Windows Linux",
+    license = "GNU General Public License (GNU GPL v3 or above)",
     author=get_authors(),
     maintainer="Jens Diemer",
     url='https://github.com/jedie/PyHardLinkBackup',
