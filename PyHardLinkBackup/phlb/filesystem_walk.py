@@ -127,9 +127,13 @@ class DirEntryPath:
         else:
             self.resolve_error = None
 
-        # e.g.: a junction under windows
-        # https://www.python-forum.de/viewtopic.php?f=1&t=37725&p=290429#p290428 (de)
-        self.different_path = self.path != self.resolved_path.path
+        if self.resolved_path is None:
+            # e.g.: broken symlink under linux
+            self.different_path = True
+        else:
+            # e.g.: a junction under windows
+            # https://www.python-forum.de/viewtopic.php?f=1&t=37725&p=290429#p290428 (de)
+            self.different_path = self.path != self.resolved_path.path
 
     def pformat(self):
         return "\n".join((
