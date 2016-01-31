@@ -18,7 +18,8 @@ import traceback
 from timeit import default_timer
 
 import collections
-from django.conf import settings
+
+from click._compat import strip_ansi
 
 try:
     # https://github.com/tqdm/tqdm
@@ -32,8 +33,9 @@ log = logging.getLogger("phlb.%s" % __name__)
 
 # os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
 import django
+from django.conf import settings
 
-
+from PyHardLinkBackup.phlb.traceback_plus import exc_plus
 from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_dir_entry, \
     pprint_path
 from PyHardLinkBackup.phlb.config import phlb_config
@@ -634,7 +636,7 @@ class SummaryFileHelper:
 
     def __call__(self, *parts, sep=" ", end="\n", flush=False):
         print(*parts, sep=sep, end=end, flush=flush)
-        self.summary_file.write(sep.join([str(i) for i in parts]))
+        self.summary_file.write(sep.join([strip_ansi(str(i)) for i in parts]))
         self.summary_file.write(end)
         if flush:
             self.summary_file.flush()
@@ -642,7 +644,10 @@ class SummaryFileHelper:
     def handle_low_level_error(self):
         self("_"*79)
         self("ERROR: Backup aborted with a unexpected error:")
-        self(traceback.format_exc(), flush=True)
+
+        for line in exc_plus():
+            self(line)
+
         self("-"*79)
         self("Please report this Bug here:")
         self("https://github.com/jedie/PyHardLinkBackup/issues/new", flush=True)
