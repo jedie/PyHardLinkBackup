@@ -220,9 +220,20 @@ class FileBackup(object):
 
             temp_filepath = rename2temp(
                 src=self.path_helper.abs_dst_filepath,
-                dst=self.path_helper.abs_dst_filepath.parent,
+
+                # Actually we would like to use the current filepath:
+                #   dst=self.path_helper.abs_dst_filepath.parent,
+                # But this can result in a error on Windows, because
+                # the complete path length is limited to 259 Characters!
+                # see:
+                #   https://msdn.microsoft.com/en-us/library/aa365247.aspx#maxpath
+                # on long path, we will fall into FileNotFoundError:
+                #   https://github.com/jedie/PyHardLinkBackup/issues/13#issuecomment-176241894
+                # So we use the destination root directory:
+                dst=self.path_helper.abs_dst_root,
+
                 prefix="%s_" % self.path_helper.abs_dst_filepath.name,
-                suffix=".bak",
+                suffix=".tmp",
                 tmp_max=10
             )
             log.debug("%s was renamed to %s" % (self.path_helper.abs_dst_filepath, temp_filepath))
