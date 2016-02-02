@@ -127,6 +127,20 @@ def backup(path, name=None):
 cli.add_command(backup)
 
 
+@click.command()
+@click.argument("backup_path", type=click.Path(
+    exists=True, file_okay=False, dir_okay=True,
+    writable=False, readable=True, resolve_path=True
+))
+@click.option('--fast', is_flag=True, default=False,
+              help="Don't compare real file content (Skip calculate hash)")
+def verify(backup_path, fast):
+    """Verify a existing backup"""
+    from PyHardLinkBackup.phlb.verify import verify_backup
+    verify_backup(backup_path, fast)
+
+cli.add_command(verify)
+
 
 if __name__ == '__main__':
     cli()

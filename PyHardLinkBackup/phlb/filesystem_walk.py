@@ -18,7 +18,7 @@ from PyHardLinkBackup.phlb.pathlib2 import Path2
 log = logging.getLogger("phlb.%s" % __name__)
 
 
-def scandir_walk(top, skip_dirs, on_skip):
+def scandir_walk(top, skip_dirs=(), on_skip=None):
     """
     Just walk the filesystem tree top-down with os.scandir() and don't follow symlinks.
     :param top: path to scan
