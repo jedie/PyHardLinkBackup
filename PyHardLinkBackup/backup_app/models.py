@@ -34,13 +34,13 @@ class BackupRun(models.Model):
     """
     One Backup run prefix: start time + backup name
     """
-    name = models.CharField(max_length=1024, editable=False,
+    name = models.CharField(max_length=1024,
         help_text=_("The name of the backup directory")
     )
-    backup_datetime = models.DateTimeField(auto_now=False, auto_now_add=False, editable=False, unique=True,
+    backup_datetime = models.DateTimeField(auto_now=False, auto_now_add=False, unique=True,
         help_text=_("backup_datetime of a started backup. Used in all path as prefix.")
     )
-    completed = models.BooleanField(default=False, editable=False,
+    completed = models.BooleanField(default=False,
         help_text=_("Was this backup run finished ?")
     )
 
@@ -71,7 +71,7 @@ class BackupDir(models.Model):
     """
     Unique sub path of backup files.
     """
-    directory = models.CharField(max_length=1024, editable=False, unique=True,
+    directory = models.CharField(max_length=1024, unique=True,
         help_text=_("The path in the backup without datetime and filename")
     )
 
@@ -86,7 +86,7 @@ class BackupFilename(models.Model):
     """
     Unique Filename.
     """
-    filename = models.CharField(max_length=1024, editable=False, unique=True,
+    filename = models.CharField(max_length=1024, unique=True,
         help_text=_("Filename of one file in backup")
     )
 
@@ -99,10 +99,10 @@ class BackupFilename(models.Model):
 
 class ContentInfo(models.Model):
     hash_hexdigest = models.CharField(
-        max_length=128, editable=False, unique=True,
+        max_length=128, unique=True,
         help_text=_("Hash (hexdigest) of the file content")
     )
-    file_size = models.PositiveIntegerField(editable=False,
+    file_size = models.PositiveIntegerField(
         help_text=_("The file size in Bytes")
     )
 
@@ -136,7 +136,7 @@ class BackupEntry(models.Model):
     directory = models.ForeignKey(BackupDir)
     filename = models.ForeignKey(BackupFilename)
     content_info = models.ForeignKey(ContentInfo)
-    file_mtime_ns = models.PositiveIntegerField(editable=False,
+    file_mtime_ns = models.PositiveIntegerField(
         help_text=_("Time of most recent content modification expressed in nanoseconds as an integer.")
     )
     no_link_source=models.BooleanField(default=False,
