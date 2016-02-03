@@ -344,7 +344,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         result = self.invoke_cli("backup", self.source_path)
         print(result.output)
         backup_path = self.get_newest_backup_path()
-        self.assert_backuped_files(backup_path)
+        self.assert_backuped_files(backup_path, backup_run_pk=2)
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
         self.assertNotIn("omitted files", result.output)
@@ -382,6 +382,7 @@ class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
         pprint.pprint(tree_list,indent=0, width=200)
         self.assertListEqual(tree_list, [
             backup_path,
+            'phlb_config.ini                F - [BACKUP_RUN]\nprimary_key = 3\n\n',
             'root_file_A.txt                L - The root file A content.',
             'root_file_A.txt.sha512         F - 13e3e...d7df6',
             'root_file_B.txt                L - The root file B content.',

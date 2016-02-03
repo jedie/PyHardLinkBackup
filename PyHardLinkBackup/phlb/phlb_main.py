@@ -345,6 +345,16 @@ class HardLinkBackup(object):
                 self.latest_mtime_ns = latest_entry.file_mtime_ns
                 self.summary("Latest backup entry modified time: %s" % ns2naturaltimesince(self.latest_mtime_ns))
 
+        self.summary("Backup to: '%s'" % self.path_helper.abs_dst_root)
+        self.path_helper.abs_dst_root.makedirs( # call os.makedirs()
+            mode=phlb_config.default_new_path_mode,
+            exist_ok=True
+        )
+        if not self.path_helper.abs_dst_root.is_dir():
+            raise NotADirectoryError(
+                "Backup path '%s' doesn't exists!" % self.path_helper.abs_dst_root
+            )
+
         self.backup_run = BackupRun.objects.create(
             name = self.path_helper.backup_name,
             backup_datetime=self.path_helper.backup_datetime,
@@ -352,15 +362,6 @@ class HardLinkBackup(object):
         )
         log.debug(" * backup_run: %s" % self.backup_run)
 
-        self.summary("Backup to: '%s'" % self.path_helper.abs_dst_root)
-        self.path_helper.abs_dst_root.makedirs( # call os.makedirs()
-            mode=phlb_config.default_new_path_mode,
-            exist_ok=True
-        )
-        if not self.path_helper.abs_dst_root.is_dir():
-            raise OSError(
-                "Backup path '%s' doesn't exists!" % self.path_helper.abs_dst_root
-            )
 
     def backup(self):
         # make temp file available in destination via link ;)
@@ -698,4 +699,5 @@ def backup(path, name):
         finally:
             phlb.print_summary()
             summary("---END---", flush=True)
+
 

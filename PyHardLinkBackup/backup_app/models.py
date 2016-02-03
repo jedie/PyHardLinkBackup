@@ -1,4 +1,4 @@
-
+import configparser
 import os
 import logging
 import pathlib
@@ -30,6 +30,40 @@ def setup_sqlite(sender, connection, **kwargs):
 connection_created.connect(setup_sqlite)
 
 
+def build_config_path(backup_path):
+    return Path2(
+        backup_path, "phlb_config.ini"
+    )
+
+class BackupRunManager(models.Manager):
+    def get_from_config_file(self, backup_path):
+        if not backup_path.is_dir():
+            raise NotADirectoryError("Backup path %r not found!" % backup_path.path)
+
+        config_path = build_config_path(backup_path)
+        if not config_path.is_file():
+            raise FileNotFoundError("Config file %r not found!" % config_path.path)
+
+        config = configparser.ConfigParser()
+        config.read(config_path.path)
+
+        sections = config.sections()
+        if "BACKUP_RUN" not in sections:
+            raise KeyError(".ini section 'BACKUP_RUN' not found in: %s" % repr(sections))
+
+        try:
+            backup_run_pk = config.getint("BACKUP_RUN", "primary_key")
+        except (KeyError, ValueError) as err:
+            with config_path.open("r") as f:
+                content = f.read().strip()
+            raise KeyError(
+                "%s in %s\nconfig content:\n%s" % (err, config_path.path, content)
+            )
+
+        backup_run = self.get_queryset().get(pk=backup_run_pk)
+        return backup_run
+
+
 class BackupRun(models.Model):
     """
     One Backup run prefix: start time + backup name
@@ -44,12 +78,39 @@ class BackupRun(models.Model):
         help_text=_("Was this backup run finished ?")
     )
 
+    objects = BackupRunManager()
+
     def path_part(self):
         return Path2(
             phlb_config.backup_path,
             self.name,
             self.backup_datetime.strftime(phlb_config.sub_dir_formatter)
         )
+
+    def get_config_path(self):
+        return build_config_path(self.path_part())
+
+    def make_config(self):
+        config = configparser.ConfigParser()
+        config["BACKUP_RUN"] = {"primary_key": str(self.pk)}
+        return config
+
+    def write_config(self):
+        if self.pk is None:
+            raise RuntimeError("Save is needed before write config!")
+            
+        config_path = self.get_config_path()
+        if not config_path.parent.is_dir():
+            raise NotADirectoryError("Path %r doesn't exists!" % config_path.parent.path)
+
+        config = self.make_config()
+        with config_path.open('w') as configfile:
+            config.write(configfile)
+        log.info("BackupRun config written: %s" % config_path)
+
+    def save(self, *args, **kwargs):
+        super(BackupRun, self).save(*args, **kwargs)
+        self.write_config()
 
     def __str__(self):
         if self.completed:

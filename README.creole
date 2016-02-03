@@ -207,6 +207,7 @@ Some notes about to setup a development under windows, please look at: [[https:/
 
 * **dev**
 ** New: verify a existing backup
+** **IMPORTANT:** run database migration is needed!
 * 01.02.2016 - v0.6.4 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.6.3...v0.6.4|compare v0.6.2...v0.6.4]]
 ** Windows: Bugfix temp rename error, because of the Windows API limitation, see: [[https://github.com/jedie/PyHardLinkBackup/issues/13#issuecomment-176241894|#13]]
 ** Linux: Bugfix scanner if symlink is broken

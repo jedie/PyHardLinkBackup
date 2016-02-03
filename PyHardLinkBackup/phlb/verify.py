@@ -6,43 +6,10 @@ import sys
 import django
 from tqdm import tqdm
 
-from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
+from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry, \
+    build_config_path
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.pathlib2 import Path2
-
-def get_backuprun(backup_name, backup_datetime):
-    # FIXME: https://github.com/jedie/PyHardLinkBackup/issues/17
-    dt_min = backup_datetime.replace(microsecond=0) - datetime.timedelta(seconds=1)
-    dt_max = backup_datetime.replace(microsecond=999999)
-    # print("min: %s" % dt_min)
-    # print("max: %s" % dt_max)
-
-    backup_runs = BackupRun.objects.filter(name=backup_name)
-    backup_runs = backup_runs.filter(backup_datetime__gte=dt_min)
-    backup_runs = backup_runs.filter(backup_datetime__lte=dt_max)
-
-    backup_runs_count = backup_runs.count()
-    if backup_runs_count>1:
-        print("ERROR: Found more than one?!?")
-        for entry in backup_runs:
-            print("\t* %s" % entry.backup_datetime)
-        sys.exit(-1)
-    elif backup_runs==0:
-        print("\nERROR getting BackupRun entry from database!")
-
-        print("\nExisting entries with the backup name %r:" % backup_name)
-        for entry in backup_runs:
-            print("\t* %s" % entry.backup_datetime)
-
-        print("\nLookup values are:")
-        print("\t* name: %r" % backup_name)
-        print("\t* backup_datetime: %s" % backup_datetime)
-        print("\n * Does PyHardLinkBackup.ini pointed to the right sqlite Database file?")
-        print(" * Is the given path right?")
-        print()
-        sys.exit(-1)
-
-    return backup_runs[0]
 
 
 def calc_hash(entry_path, process_bar=None):
@@ -65,23 +32,7 @@ def verify_backup(backup_path, fast):
     backup_path = Path2(backup_path).resolve()
     print("\nVerify: %s" % backup_path)
 
-    backup_name=backup_path.parent.stem
-
-    backup_runs = BackupRun.objects.filter(name=backup_name)
-    name_count = backup_runs.count()
-    print("Found %i backups with the name: %r" % (name_count,backup_name))
-
-    date_part = backup_path.stem
-    try:
-        backup_datetime=datetime.datetime.strptime(date_part, phlb_config.sub_dir_formatter)
-    except ValueError as err:
-        print("\nERROR parsing datetime from given path: %s" % err)
-        print(" * Is the given path right?")
-        print()
-        sys.exit(-1)
-
-    backup_run = get_backuprun(backup_name, backup_datetime)
-
+    backup_run = BackupRun.objects.get_from_config_file(backup_path)
     print("\nBackup run:\n%s\n" % backup_run)
 
     backup_entries = BackupEntry.objects.filter(backup_run = backup_run)

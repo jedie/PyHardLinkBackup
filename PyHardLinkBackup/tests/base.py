@@ -203,6 +203,10 @@ class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
     """
     Tests with created example source files under /temp/source unittests files&
     """
+    phlb_config_info=(
+        'phlb_config.ini                F - [BACKUP_RUN]\nprimary_key = %i\n\n'
+    )
+
     # on first run, all files are normal files and not links:
     first_backuped_file_info=[
         'root_file_A.txt                F - The root file A content.',
@@ -249,9 +253,13 @@ class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
         #print("\n".join(tree_list))
         # pprint.pprint(tree_list,indent=0, width=200)
 
-        self.assertListEqual(tree_list, [backup_path]+self.first_backuped_file_info)
+        file_infos = [
+            backup_path,
+            self.phlb_config_info % 1,
+        ] + self.first_backuped_file_info
+        self.assertListEqual(tree_list, file_infos)
 
-    def assert_backuped_files(self, backup_path):
+    def assert_backuped_files(self, backup_path, backup_run_pk):
         """
         all files are hardlinks
         """
@@ -261,7 +269,11 @@ class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
         #print("\n".join(tree_list))
         # pprint.pprint(tree_list,indent=0, width=200)
 
-        self.assertListEqual(tree_list, [backup_path]+self.backuped_file_info)
+        file_info = [
+            backup_path,
+            self.phlb_config_info % backup_run_pk,
+        ] + self.backuped_file_info
+        self.assertListEqual(tree_list, file_info)
 
 class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
     """
@@ -300,7 +312,7 @@ class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
         """
         After a 2nd backup exist all files are hardlinks!
         """
-        self.assert_backuped_files(self.first_run_path)
+        self.assert_backuped_files(self.first_run_path, backup_run_pk=1)
 
     def assert_second_backup(self):
-        self.assert_backuped_files(self.second_run_path)
+        self.assert_backuped_files(self.second_run_path, backup_run_pk=2)
