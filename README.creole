@@ -51,7 +51,9 @@ This will create deduplication backups like this:
 }}}
 
 
-== Install under Windows:
+== Install 
+
+=== Windows
 
 # install Python 3: https://www.python.org/downloads/
 # Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.cmd|boot_pyhardlinkbackup.cmd]]
@@ -73,8 +75,7 @@ To start the django webserver, call:
 # {{{%APPDATA%\PyHardLinkBackup\phlb_run_django_webserver.cmd}}}
 
 
-
-== Install under Linux:
+=== Linux
 
 # Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.sh|boot_pyhardlinkbackup.sh]]
 # call **boot_pyhardlinkbackup.sh**
@@ -103,7 +104,6 @@ To start the django webserver, call:
 * {{{~/PyHardLinkBackup/phlb_run_django_webserver.sh}}}
 
 
-
 == start backup run
 
 To start a backup run, use this helper script:
@@ -112,6 +112,25 @@ To start a backup run, use this helper script:
 * Linux shell script: {{{~/PyHardLinkBackup/PyHardLinkBackup this directory.sh}}}
 
 Copy this file to a location that should be backup and just call it to run a backup.
+
+
+== Verify a existing backup
+
+{{{
+$ cd PyHardLinkBackup/
+~/PyHardLinkBackup $ source bin/activate
+
+(PyHardLinkBackup) ~/PyHardLinkBackup $ phlb verify --fast ~/PyHardLinkBackups/documents/2016-01-07-102310
+}}}
+With **--fast** the file content will not be checkt.
+If not given: The hash from the file content will be calculated and compared. So every file must be complete read from filesystem, so it's takes some time.
+
+A verify run do:
+* Exist all file in backup?
+* Compare file size
+* Compare hash from hash-file
+* Compare file modify timestamp
+* Calculate hash from file content and compare (Will be skipped if **--fast** used)
 
 
 == configuration
@@ -159,6 +178,14 @@ The filesystem scan is divided into two steps:
 
 The **SKIP_DIRS** is used in the first step.
 The **SKIP_PATTERNS** is used the the second step.
+
+
+== upgrate PyHardLinkBackup
+
+To upgrate to a new version just start these helper script:
+
+* Windows: [[https://github.com/jedie/PyHardLinkBackup/blob/master/PyHardLinkBackup/helper_cmd/phlb_upgrade_PyHardLinkBackup.cmd|phlb_upgrade_PyHardLinkBackup.cmd]]
+* Linux: [[https://github.com/jedie/PyHardLinkBackup/blob/master/PyHardLinkBackup/helper_sh/phlb_upgrade_PyHardLinkBackup.sh|phlb_upgrade_PyHardLinkBackup.sh]]
 
 
 == some notes
