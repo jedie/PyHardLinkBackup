@@ -100,20 +100,6 @@ cli.add_command(config)
 
 
 @click.command()
-def runserver():
-    """Start django webserver with: 'manage runserver'"""
-    raise RuntimeError("Please use 'manage.py' for this!")
-cli.add_command(runserver)
-
-
-@click.command()
-def migrate():
-    """Start django webserver with: 'manage migrate'"""
-    raise RuntimeError("Please use 'manage.py' for this!")
-cli.add_command(migrate)
-
-
-@click.command()
 @click.argument("path", type=click.Path(
     exists=True, file_okay=False, dir_okay=True,
     writable=False, readable=True, resolve_path=True

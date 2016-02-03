@@ -14,6 +14,7 @@ class TestCli(unittest.TestCase):
         self.assertIn("backup", result.output)
         self.assertIn("config", result.output)
         self.assertIn("helper", result.output)
+        self.assertIn("verify", result.output)
         self.assertEqual(result.exit_code,0)
 
     def test_backup_help(self):
@@ -35,6 +36,14 @@ class TestCli(unittest.TestCase):
         result = runner.invoke(cli, ["helper", "--help"])
         # print(result.output)
         self.assertIn("helper [OPTIONS]", result.output)
+        self.assertEqual(result.exit_code,0)
+        self.assertEqual(result.exit_code,0)
+
+    def test_verify_help(self):
+        runner = CliRunner()
+        result = runner.invoke(cli, ["verify", "--help"])
+        # print(result.output)
+        self.assertIn("verify [OPTIONS]", result.output)
         self.assertEqual(result.exit_code,0)
 
 
