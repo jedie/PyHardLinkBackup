@@ -21,11 +21,15 @@ call:test_exist "%EXE%" "pip.exe not found here:"
 echo on
 "%EXE%" install --upgrade pip
 "%EXE%" install --upgrade PyHardLinkBackup
-
 @echo off
+
+set EXE=%SCRIPT_PATH%\manage.exe
+call:test_exist "%EXE%" "manage.exe not found here:"
+echo on
+"%EXE%" migrate
+
 set EXE=%SCRIPT_PATH%\phlb.exe
 call:test_exist "%EXE%" "phlb.exe not found here:"
-
 echo on
 cd /d "%~dp0"
 "%EXE%" helper "%BASE_PATH%"
