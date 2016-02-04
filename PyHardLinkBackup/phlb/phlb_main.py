@@ -21,6 +21,8 @@ import collections
 
 from click._compat import strip_ansi
 
+from PyHardLinkBackup.phlb.deduplicate import deduplicate
+
 try:
     # https://github.com/tqdm/tqdm
     from tqdm import tqdm
@@ -41,8 +43,7 @@ from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_di
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.human import human_time, human_filesize, to_percent, ns2naturaltimesince, dt2naturaltimesince
 from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
-from PyHardLinkBackup.phlb.path_helper import PathHelper, get_tempname, \
-    rename2temp
+from PyHardLinkBackup.phlb.path_helper import PathHelper
 from PyHardLinkBackup.phlb.pathlib2 import Path2
 
 
@@ -135,11 +136,9 @@ class FileBackup(object):
         process_bar.update(file_size)
 
         BackupEntry.objects.create(
-            self.backup_run,
-            directory=self.path_helper.sub_path,
-            filename=self.path_helper.filename,
+            backup_run = self.backup_run,
+            backup_entry_path = self.path_helper.abs_dst_filepath,
             hash_hexdigest=hash_hexdigest,
-            file_stat=self.dir_path.stat,
         )
 
         if self._SIMULATE_SLOW_SPEED:
@@ -202,70 +201,26 @@ class FileBackup(object):
                 pass
             raise KeyboardInterrupt
 
-        old_backups = BackupEntry.objects.filter(
-            content_info__hash_hexdigest=hash_hexdigest,
-            no_link_source=False,
-        )
-        self.file_linked=False # Was a hardlink used?
-        for old_backup in old_backups:
-            log.debug("+++ old: '%s'", old_backup)
-            abs_old_backup_path = old_backup.get_backup_path()
-            if not abs_old_backup_path.is_file():
-                log.error("*** ERROR old file doesn't exist! '%s'", abs_old_backup_path)
-                continue
-
-            assert abs_old_backup_path != self.path_helper.abs_dst_filepath
-
-            # TODO: compare hash / current content before replace with a link
-
-            temp_filepath = rename2temp(
-                src=self.path_helper.abs_dst_filepath,
-
-                # Actually we would like to use the current filepath:
-                #   dst=self.path_helper.abs_dst_filepath.parent,
-                # But this can result in a error on Windows, because
-                # the complete path length is limited to 259 Characters!
-                # see:
-                #   https://msdn.microsoft.com/en-us/library/aa365247.aspx#maxpath
-                # on long path, we will fall into FileNotFoundError:
-                #   https://github.com/jedie/PyHardLinkBackup/issues/13#issuecomment-176241894
-                # So we use the destination root directory:
-                dst=self.path_helper.abs_dst_root,
-
-                prefix="%s_" % self.path_helper.abs_dst_filepath.name,
-                suffix=".tmp",
-                tmp_max=10
-            )
-            log.debug("%s was renamed to %s" % (self.path_helper.abs_dst_filepath, temp_filepath))
-            try:
-                abs_old_backup_path.link(self.path_helper.abs_dst_filepath) # call os.link()
-            except OSError as err:
-                temp_filepath.rename(self.path_helper.abs_dst_filepath)
-                log.error("Can't link '%s' to '%s': %s" % (
-                    abs_old_backup_path, self.path_helper.abs_dst_filepath, err
-                ))
-                log.info("Mark %r with 'no link source'.", old_backup)
-                old_backup.no_link_source=True
-                old_backup.save()
-            else:
-                temp_filepath.unlink() # FIXME
-                self.file_linked = True # Was a hardlink used?
-                log.info("Replaced with a hardlink to: '%s'" % abs_old_backup_path)
-                break
-
-        BackupEntry.objects.create(
-            self.backup_run,
-            directory=self.path_helper.sub_path,
-            filename=self.path_helper.filename,
-            hash_hexdigest=hash_hexdigest,
-            file_stat=self.dir_path.stat,
-        )
+        old_backup_entry = deduplicate(self.path_helper.abs_dst_filepath, hash_hexdigest)
+        if old_backup_entry is None:
+            log.debug("File is unique.")
+            self.file_linked = False # Was a hardlink used?
+        else:
+            log.debug("File was deduplicated via hardlink to: %s" % old_backup_entry)
+            self.file_linked = True # Was a hardlink used?
 
         # set origin access/modified times to the new created backup file
         atime_ns = self.dir_path.stat.st_atime_ns
         mtime_ns = self.dir_path.stat.st_mtime_ns
         self.path_helper.abs_dst_filepath.utime( # call os.utime()
             ns=(atime_ns, mtime_ns)
+        )
+        log.debug("Set mtime to: %s" % mtime_ns)
+
+        BackupEntry.objects.create(
+            backup_run = self.backup_run,
+            backup_entry_path = self.path_helper.abs_dst_filepath,
+            hash_hexdigest=hash_hexdigest,
         )
 
         self.fast_backup=False # Was a fast backup used?
@@ -331,7 +286,6 @@ class HardLinkBackup(object):
             self.latest_backup = old_backups.latest()
         except BackupRun.DoesNotExist:
             self.summary("No old backup found with name %r" % self.path_helper.backup_name)
-
         else:
             latest_backup_datetime = self.latest_backup.backup_datetime
             self.summary("Latest backup from:", dt2naturaltimesince(latest_backup_datetime))
@@ -487,9 +441,26 @@ class HardLinkBackup(object):
             log.info("Fast compare: File size is different: %i != %i" % (file_size, dir_path.stat.st_size))
             return
 
-        file_mtime_ns = old_backup_entry.file_mtime_ns
-        if file_mtime_ns != dir_path.stat.st_mtime_ns:
-            log.info("Fast compare: File mtime is different: %i != %i" % (file_mtime_ns, dir_path.stat.st_mtime_ns))
+        old_backup_filepath = old_backup_entry.get_backup_path()
+        try:
+            old_file_mtime_ns = old_backup_filepath.stat().st_mtime_ns
+        except FileNotFoundError as err:
+            log.error("Old backup file not found: %s" % err)
+            old_backup_entry.no_link_source=True
+            old_backup_entry.save()
+            return
+
+        if old_file_mtime_ns != old_backup_entry.file_mtime_ns:
+            log.error("ERROR: mtime from database is different to the file!")
+            log.error(" * File: %s" % old_backup_filepath)
+            log.error(" * Database mtime: %s" % old_backup_entry.file_mtime_ns)
+            log.error(" * File mtime: %s" % old_file_mtime_ns)
+
+        if old_file_mtime_ns != dir_path.stat.st_mtime_ns:
+            log.info("Fast compare mtime is different between:")
+            log.info(" * %s" % old_backup_entry)
+            log.info(" * %s" % dir_path)
+            log.info(" * mtime: %i != %i" % (old_file_mtime_ns, dir_path.stat.st_mtime_ns))
             return
 
         # We found a old entry with same size and mtime
@@ -701,3 +672,64 @@ def backup(path, name):
             summary("---END---", flush=True)
 
 
+def print_skip_pattern_info(skip_pattern_info, name):
+    if not skip_pattern_info.has_hits():
+        print("%s doesn't match on any dir entry." % name)
+    else:
+        print("%s match information:" % name)
+        for line in skip_pattern_info.long_info():
+            log.info(line)
+        for line in skip_pattern_info.short_info():
+            print("%s\n" % line)
+
+
+def scan_dir_tree(path, extra_skip_patterns=None):
+    start_time = default_timer()
+    print("\nScan '%s'...\n" % path)
+
+    skip_pattern_info = SkipPatternInformation()
+
+    skip_dirs = phlb_config.skip_dirs # TODO: add tests for it!
+    print("Scan filesystem with SKIP_DIRS: %s" % repr(skip_dirs))
+
+    tqdm_iterator = tqdm(
+        scandir_walk(path.path, skip_dirs, on_skip=skip_pattern_info),
+        unit=" dir entries",
+        leave=True
+    )
+    dir_entries = [entry for entry in tqdm_iterator]
+    print("\n * %i dir entries" % len(dir_entries))
+    print_skip_pattern_info(skip_pattern_info, name="SKIP_DIRS")
+
+    skip_patterns = phlb_config.skip_patterns # TODO: add tests for it!
+    if extra_skip_patterns:
+        skip_patterns = set(skip_patterns)
+        for pattern in extra_skip_patterns:
+            skip_patterns.add(pattern)
+        skip_patterns = tuple(skip_patterns)
+    print("Filter with SKIP_PATTERNS: %s" % repr(skip_patterns))
+
+    skip_pattern_info = SkipPatternInformation()
+    tqdm_iterator = tqdm(
+        iter_filtered_dir_entry(dir_entries, skip_patterns, on_skip=skip_pattern_info),
+        total=len(dir_entries),
+        unit=" dir entries",
+        leave=True
+    )
+
+    filtered_dir_entries = []
+    for entry in tqdm_iterator:
+        if entry is None:
+            # filtered out by skip_patterns
+            continue
+        if entry.is_file:
+            filtered_dir_entries.append(entry)
+    tqdm_iterator.close()
+
+    print("\n * %i filtered dir entries" % len(filtered_dir_entries))
+    print_skip_pattern_info(skip_pattern_info, name="SKIP_PATTERNS")
+
+    print("\nscan/filter source directory in %s" % (
+        human_time(default_timer()-start_time)
+    ))
+    return filtered_dir_entries

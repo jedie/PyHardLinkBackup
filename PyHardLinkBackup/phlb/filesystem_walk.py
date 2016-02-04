@@ -51,6 +51,30 @@ def scandir_walk(top, skip_dirs=(), on_skip=None):
             yield entry
 
 
+def scandir_limited(top, limit, deep=0):
+    """
+    yields only directories with the given deep limit
+
+    :param top: source path
+    :param limit: how deep should be scanned?
+    :param deep: internal deep number
+    :return: yields os.DirEntry() instances
+    """
+    deep += 1
+    try:
+        scandir_it = scandir(top)
+    except PermissionError as err:
+        log.error("scandir error: %s" % err)
+        return
+
+    for entry in scandir_it:
+        if entry.is_dir(follow_symlinks=False):
+            if deep < limit:
+                yield from scandir_limited(entry.path, limit, deep)
+            else:
+                yield entry
+
+
 def pprint_path(path):
     """
     print information of a pathlib / os.DirEntry() instance with all "is_*" functions.

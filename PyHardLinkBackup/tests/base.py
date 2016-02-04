@@ -75,7 +75,7 @@ class BaseTestCase(django.test.TestCase):
 
             # add microsecond to formatter
             # Important for test, so that every run will create a new directory
-            SUB_DIR_FORMATTER= "%Y-%m-%d-%H%M%S.%f",
+            SUB_DIR_FORMATTER= "%Y-%m-%d-%H%M%S-%f",
 
             BACKUP_PATH=self.backup_path
         )
@@ -194,8 +194,8 @@ class BaseSourceDirTestCase(BaseTestCase):
 
         # .log and summay files for every backup run
         file_count = count * 2
-        self.assertEqual(len(files), file_count, "files count: %i != %i - items: %s" % (
-            len(files), file_count, repr(files))
+        self.assertEqual(len(files), file_count, "files count: %i != %i - items:\n%s" % (
+            len(files), file_count, "\n".join([repr(f) for f in files]))
         )
 
 

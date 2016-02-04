@@ -127,6 +127,14 @@ def verify(backup_path, fast):
 
 cli.add_command(verify)
 
+@click.command()
+def add():
+    """Scan all existing backup and add missing ones to database."""
+    from PyHardLinkBackup.phlb.add import add_backups
+    add_backups()
+
+cli.add_command(add)
+
 
 if __name__ == '__main__':
     cli()

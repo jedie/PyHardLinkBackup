@@ -15,8 +15,11 @@ class TestUnittestSetup(BaseTestCase):
 
     def test_unittests_settings_active(self):
         self.assertEqual(phlb_config.database_name, ":memory:")
-        self.assertEqual(phlb_config.sub_dir_formatter, "%Y-%m-%d-%H%M%S.%f")
+        self.assertEqual(phlb_config.sub_dir_formatter, "%Y-%m-%d-%H%M%S-%f")
 
+    def test_db_empty(self):
+        self.assertEqual(BackupRun.objects.all().count(), 0)
+        self.assertEqual(BackupEntry.objects.all().count(), 0)
 
 
 class TestBaseBackup(BaseWithSourceFilesTestCase):
@@ -76,6 +79,7 @@ class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
 
         Here we have 5 files in one backup run
         """
+        self.assertEqual(BackupRun.objects.all().count(), 1)
         self.assert_database_backup_entries(count=5)
 
 
@@ -112,4 +116,5 @@ class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
 
         Here we have 5 files in two backup runs
         """
+        self.assertEqual(BackupRun.objects.all().count(), 2)
         self.assert_database_backup_entries(count=10)

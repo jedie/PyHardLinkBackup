@@ -1,12 +1,14 @@
 import datetime
+import logging
 import os
 import sys
 import tempfile
 
-from PyHardLinkBackup.backup_app.models import BackupRun
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.phlb_main import log
 from PyHardLinkBackup.phlb.pathlib2 import Path2
+
+
+log = logging.getLogger("phlb.%s" % __name__)
 
 
 def get_tempname(path, prefix="", suffix=""):

@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.db.backends.signals import connection_created
 
+from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME, INTERNAL_FILES
 from PyHardLinkBackup.phlb.human import dt2naturaltimesince
 from PyHardLinkBackup.phlb.pathlib2 import Path2
 from PyHardLinkBackup.phlb.config import phlb_config
@@ -32,7 +33,7 @@ connection_created.connect(setup_sqlite)
 
 def build_config_path(backup_path):
     return Path2(
-        backup_path, "phlb_config.ini"
+        backup_path, BACKUP_RUN_CONFIG_FILENAME
     )
 
 class BackupRunManager(models.Manager):
@@ -61,6 +62,20 @@ class BackupRunManager(models.Manager):
             )
 
         backup_run = self.get_queryset().get(pk=backup_run_pk)
+
+        if backup_path != backup_run.path_part():
+            msg = (
+                "Backup path mismatch:\n"
+                "From database: %s\n"
+                "Current path: %s\n"
+                "Maybe the config file pointed to a wrong database entry?!?\n"
+                "Used config file: %s"
+            ) % (
+                backup_run.path_part(), backup_path, config_path
+            )
+            log.error(msg)
+            raise AssertionError(msg)
+
         return backup_run
 
 
@@ -98,7 +113,7 @@ class BackupRun(models.Model):
     def write_config(self):
         if self.pk is None:
             raise RuntimeError("Save is needed before write config!")
-            
+
         config_path = self.get_config_path()
         if not config_path.parent.is_dir():
             raise NotADirectoryError("Path %r doesn't exists!" % config_path.parent.path)
@@ -151,6 +166,11 @@ class BackupFilename(models.Model):
         help_text=_("Filename of one file in backup")
     )
 
+    def save(self, *args, **kwargs):
+        # e.g: Test if 'phlb_config.ini' should be added
+        assert self.filename not in INTERNAL_FILES # TODO: Add unittest
+        super(BackupFilename, self).save(*args, **kwargs)
+
     def path_part(self):
         return Path2(self.filename)
 
@@ -174,7 +194,14 @@ class ContentInfo(models.Model):
 
 
 class BackupEntryManager(models.Manager):
-    def create(self, backup_run, directory, filename, hash_hexdigest, file_stat):
+    def create(self, backup_run, backup_entry_path, hash_hexdigest):
+        backup_path = backup_run.path_part()
+        rel_path = backup_entry_path.relative_to(backup_path)
+        directory = rel_path.parent
+
+        filename = backup_entry_path.name
+        file_stat = backup_entry_path.stat()
+
         log.debug(
             "Save: %r %r %r %r %r",
             backup_run, directory, filename, hash_hexdigest, file_stat
@@ -185,11 +212,17 @@ class BackupEntryManager(models.Manager):
             hash_hexdigest=hash_hexdigest, file_size=file_stat.st_size
         )
 
-        return super(BackupEntryManager, self).create(
+        backup_entry = super(BackupEntryManager, self).create(
             backup_run=backup_run,
-            directory=directory, filename=filename, content_info=content_info,
+            directory=directory,
+            filename=filename,
+            content_info=content_info,
             file_mtime_ns = file_stat.st_mtime_ns,
         )
+        path = backup_entry.get_backup_path()
+        assert path.is_file(), "File not exists: %s" % path
+        assert os.stat(path.path).st_mtime_ns == backup_entry.file_mtime_ns
+        return backup_entry
 
 
 class BackupEntry(models.Model):

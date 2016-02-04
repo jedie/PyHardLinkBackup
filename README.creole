@@ -237,11 +237,43 @@ Options:
   --help     Show this message and exit.
 
 Commands:
+  add     Scan all existing backup and add missing ones...
   backup  Start a Backup run
   config  Create/edit .ini config file
   helper  link helper files to given path
   verify  Verify a existing backup
 }}}
+
+
+== Add missing backups to database
+
+**phlb add** can be used in different scenarios:
+* recreate the database
+* add a backup manually
+
+**phlb add** does this:
+* scan the complete file tree under **BACKUP_PATH** (default: {{{~/PyHardLinkBackups}}})
+* recreate all hash files
+* add all files to database.
+* deduplicate with hardlinks, if possible.
+
+So it's possible to recreate the complete database:
+* delete the current {{{.sqlite}}} file
+* run **phlb add** to recreate
+
+A other scenario, e.g.:
+* DSLR images are stored on a network drive
+* You have already a copy of all files locally
+* You would like to add the local copy to PyHardLinkBackup
+
+Do the following steps:
+
+* move the local files to a sub directory unter **BACKUP_PATH**
+* e.g.: {{{~/PyHardLinkBackups/pictures/2015-12-29-000015/}}}
+* Note the date sub directory must match the **SUB_DIR_FORMATTER** in your config
+* run: **phlb add**
+
+Now you can run **phlb backup** from your network drive to made a new, up-to-date backup
 
 
 === Windows Development
@@ -259,6 +291,8 @@ Some notes about to setup a development under windows, please look at: [[https:/
 
 == History
 
+* **dev**
+** New: add all missing backups to database: {{{phlb add}}} (s.above)
 * 03.02.2016 - v0.7.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.6.4...v0.7.0|compare v0.6.4...v0.7.0]]
 ** New: verify a existing backup
 ** **IMPORTANT:** run database migration is needed!

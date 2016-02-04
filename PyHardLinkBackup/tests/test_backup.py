@@ -8,7 +8,7 @@ from unittest import mock
 
 import io
 
-from PyHardLinkBackup.backup_app.models import BackupRun
+from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
 from click.testing import CliRunner
 
 from PyHardLinkBackup.phlb.config import phlb_config
@@ -55,6 +55,56 @@ class TestBackup(BaseSourceDirTestCase):
 
         self.assert_backup_fs_count(1) # there are tree backups in filesystem
 
+    def test_mtime(self):
+        test_file=pathlib.Path(self.source_path, "file.txt")
+        test_file.touch()
+        atime_ns = 123456789012345678
+        mtime_ns = 123456789012345678
+        os.utime(str(test_file), ns=(atime_ns, mtime_ns))
+        self.assertEqual(os.stat(str(test_file)).st_mtime_ns, mtime_ns)
+
+        result = self.invoke_cli("backup", self.source_path)
+        print(result.output)
+
+        # check mtime
+        backup_path1 = self.get_newest_backup_path()
+        backup_file1=pathlib.Path(backup_path1, "file.txt")
+        self.assertTrue(backup_file1.is_file())
+        self.assertEqual(os.stat(str(backup_file1)).st_mtime_ns, mtime_ns)
+
+        # source file not changed?
+        self.assertEqual(os.stat(str(test_file)).st_mtime_ns, mtime_ns)
+
+        # check mtime in database
+        backup_entries = BackupEntry.objects.all()
+        self.assertEqual(backup_entries.count(), 1)
+        backup_entry = backup_entries[0]
+        self.assertEqual(backup_entry.file_mtime_ns, mtime_ns)
+
+        # check normal output
+        self.assertIn("0 Bytes in 1 files to backup.", result.output)
+        self.assertIn("fast backup: 0 files", result.output)
+        self.assertIn("new content saved: 1 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
+
+        # Test second run:
+        result = self.invoke_cli("backup", self.source_path)
+        print(result.output)
+
+        # check mtime
+        backup_path2 = self.get_newest_backup_path()
+        backup_file2=pathlib.Path(backup_path2, "file.txt")
+        self.assertTrue(backup_file2.is_file())
+        self.assertEqual(os.stat(str(backup_file2)).st_mtime_ns, mtime_ns)
+
+        # first file not changed?!?
+        self.assertEqual(os.stat(str(backup_file1)).st_mtime_ns, mtime_ns)
+
+        # check normal output
+        self.assertIn("0 Bytes in 1 files to backup.", result.output)
+        self.assertIn("fast backup: 1 files", result.output)
+        self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("stint space via hardlinks: 1 files (0 Bytes 0.0%)", result.output)
 
 class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
     def test_print_update(self):
