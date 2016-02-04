@@ -133,7 +133,9 @@ class FileBackup(object):
             hash_file.write(hash_hexdigest)
 
         file_size = self.dir_path.stat.st_size
-        process_bar.update(file_size)
+        if file_size>0:
+            # tqdm will not accept 0 bytes files ;)
+            process_bar.update(file_size)
 
         BackupEntry.objects.create(
             backup_run = self.backup_run,
