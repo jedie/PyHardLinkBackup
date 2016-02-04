@@ -1,14 +1,12 @@
 import configparser
-import logging
 import shutil
 import os
-import unittest
+import pathlib
+import sys
 import tempfile
 
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
-import pathlib
-
 try:
     from os import scandir # new in Python 3.5
 except ImportError:
@@ -113,6 +111,19 @@ class BaseTestCase(django.test.TestCase):
             self.assertTrue(os.path.isfile(path.path), "File not found: %r" % path)
 
         self.assertEqual(queryset.count(), count)
+
+    def assert_mtime_ns(self, mtime_ns1, mtime_ns2):
+        if sys.platform.startswith("win"):
+            # seems that windows/NTFS is less precise ;)
+            # set the last two digits to null
+            mtime_ns1 = int(mtime_ns1/100)*100
+            mtime_ns2 = int(mtime_ns2/100)*100
+
+        self.assertEqual(mtime_ns1, mtime_ns2)
+
+    def assert_file_mtime_ns(self, filepath, mtime_ns):
+        file_mtime_ns = os.stat(str(filepath)).st_mtime_ns
+        self.assert_mtime_ns(file_mtime_ns, mtime_ns)
 
 
 EXAMPLE_FS_DATA = {

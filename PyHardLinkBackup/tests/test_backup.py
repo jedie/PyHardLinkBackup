@@ -61,7 +61,7 @@ class TestBackup(BaseSourceDirTestCase):
         atime_ns = 123456789012345678
         mtime_ns = 123456789012345678
         os.utime(str(test_file), ns=(atime_ns, mtime_ns))
-        self.assertEqual(os.stat(str(test_file)).st_mtime_ns, mtime_ns)
+        self.assert_file_mtime_ns(test_file, mtime_ns)
 
         result = self.invoke_cli("backup", self.source_path)
         print(result.output)
@@ -70,16 +70,16 @@ class TestBackup(BaseSourceDirTestCase):
         backup_path1 = self.get_newest_backup_path()
         backup_file1=pathlib.Path(backup_path1, "file.txt")
         self.assertTrue(backup_file1.is_file())
-        self.assertEqual(os.stat(str(backup_file1)).st_mtime_ns, mtime_ns)
+        self.assert_file_mtime_ns(backup_file1, mtime_ns)
 
         # source file not changed?
-        self.assertEqual(os.stat(str(test_file)).st_mtime_ns, mtime_ns)
+        self.assert_file_mtime_ns(test_file, mtime_ns)
 
         # check mtime in database
         backup_entries = BackupEntry.objects.all()
         self.assertEqual(backup_entries.count(), 1)
         backup_entry = backup_entries[0]
-        self.assertEqual(backup_entry.file_mtime_ns, mtime_ns)
+        self.assert_mtime_ns(backup_entry.file_mtime_ns, mtime_ns)
 
         # check normal output
         self.assertIn("0 Bytes in 1 files to backup.", result.output)
@@ -95,10 +95,10 @@ class TestBackup(BaseSourceDirTestCase):
         backup_path2 = self.get_newest_backup_path()
         backup_file2=pathlib.Path(backup_path2, "file.txt")
         self.assertTrue(backup_file2.is_file())
-        self.assertEqual(os.stat(str(backup_file2)).st_mtime_ns, mtime_ns)
+        self.assert_file_mtime_ns(backup_file2, mtime_ns)
 
         # first file not changed?!?
-        self.assertEqual(os.stat(str(backup_file1)).st_mtime_ns, mtime_ns)
+        self.assert_file_mtime_ns(backup_file1, mtime_ns)
 
         # check normal output
         self.assertIn("0 Bytes in 1 files to backup.", result.output)
