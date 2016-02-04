@@ -429,7 +429,6 @@ class HardLinkBackup(object):
             unit=" dir entries",
             leave=True
         )
-        self._evaluate_skip_pattern_info(skip_pattern_info, name="SKIP_PATTERNS")
         for entry in tqdm_iterator:
             if entry is None:
                 # filtered out by skip_patterns
@@ -440,6 +439,7 @@ class HardLinkBackup(object):
                 self.total_size += entry.stat.st_size
 
         self.summary("\n * %i filtered dir entries" % len(filtered_dir_entries))
+        self._evaluate_skip_pattern_info(skip_pattern_info, name="SKIP_PATTERNS")
 
         self.summary("\nscan/filter source directory in %s\n" % (
             human_time(default_timer()-start_time)
