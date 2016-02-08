@@ -221,7 +221,7 @@ class BackupEntryManager(models.Manager):
         )
         path = backup_entry.get_backup_path()
         assert path.is_file(), "File not exists: %s" % path
-        assert os.stat(path.path).st_mtime_ns == backup_entry.file_mtime_ns
+        assert path.stat().st_mtime_ns == backup_entry.file_mtime_ns
         return backup_entry
 
 

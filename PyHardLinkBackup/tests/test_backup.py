@@ -16,6 +16,7 @@ from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase, \
     BaseSourceDirTestCase, BaseWithSourceFilesTestCase
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper, PatchOpen
+from PyHardLinkBackup.phlb.pathlib2 import Path2
 
 
 class TestBackup(BaseSourceDirTestCase):
@@ -105,6 +106,29 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertIn("fast backup: 1 files", result.output)
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
         self.assertIn("stint space via hardlinks: 1 files (0 Bytes 0.0%)", result.output)
+
+    def test_extended_path(self):
+        """
+        Backup a very long path
+        Test the \\?\ notation under Windows as a work-a-round for MAX_PATH.
+        see:
+        https://github.com/jedie/PyHardLinkBackup/issues/18
+        https://bugs.python.org/issue18199
+        https://www.python-forum.de/viewtopic.php?f=1&t=37931#p290999
+        """
+        new_path = Path2(self.source_path, "A"*255, "B"*255)
+        new_path.makedirs()
+        test_filepath = Path2(new_path, "X")
+        with test_filepath.open("w") as f:
+            f.write("File content under a very long path.")
+
+        result = self.invoke_cli("backup", self.source_path)
+        print(result.output)
+        self.assertIn("36 Bytes in 1 files to backup.", result.output)
+        self.assertIn("new content saved: 1 files (36 Bytes 100.0%)", result.output)
+        self.assertNotIn("omitted files", result.output)
+        self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
+
 
 class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
     def test_print_update(self):
@@ -213,14 +237,14 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("unittests raise", log_content)
 
     def test_unexpected_error(self):
-        origin_open = io.open
+        origin_open = os.utime
         def patched_open(filename, *args, **kwargs):
             if "dir_A_file" in filename: # will match on two files!
                 # raise a extraordinary error that will normally not catch ;)
                 raise TabError("test raise")
             return origin_open(filename, *args, **kwargs)
 
-        with mock.patch("io.open", patched_open):
+        with mock.patch("os.utime", patched_open):
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
 
@@ -245,13 +269,13 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("---END---", summary)
 
     def test_keyboard_interrupt(self):
-        origin_open = io.open
+        origin_open = os.utime
         def patched_open(filename, *args, **kwargs):
             if filename.endswith("dir_A_file_A.txt"):
                 raise KeyboardInterrupt
             return origin_open(filename, *args, **kwargs)
 
-        with mock.patch("io.open", patched_open):
+        with mock.patch("os.utime", patched_open):
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
 

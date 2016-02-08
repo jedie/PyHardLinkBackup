@@ -1,9 +1,11 @@
 import configparser
+import logging
 import shutil
 import os
 import pathlib
 import sys
 import tempfile
+import unittest
 
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
@@ -26,6 +28,8 @@ from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 from PyHardLinkBackup.phlb.phlb_main import FileBackup
 
+log = logging.getLogger("phlb.%s" % __name__)
+
 
 def get_newest_directory(path):
     """
@@ -37,8 +41,25 @@ def get_newest_directory(path):
     sub_dir = sub_dirs[-1]
     return sub_dir.path
 
+class BaseTempTestCase(unittest.TestCase):
+    """
+    Test case with a temporary directory
+    """
+    def setUp(self):
+        super(BaseTempTestCase, self).setUp()
+        self.temp_root_path=tempfile.mkdtemp(prefix="%s_" % __name__)
+        os.chdir(self.temp_root_path)
 
-class BaseTestCase(django.test.TestCase):
+    def tearDown(self):
+        super(BaseTempTestCase, self).tearDown()
+        # FIXME: Under windows the root temp dir can't be deleted:
+        # PermissionError: [WinError 32] The process cannot access the file because it is being used by another process
+        def rmtree_error(function, path, excinfo):
+            log.error("\nError remove temp: %r\n%s", path, excinfo[1])
+        shutil.rmtree(self.temp_root_path, ignore_errors=True, onerror=rmtree_error)
+
+
+class BaseTestCase(BaseTempTestCase, django.test.TestCase):
     def set_ini_values(self, filepath, debug=False, **ini_extras):
         config = configparser.RawConfigParser()
         config["unittests"]=ini_extras
@@ -56,12 +77,8 @@ class BaseTestCase(django.test.TestCase):
 
     def setUp(self):
         super(BaseTestCase, self).setUp()
-
-        self.temp_root_path=tempfile.mkdtemp()
         self.backup_path = os.path.join(self.temp_root_path, "PyHardLinkBackups")
         self.ini_path = os.path.join(self.temp_root_path, "PyHardLinkBackup.ini")
-
-        os.chdir(self.temp_root_path)
 
         # set_phlb_logger(logging.DEBUG)
 
@@ -79,12 +96,7 @@ class BaseTestCase(django.test.TestCase):
         )
 
     def tearDown(self):
-        # FIXME: Under windows the root temp dir can't be deleted:
-        # PermissionError: [WinError 32] The process cannot access the file because it is being used by another process
-        def rmtree_error(function, path, excinfo):
-            print("Error remove temp: %r" % path)
-        shutil.rmtree(self.temp_root_path, ignore_errors=True, onerror=rmtree_error)
-
+        super(BaseTestCase, self).tearDown()
         FileBackup._SIMULATE_SLOW_SPEED=False # disable it
 
     def simulate_slow_speed(self, sec):

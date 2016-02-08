@@ -114,6 +114,10 @@ class PathHelper(object):
         self.abs_src_filepath = src_dir_path.resolved_path
         log.debug(" * abs_src_filepath: %s" % self.abs_src_filepath)
 
+        if self.abs_src_filepath is None:
+            log.info("Can't resolve source path: %s", src_dir_path)
+            return
+
         self.sub_filepath = self.abs_src_filepath.relative_to(self.abs_src_root)
         log.debug(" * sub_filepath: %s" % self.sub_filepath)
 

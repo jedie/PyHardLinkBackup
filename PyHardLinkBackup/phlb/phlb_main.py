@@ -21,8 +21,6 @@ import collections
 
 from click._compat import strip_ansi
 
-from PyHardLinkBackup.phlb.deduplicate import deduplicate
-
 try:
     # https://github.com/tqdm/tqdm
     from tqdm import tqdm
@@ -37,9 +35,10 @@ log = logging.getLogger("phlb.%s" % __name__)
 import django
 from django.conf import settings
 
+from PyHardLinkBackup.phlb.deduplicate import deduplicate
 from PyHardLinkBackup.phlb.traceback_plus import exc_plus
-from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_dir_entry, \
-    pprint_path
+from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_dir_entry
+from PyHardLinkBackup.phlb.pathlib2 import pprint_path
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.human import human_time, human_filesize, to_percent, ns2naturaltimesince, dt2naturaltimesince
 from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
@@ -475,13 +474,21 @@ class HardLinkBackup(object):
         :param dir_path: filesystem_walk.DirEntryPath() instance
         """
         self.path_helper.set_src_filepath(dir_path)
+        if self.path_helper.abs_src_filepath is None:
+            self.total_errored_items += 1
+            log.info("Can't backup %r", dir_path)
 
         # self.summary(no, dir_path.stat.st_mtime, end=" ")
         if dir_path.is_symlink:
             self.summary("TODO Symlink: %s" % dir_path)
             return
 
-        if dir_path.different_path or dir_path.resolve_error:
+        if dir_path.resolve_error is not None:
+            self.summary("TODO resolve error: %s" % dir_path.resolve_error)
+            pprint_path(dir_path)
+            return
+
+        if dir_path.different_path:
             self.summary("TODO different path:")
             pprint_path(dir_path)
             return
