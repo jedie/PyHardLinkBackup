@@ -14,12 +14,6 @@ import os
 
 # time.clock() on windows and time.time() on linux
 from click._compat import strip_ansi
-from django.db import transaction
-
-from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME
-from PyHardLinkBackup.phlb.deduplicate import deduplicate
-from PyHardLinkBackup.phlb.phlb_main import scan_dir_tree
-from PyHardLinkBackup.phlb.traceback_plus import exc_plus
 
 try:
     # https://github.com/tqdm/tqdm
@@ -27,18 +21,22 @@ try:
 except ImportError as err:
     raise ImportError("Please install 'tqdm': %s" % err)
 
-
-log = logging.getLogger("phlb.%s" % __name__)
-
-
 # os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
 import django
 
+from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+
+from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME
+from PyHardLinkBackup.phlb.deduplicate import deduplicate
+from PyHardLinkBackup.phlb.phlb_main import scan_dir_tree
+from PyHardLinkBackup.phlb.traceback_plus import exc_plus
 from PyHardLinkBackup.phlb.filesystem_walk import scandir_limited
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.human import human_filesize, to_percent
 from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
-from PyHardLinkBackup.phlb.pathlib2 import Path2
+
+
+log = logging.getLogger("phlb.%s" % __name__)
 
 
 def calculate_hash(f, callback):

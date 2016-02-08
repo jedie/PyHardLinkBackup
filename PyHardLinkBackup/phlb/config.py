@@ -14,7 +14,7 @@ import configparser
 # https://github.com/mitsuhiko/click
 import click
 
-from PyHardLinkBackup.phlb.pathlib2 import Path2
+from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
 
 log = logging.getLogger("phlb.%s" % __name__)
 

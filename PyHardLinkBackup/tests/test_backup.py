@@ -8,15 +8,16 @@ from unittest import mock
 
 import io
 
-from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
 from click.testing import CliRunner
 
+from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+
+from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase, \
     BaseSourceDirTestCase, BaseWithSourceFilesTestCase
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper, PatchOpen
-from PyHardLinkBackup.phlb.pathlib2 import Path2
 
 
 class TestBackup(BaseSourceDirTestCase):

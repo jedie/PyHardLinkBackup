@@ -6,10 +6,10 @@ import sys
 import django
 from tqdm import tqdm
 
-from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry, \
-    build_config_path
+from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+
+from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.pathlib2 import Path2
 
 
 def calc_hash(entry_path, process_bar=None):

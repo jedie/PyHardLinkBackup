@@ -2,15 +2,15 @@
 # coding: utf-8
 
 """
-    secure_js_login distutils setup
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    pathlib revised distutils setup
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Links
     ~~~~~
 
     http://www.python-forum.de/viewtopic.php?f=21&t=26895 (de)
 
-    :copyleft: 2009-2015 by the secure_js_login team, see AUTHORS for more details.
+    :copyleft: 2016 by the pathlib revised team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -199,6 +199,7 @@ setup(
     packages=find_packages(),
     include_package_data=True, # include package data under version control
     install_requires=[
+        "pathlib revised", # https://github.com/jedie/pathlib revised/
         "Django>=1.8,<1.9",
         "django-tools", # https://github.com/jedie/django-tools/
         "tqdm", # https://github.com/tqdm/tqdm

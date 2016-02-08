@@ -35,15 +35,18 @@ log = logging.getLogger("phlb.%s" % __name__)
 import django
 from django.conf import settings
 
+# https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2
+from pathlib_revised.pathlib import pprint_path
+
 from PyHardLinkBackup.phlb.deduplicate import deduplicate
 from PyHardLinkBackup.phlb.traceback_plus import exc_plus
 from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_dir_entry
-from PyHardLinkBackup.phlb.pathlib2 import pprint_path
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.human import human_time, human_filesize, to_percent, ns2naturaltimesince, dt2naturaltimesince
 from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
 from PyHardLinkBackup.phlb.path_helper import PathHelper
-from PyHardLinkBackup.phlb.pathlib2 import Path2
+
 
 
 class BackupFileError(Exception):

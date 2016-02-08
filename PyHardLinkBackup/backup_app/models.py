@@ -8,9 +8,10 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.db.backends.signals import connection_created
 
+from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+
 from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME, INTERNAL_FILES
 from PyHardLinkBackup.phlb.human import dt2naturaltimesince
-from PyHardLinkBackup.phlb.pathlib2 import Path2
 from PyHardLinkBackup.phlb.config import phlb_config
 
 log = logging.getLogger("phlb.%s" % __name__)

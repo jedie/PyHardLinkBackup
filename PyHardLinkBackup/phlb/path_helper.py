@@ -4,8 +4,9 @@ import os
 import sys
 import tempfile
 
+from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.pathlib2 import Path2
 
 
 log = logging.getLogger("phlb.%s" % __name__)

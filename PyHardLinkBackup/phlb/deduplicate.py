@@ -1,11 +1,14 @@
 import logging
 
+from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+
 from PyHardLinkBackup.backup_app.models import BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.path_helper import rename2temp
-from PyHardLinkBackup.phlb.pathlib2 import Path2
+
 
 log = logging.getLogger("phlb.%s" % __name__)
+
 
 def deduplicate(backup_entry, hash_hexdigest):
     abs_dst_root = Path2(phlb_config.backup_path)

@@ -1,6 +1,7 @@
 import logging
 
-from PyHardLinkBackup.phlb.pathlib2 import Path2, DirEntryPath, pprint_path
+from pathlib_revised import Path2, DirEntryPath # https://github.com/jedie/pathlib revised/
+from pathlib_revised.pathlib import pprint_path
 
 log = logging.getLogger("phlb.%s" % __name__)
 

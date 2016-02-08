@@ -1,8 +1,9 @@
 import hashlib
 
+from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+
 from PyHardLinkBackup.backup_app.models import ContentInfo
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.pathlib2 import Path2
 from PyHardLinkBackup.tests.base import BaseCreatedOneBackupsTestCase
 
 
