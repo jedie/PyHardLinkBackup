@@ -58,3 +58,16 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("'phlb_config.ini' match on 1 items", result.output)
 
         self.assert_database_backup_entries(count=10)
+
+        # Just run a second time:
+        result = self.invoke_cli("add")
+        print("*"*79)
+        print(result.output)
+
+        self.assertIn("Backup exists", result.output)
+
+        self.assertNotIn("scan/filter source directory", result.output)
+        self.assertNotIn("total size", result.output)
+        self.assertNotIn("new content saved", result.output)
+
+        self.assert_database_backup_entries(count=10)

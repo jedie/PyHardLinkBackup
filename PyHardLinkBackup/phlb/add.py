@@ -13,12 +13,13 @@ import logging
 import os
 
 # time.clock() on windows and time.time() on linux
-
+from click._compat import strip_ansi
 from django.db import transaction
 
 from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME
 from PyHardLinkBackup.phlb.deduplicate import deduplicate
 from PyHardLinkBackup.phlb.phlb_main import scan_dir_tree
+from PyHardLinkBackup.phlb.traceback_plus import exc_plus
 
 try:
     # https://github.com/tqdm/tqdm
@@ -93,23 +94,29 @@ def add_dir_entry(backup_run, dir_entry_path, process_bar, result):
     # print(dir_entry_path.stat.st_nlink)
 
     backup_entry = Path2(dir_entry_path.path)
-
+    filesize=dir_entry_path.stat.st_size
     hash_filepath = Path2(
         "%s%s%s" % (backup_entry.path, os.extsep, phlb_config.hash_name)
     )
-    with hash_filepath.open("w") as hash_file:
-        callback = HashCallback(process_bar)
-        with backup_entry.open("rb") as f:
-            hash = calculate_hash(f, callback)
+    if hash_filepath.is_file():
+        with hash_filepath.open("r") as hash_file:
+            hash_hexdigest = hash_file.read().strip()
+        if filesize>0:
+            process_bar.update(filesize)
+    else:
+        with hash_filepath.open("w") as hash_file:
+            callback = HashCallback(process_bar)
+            with backup_entry.open("rb") as f:
+                hash = calculate_hash(f, callback)
 
-        hash_hexdigest = hash.hexdigest()
-        hash_file.write(hash_hexdigest)
+            hash_hexdigest = hash.hexdigest()
+            hash_file.write(hash_hexdigest)
 
     old_backup_entry = deduplicate(backup_entry, hash_hexdigest)
     if old_backup_entry is None:
-        result.add_new_file(dir_entry_path.stat.st_size)
+        result.add_new_file(filesize)
     else:
-        result.add_stined_file(dir_entry_path.stat.st_size)
+        result.add_stined_file(filesize)
 
     BackupEntry.objects.create(
         backup_run,
@@ -126,9 +133,19 @@ def add_dir_entries(backup_run, filtered_dir_entries, result):
         key=lambda x: x.stat.st_mtime, # sort by last modify time
         reverse=True # sort from newest to oldes
     )
+    # FIXME: The process bar will stuck if many small/null byte files are processed
+    # Maybe: Change from bytes to file count and use a second bar if a big file
+    # hash will be calculated.
     with tqdm(total=total_size, unit='B', unit_scale=True) as process_bar:
         for dir_entry in path_iterator:
-            add_dir_entry(backup_run, dir_entry, process_bar, result)
+            try:
+                add_dir_entry(backup_run, dir_entry, process_bar, result)
+            except Exception as err:
+                # A unexpected error occurred.
+                # Print and add traceback to summary
+                log.error("Can't backup %s: %s" % (dir_entry, err))
+                for line in exc_plus():
+                    log.error(strip_ansi(line))
 
 def add_backup_entries(backup_run, result):
     backup_path = backup_run.path_part()
