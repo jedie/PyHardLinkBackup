@@ -74,6 +74,7 @@ install:
     - set PATH=%APPDATA%/PyHardLinkBackup/Scripts;%PATH%
     - pip uninstall -y PyHardLinkBackup
     - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
+    - pip install appveyor-artifacts
     - cd %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
     - git checkout -qf %APPVEYOR_REPO_COMMIT%
     - manage.exe migrate
@@ -83,13 +84,16 @@ test_script:
     - cd %APPDATA%/PyHardLinkBackup
     - call phlb_run_tests.cmd no_report
 
+artifacts:
+    - path: %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup/.coverage
+
 on_finish:
     - cd %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
     - coverage combine
     - coverage report
 
-    - set COVERALLS_REPO_TOKEN=3uErcCZvScP0LKMj9qcgab67qRsu8XnSQ
-    - coveralls
+#    - set COVERALLS_REPO_TOKEN=3uErcCZvScP0LKMj9qcgab67qRsu8XnSQ
+#    - coveralls
 
     # http://www.appveyor.com/docs/how-to/rdp-to-build-worker
     #- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

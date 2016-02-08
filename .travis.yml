@@ -38,6 +38,7 @@ install:
     - ls
     - pip uninstall -y PyHardLinkBackup
     - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
+    - pip install appveyor-artifacts
     - ls
     - PKG_PATH=$(python -c "import os,PyHardLinkBackup;print(os.path.dirname(PyHardLinkBackup.__file__))")
     - cd ${PKG_PATH}
@@ -54,9 +55,14 @@ script:
 after_success:
     - cd ${PKG_PATH}
     - ls
+    - coverage report
+    - mv .coverage .coverage.travis
+    - appveyor-artifacts -m download
     - coverage combine
     - coverage report
     - coveralls
+
+
 
 notifications:
     irc: "irc.freenode.org#pylucid"
