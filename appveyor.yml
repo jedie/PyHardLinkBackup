@@ -85,7 +85,7 @@ test_script:
     - call phlb_run_tests.cmd no_report
 
 artifacts:
-    - path: %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup/.coverage
+    - path: %APPDATA%\\PyHardLinkBackup\\src\\pyhardlinkbackup\\.coverage
 
 on_finish:
     - cd %APPDATA%/PyHardLinkBackup/src/pyhardlinkbackup
