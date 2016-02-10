@@ -11,3 +11,6 @@ click
 
 # https://pypi.python.org/pypi/scandir
 scandir ; python_version < '3.5'
+
+# https://github.com/jedie/pathlib_revised/
+pathlib_revised
