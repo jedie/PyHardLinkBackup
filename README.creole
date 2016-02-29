@@ -354,3 +354,10 @@ Some notes about to setup a development under windows, please look at: [[https:/
 
 * https://pypi.python.org/pypi/PyHardlinkBackup/
 * https://www.python-forum.de/viewtopic.php?f=6&t=37723 (de)
+
+
+== Donation
+
+* [[https://www.paypal.me/JensDiemer|paypal.me/JensDiemer]]
+* [[https://flattr.com/submit/auto?uid=jedie&url=https%3A%2F%2Fgithub.com%2Fjedie%2Fdjango-reversion-compare%2F|Flattr This!]]
+* Send [[http://www.bitcoin.org/|Bitcoins]] to [[https://blockexplorer.com/address/1823RZ5Md1Q2X5aSXRC5LRPcYdveCiVX6F|1823RZ5Md1Q2X5aSXRC5LRPcYdveCiVX6F]]
