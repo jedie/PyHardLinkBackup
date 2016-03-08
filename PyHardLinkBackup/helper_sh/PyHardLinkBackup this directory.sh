@@ -11,4 +11,4 @@ source ${ACTIVATE_SCRIPT}
 
 set -x
 
-phlb backup ${CURRENT_DIR}
+phlb backup "${CURRENT_DIR}"
