@@ -50,17 +50,22 @@ call:test_exist "%ACTIVATE%" "venv activate not found here:"
 echo on
 call %ACTIVATE%
 
-set PIP_EXE="%BASE_PATH%\Scripts\pip.exe"
+set PIP_EXE="%SCRIPT_PATH%\pip.exe"
 call:test_exist "%PIP_EXE%" "pip not found here:"
 echo on
 %PIP_EXE% install PyHardLinkBackup
 @echo off
 
-set PHLB_EXE="%BASE_PATH%\Scripts\phlb.exe"
+set PHLB_EXE="%SCRIPT_PATH%\phlb.exe"
 call:test_exist "%PHLB_EXE%" "phlb not found here:"
 echo on
 %PHLB_EXE% helper %BASE_PATH%
 @echo off
+
+set EXE="%SCRIPT_PATH%\manage.exe"
+call:test_exist "%EXE%" "manage.exe not found here:"
+echo on
+"%EXE%" migrate
 
 echo on
 explorer.exe %BASE_PATH%

@@ -39,4 +39,6 @@ fi
     pip install PyHardLinkBackup
 
     phlb helper ${DESTINATION}
+
+    manage migrate
 )
