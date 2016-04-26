@@ -41,7 +41,7 @@ echo on
 py -3 -m venv %BASE_PATH%
 @echo off
 
-set SCRIPT_PATH="%BASE_PATH%\Scripts"
+set SCRIPT_PATH=%BASE_PATH%\Scripts
 call:test_exist "%SCRIPT_PATH%" "venv/Script path not found here:"
 
 set ACTIVATE=%SCRIPT_PATH%\activate.bat
