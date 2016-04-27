@@ -1,7 +1,7 @@
 @echo off
 title %~0
 
-set BASE_PATH=%APPDATA%\PyHardLinkBackup
+set BASE_PATH=%ProgramFiles%\PyHardLinkBackup
 call:test_exist "%BASE_PATH%" "venv not found here:"
 cd /d "%BASE_PATH%"
 
@@ -10,6 +10,13 @@ call:test_exist "%SCRIPT_PATH%" "venv/Script path not found here:"
 
 set ACTIVATE=%SCRIPT_PATH%\activate.bat
 call:test_exist "%ACTIVATE%" "venv activate not found here:"
+
+whoami /groups | find "S-1-16-12288" > nul
+if errorlevel 1 (
+   echo Error: You must start this batchfile with admin rights!
+   pause
+   exit /b
+)
 
 echo on
 call "%ACTIVATE%"

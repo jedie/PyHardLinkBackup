@@ -1,9 +1,9 @@
 @echo off
 title %~0
 
-set BASE_PATH=%APPDATA%\PyHardLinkBackup
+set BASE_PATH=%ProgramFiles%\PyHardLinkBackup
 call:test_exist "%BASE_PATH%" "venv not found here:"
-cd /d %BASE_PATH%
+cd /d "%BASE_PATH%"
 
 set SCRIPT_PATH=%BASE_PATH%\Scripts
 call:test_exist "%SCRIPT_PATH%" "venv/Script path not found here:"

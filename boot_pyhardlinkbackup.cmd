@@ -33,12 +33,23 @@ if "%VERSION3%"=="" (
     echo Python v3 is: %VERSION%
 )
 
-set BASE_PATH=%APPDATA%\PyHardLinkBackup
-mkdir %BASE_PATH%
+whoami /groups | find "S-1-16-12288" > nul
+if errorlevel 1 (
+    echo.
+    echo Error: You must start this batchfile with admin rights!
+    echo.
+    pause
+    exit /b
+)
+
+set BASE_PATH=%ProgramFiles%\PyHardLinkBackup
+echo on
+mkdir "%BASE_PATH%"
+@echo off
 call:test_exist "%BASE_PATH%" "venv not found here:"
 
 echo on
-py -3 -m venv %BASE_PATH%
+py -3 -m venv "%BASE_PATH%"
 @echo off
 
 set SCRIPT_PATH=%BASE_PATH%\Scripts
@@ -48,21 +59,21 @@ set ACTIVATE=%SCRIPT_PATH%\activate.bat
 call:test_exist "%ACTIVATE%" "venv activate not found here:"
 
 echo on
-call %ACTIVATE%
+call "%ACTIVATE%"
 
-set PIP_EXE="%SCRIPT_PATH%\pip.exe"
+set PIP_EXE=%SCRIPT_PATH%\pip.exe
 call:test_exist "%PIP_EXE%" "pip not found here:"
 echo on
-%PIP_EXE% install PyHardLinkBackup
+"%PIP_EXE%" install PyHardLinkBackup
 @echo off
 
-set PHLB_EXE="%SCRIPT_PATH%\phlb.exe"
+set PHLB_EXE=%SCRIPT_PATH%\phlb.exe
 call:test_exist "%PHLB_EXE%" "phlb not found here:"
 echo on
-%PHLB_EXE% helper %BASE_PATH%
+"%PHLB_EXE%" helper "%BASE_PATH%"
 @echo off
 
-set EXE="%SCRIPT_PATH%\manage.exe"
+set EXE=%SCRIPT_PATH%\manage.exe
 call:test_exist "%EXE%" "manage.exe not found here:"
 echo on
 "%EXE%" migrate

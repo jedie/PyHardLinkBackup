@@ -57,22 +57,22 @@ This will create deduplication backups like this:
 
 # install Python 3: https://www.python.org/downloads/
 # Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.cmd|boot_pyhardlinkbackup.cmd]]
-# run **boot_pyhardlinkbackup.cmd**
+# call **boot_pyhardlinkbackup.cmd** as admin (Right-click and use **Run as administrator**)
 
-If everything works fine, you will get a venv here: {{{%APPDATA%\PyHardLinkBackup}}}
+If everything works fine, you will get a venv here: {{{%ProgramFiles%\PyHardLinkBackup}}}
 
 After the venv is created, call these scripts to finilize the setup:
 
-# {{{%APPDATA%\PyHardLinkBackup\phlb_edit_config.cmd}}} - Created a config .ini file
-# {{{%APPDATA%\PyHardLinkBackup\phlb_migrate_database.cmd}}} - Create Database tables
+# {{{%ProgramFiles%\PyHardLinkBackup\phlb_edit_config.cmd}}} - Created a config .ini file
+# {{{%ProgramFiles%\PyHardLinkBackup\phlb_migrate_database.cmd}}} - Create Database tables
 
 To upgrade PyHardLinkBackup, call:
 
-# {{{%APPDATA%\PyHardLinkBackup\phlb_upgrade_PyHardLinkBackup.cmd}}}
+# {{{%ProgramFiles%\PyHardLinkBackup\phlb_upgrade_PyHardLinkBackup.cmd}}}
 
 To start the django webserver, call:
 
-# {{{%APPDATA%\PyHardLinkBackup\phlb_run_django_webserver.cmd}}}
+# {{{%ProgramFiles%\PyHardLinkBackup\phlb_run_django_webserver.cmd}}}
 
 
 === Linux
@@ -108,8 +108,8 @@ To start the django webserver, call:
 
 To start a backup run, use this helper script:
 
-* Windows batch: {{{%APPDATA%\PyHardLinkBackup\PyHardLinkBackup this directory.cmd}}}
-* Linux shell script: {{{~/PyHardLinkBackup/PyHardLinkBackup this directory.sh}}}
+* Windows batch: {{{%ProgramFiles%\PyHardLinkBackup\PyHardLinkBackup_this_directory.cmd}}}
+* Linux shell script: {{{~/PyHardLinkBackup/PyHardLinkBackup_this_directory.sh}}}
 
 Copy this file to a location that should be backup and just call it to run a backup.
 
@@ -291,6 +291,9 @@ Some notes about to setup a development under windows, please look at: [[https:/
 
 == History
 
+* 26.04.2016 - v0.10.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.9.1...v0.10.0|compare v0.9.1...v0.10.0]]
+** move under Windows the install location from {{{%APPDATA%\PyHardLinkBackup}}} to {{{%ProgramFiles%\PyHardLinkBackup}}}
+** to 'migrate': Just delete {{{%APPDATA%\PyHardLinkBackup}}} and install via **boot_pyhardlinkbackup.cmd**
 * 26.04.2016 - v0.9.1 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.9.0...v0.9.1|compare v0.9.0...v0.9.1]]
 ** run migrate database in boot process
 ** Add missing migrate scripts
