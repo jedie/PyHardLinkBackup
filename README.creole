@@ -143,11 +143,11 @@ Search order is:
 
 e.g.: Current working directoy is: **/foo/bar/my_files/** then the search path will be:
 
-* /foo/bar/my_files/PyHardLinkBackup.ini
-* /foo/bar/PyHardLinkBackup.ini
-* /foo/PyHardLinkBackup.ini
-* /PyHardLinkBackup.ini
-* ~/PyHardLinkBackup.ini //The user home directory under Windows/Linix//
+* {{{/foo/bar/my_files/PyHardLinkBackup.ini}}}
+* {{{/foo/bar/PyHardLinkBackup.ini}}}
+* {{{/foo/PyHardLinkBackup.ini}}}
+* {{{/PyHardLinkBackup.ini}}}
+* {{{~/PyHardLinkBackup.ini}}} //The user home directory under Windows/Linix//
 
 
 === Create / edit default .ini
