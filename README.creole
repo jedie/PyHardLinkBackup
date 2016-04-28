@@ -13,10 +13,7 @@ Hardlink/Deduplication Backups with Python.
 ** find duplicate files everywhere (even if renamed or moved files)
 * useable under Windows and Linux
 
-current state:
-
-* python 3.4 or newer only
-* Beta state
+requirement: python 3.4 or newer
 
 Please, try, fork and contribute! ;)
 
@@ -287,6 +284,10 @@ Some notes about to setup a development under windows, please look at: [[https:/
 * msbackup: https://pypi.python.org/pypi/msbackup/ (used tar for backup archives)
 * Duplicity: http://duplicity.nongnu.org/ (No Windows support, tar archive format)
 * Burp: http://burp.grke.org/ (Client/Server solution)
+* dirvish: http://www.dirvish.org/ (seems to be a Linux only solution)
+* restic: https://github.com/restic/restic/ (Used own backup archive format)
+
+See also: https://github.com/restic/others#list-of-backup-software
 
 
 == History
@@ -360,6 +361,7 @@ Some notes about to setup a development under windows, please look at: [[https:/
 
 * https://pypi.python.org/pypi/PyHardlinkBackup/
 * https://www.python-forum.de/viewtopic.php?f=6&t=37723 (de)
+* https://github.com/jedie/pathlib_revised
 
 
 == Donation
