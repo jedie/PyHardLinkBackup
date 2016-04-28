@@ -284,7 +284,7 @@ Some notes about to setup a development under windows, please look at: [[https:/
 * msbackup: https://pypi.python.org/pypi/msbackup/ (used tar for backup archives)
 * Duplicity: http://duplicity.nongnu.org/ (No Windows support, tar archive format)
 * Burp: http://burp.grke.org/ (Client/Server solution)
-* dirvish: http://www.dirvish.org/ (seems to be a Linux only solution)
+* dirvish: http://www.dirvish.org/ (Client/Server solution)
 * restic: https://github.com/restic/restic/ (Used own backup archive format)
 
 See also: https://github.com/restic/others#list-of-backup-software
