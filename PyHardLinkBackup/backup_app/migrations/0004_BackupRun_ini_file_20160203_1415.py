@@ -1,10 +1,7 @@
 #coding: utf-8
 
-import configparser
 
 from django.db import migrations, models
-
-from PyHardLinkBackup.backup_app.models import BackupRun
 
 
 def forwards_func(apps, schema_editor):
@@ -13,6 +10,7 @@ def forwards_func(apps, schema_editor):
     """
     print("\n")
     create_count = 0
+    BackupRun = apps.get_model("backup_app", "BackupRun")
     backup_runs = BackupRun.objects.all()
     for backup_run in backup_runs:
         try:
@@ -31,6 +29,7 @@ def reverse_func(apps, schema_editor):
     """
     print("\n")
     remove_count = 0
+    BackupRun = apps.get_model("backup_app", "BackupRun")
     backup_runs = BackupRun.objects.all()
     for backup_run in backup_runs:
         config_path = backup_run.get_config_path()
