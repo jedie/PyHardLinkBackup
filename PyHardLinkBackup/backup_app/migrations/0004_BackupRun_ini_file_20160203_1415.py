@@ -1,8 +1,9 @@
-#coding: utf-8
+# coding: utf-8
 
 
 from django.db import migrations, models
 
+from PyHardLinkBackup.backup_app.models import BackupRun as OriginBackupRun
 
 def forwards_func(apps, schema_editor):
     """
@@ -10,11 +11,13 @@ def forwards_func(apps, schema_editor):
     """
     print("\n")
     create_count = 0
-    BackupRun = apps.get_model("backup_app", "BackupRun")
+    BackupRun = apps.get_model("backup_app", "BackupRun") # historical version of BackupRun
     backup_runs = BackupRun.objects.all()
     for backup_run in backup_runs:
+        # Use the origin BackupRun model to get access to write_config()
+        temp = OriginBackupRun(name=backup_run.name, backup_datetime=backup_run.backup_datetime)
         try:
-            backup_run.write_config()
+            temp.write_config()
         except OSError as err:
             print("ERROR creating config file: %s" % err)
         else:
@@ -32,7 +35,9 @@ def reverse_func(apps, schema_editor):
     BackupRun = apps.get_model("backup_app", "BackupRun")
     backup_runs = BackupRun.objects.all()
     for backup_run in backup_runs:
-        config_path = backup_run.get_config_path()
+        # Use the origin BackupRun model to get access to get_config_path()
+        temp = OriginBackupRun(name=backup_run.name, backup_datetime=backup_run.backup_datetime)
+        config_path = temp.get_config_path()
         try:
             config_path.unlink()
         except OSError as err:
