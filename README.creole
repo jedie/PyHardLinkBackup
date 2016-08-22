@@ -2,7 +2,7 @@
 
 Hardlink/Deduplication Backups with Python.
 
-* Backups should be saved as normal files in filesystem:
+* Backups should be saved as normal files in the filesystem:
 ** accessible without any extra software or extra meta files
 ** non-proprietary format
 * Create backups with versioning
@@ -13,9 +13,9 @@ Hardlink/Deduplication Backups with Python.
 ** find duplicate files everywhere (even if renamed or moved files)
 * useable under Windows and Linux
 
-requirement: python 3.4 or newer
+Requirement: Python 3.4 or newer.
 
-Please, try, fork and contribute! ;)
+Please: try, fork and contribute! ;)
 
 | {{https://travis-ci.org/jedie/PyHardLinkBackup.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/PyHardLinkBackup/|travis-ci.org/jedie/PyHardLinkBackup]] |
 | {{https://ci.appveyor.com/api/projects/status/py5sl38ql3xciafc?svg=true|Build Status on appveyor.com}} | [[https://ci.appveyor.com/project/jedie/pyhardlinkbackup/history|ci.appveyor.com/project/jedie/pyhardlinkbackup]] |
@@ -48,7 +48,7 @@ This will create deduplication backups like this:
 }}}
 
 
-== Install
+== Installation
 
 === Windows
 
@@ -58,16 +58,16 @@ This will create deduplication backups like this:
 
 If everything works fine, you will get a venv here: {{{%ProgramFiles%\PyHardLinkBackup}}}
 
-After the venv is created, call these scripts to finilize the setup:
+After the venv is created, call these scripts to finalize the setup:
 
-# {{{%ProgramFiles%\PyHardLinkBackup\phlb_edit_config.cmd}}} - Created a config .ini file
-# {{{%ProgramFiles%\PyHardLinkBackup\phlb_migrate_database.cmd}}} - Create Database tables
+# {{{%ProgramFiles%\PyHardLinkBackup\phlb_edit_config.cmd}}} - create a config .ini file
+# {{{%ProgramFiles%\PyHardLinkBackup\phlb_migrate_database.cmd}}} - create database tables
 
 To upgrade PyHardLinkBackup, call:
 
 # {{{%ProgramFiles%\PyHardLinkBackup\phlb_upgrade_PyHardLinkBackup.cmd}}}
 
-To start the django webserver, call:
+To start the Django webserver, call:
 
 # {{{%ProgramFiles%\PyHardLinkBackup\phlb_run_django_webserver.cmd}}}
 
@@ -77,41 +77,41 @@ To start the django webserver, call:
 # Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.sh|boot_pyhardlinkbackup.sh]]
 # call **boot_pyhardlinkbackup.sh**
 
-**Note:** If you not use python 3.5+, then you must install '[[https://pypi.python.org/pypi/scandir|scandir]]', e.g.:
+**Note:** If you don't use Python 3.5+, then you must install '[[https://pypi.python.org/pypi/scandir|scandir]]', e.g.:
 {{{
 ~ $ cd PyHardLinkBackup
 ~/PyHardLinkBackup $ source bin/activate
-(PyHardLinkBackup) ~/PyHardLinkBackup $ pip install scndir
+(PyHardLinkBackup) ~/PyHardLinkBackup $ pip install scandir
 }}}
 (You need the **python3-dev** package installed)
 
 If everything works fine, you will get a venv here: {{{~\PyHardLinkBackup}}}
 
-After the venv is created, call these scripts to finilize the setup:
+After the venv is created, call these scripts to finalize the setup:
 
-* {{{~/PyHardLinkBackup/phlb_edit_config.sh}}} - Created a config .ini file
-* {{{~/PyHardLinkBackup/phlb_migrate_database.sh}}} - Create Database tables
+* {{{~/PyHardLinkBackup/phlb_edit_config.sh}}} - create a config .ini file
+* {{{~/PyHardLinkBackup/phlb_migrate_database.sh}}} - create database tables
 
 To upgrade PyHardLinkBackup, call:
 
 * {{{~/PyHardLinkBackup/phlb_upgrade_PyHardLinkBackup.sh}}}
 
-To start the django webserver, call:
+To start the Django webserver, call:
 
 * {{{~/PyHardLinkBackup/phlb_run_django_webserver.sh}}}
 
 
-== start backup run
+== Starting a backup run
 
 To start a backup run, use this helper script:
 
 * Windows batch: {{{%ProgramFiles%\PyHardLinkBackup\PyHardLinkBackup_this_directory.cmd}}}
 * Linux shell script: {{{~/PyHardLinkBackup/PyHardLinkBackup_this_directory.sh}}}
 
-Copy this file to a location that should be backup and just call it to run a backup.
+Copy this file to a location that should be backed up and just call it to run a backup.
 
 
-== Verify a existing backup
+== Verifying an existing backup
 
 {{{
 $ cd PyHardLinkBackup/
@@ -119,32 +119,32 @@ $ cd PyHardLinkBackup/
 
 (PyHardLinkBackup) ~/PyHardLinkBackup $ phlb verify --fast ~/PyHardLinkBackups/documents/2016-01-07-102310
 }}}
-With **--fast** the file content will not be checkt.
-If not given: The hash from the file content will be calculated and compared. So every file must be complete read from filesystem, so it's takes some time.
+With **--fast** the files' contents will not be checked.
+If not given: The hashes from the files' contents will be calculated and compared. Thus, every file must be completely read from filesystem, so it will take some time.
 
-A verify run do:
-* Exist all file in backup?
-* Compare file size
-* Compare hash from hash-file
-* Compare file modify timestamp
-* Calculate hash from file content and compare (Will be skipped if **--fast** used)
+A verify run does:
+* Do all files in the backup exist?
+* Compare file sizes
+* Compare hashes from hash-file
+* Compare files' modification timestamps
+* Calculate hashes from files' contents and compare them (will be skipped if **--fast** used)
 
 
-== configuration
+== Configuration
 
-phlb will used a configuration file named: **PyHardLinkBackup.ini**
+phlb will use a configuration file named: **PyHardLinkBackup.ini**
 
 Search order is:
 # current directory down to root
 # user directory
 
-e.g.: Current working directoy is: **/foo/bar/my_files/** then the search path will be:
+E.g. if the current working directoy is **/foo/bar/my_files/** then the search path will be:
 
 * {{{/foo/bar/my_files/PyHardLinkBackup.ini}}}
 * {{{/foo/bar/PyHardLinkBackup.ini}}}
 * {{{/foo/PyHardLinkBackup.ini}}}
 * {{{/PyHardLinkBackup.ini}}}
-* {{{~/PyHardLinkBackup.ini}}} //The user home directory under Windows/Linix//
+* {{{~/PyHardLinkBackup.ini}}} //The user home directory under Windows/Linux//
 
 
 === Create / edit default .ini
@@ -157,59 +157,59 @@ You can just open the editor with the user directory .ini file with:
 The defaults are stored here: [[https://github.com/jedie/PyHardLinkBackup/blob/master/PyHardLinkBackup/phlb/config_defaults.ini|/phlb/config_defaults.ini]]
 
 
-=== Exclude files/folders from backup:
+=== Excluding files/folders from backup:
 
 There are two ways to exclude files/folders from your backup.
 Use the follow settings in your {{{PyHardLinkBackup.ini}}}
 {{{
-# Direcory names that will be recusive exclude vom backups (Comma seperated list!)
+# Directory names that will be recursively excluded from backups (comma separated list!)
 SKIP_DIRS= __pycache__, temp
 
-# glob-style patterns to exclude files/folders from backups use with Path.match() (Comma seperated list!)
+# glob-style patterns to exclude files/folders from backups (used with Path.match(), Comma separated list!)
 SKIP_PATTERNS= *.pyc, *.tmp, *.cache
 }}}
 
 The filesystem scan is divided into two steps:
-1. Just can the filesystem tree
+1. Just scan the filesystem tree
 2. Filter and load meta data for every directory item
 
 The **SKIP_DIRS** is used in the first step.
 The **SKIP_PATTERNS** is used the the second step.
 
 
-== upgrate PyHardLinkBackup
+== Upgrading PyHardLinkBackup
 
-To upgrate to a new version just start these helper script:
+To upgrade to a new version just start this helper script:
 
 * Windows: [[https://github.com/jedie/PyHardLinkBackup/blob/master/PyHardLinkBackup/helper_cmd/phlb_upgrade_PyHardLinkBackup.cmd|phlb_upgrade_PyHardLinkBackup.cmd]]
 * Linux: [[https://github.com/jedie/PyHardLinkBackup/blob/master/PyHardLinkBackup/helper_sh/phlb_upgrade_PyHardLinkBackup.sh|phlb_upgrade_PyHardLinkBackup.sh]]
 
 
-== some notes
+== Some notes
 
 === What is 'phlb' and 'manage' ?!?
 
-The **phlb** executable cli.
+**phlb** is a CLI.
 
-The **manage** is similar to a normal django **manage.py**, but it always
-used the PyHardLinkBackup settings.
+**manage** is similar to a normal Django **manage.py**, but it always
+uses the PyHardLinkBackup settings.
 
-=== Why in hell do you use django?!?
+=== Why in hell do you use Django?!?
 
-* Well, just because of the great database ORM and the Admin Site ;)
+* Well, just because of the great database ORM and the Admin Site. ;)
 
-=== How to go into the django admin?
+=== How to go into the Django admin?
 
 Just start:
 
-* windows: {{{phlb_run_django_webserver.cmd}}}
-* linux: {{{phlb_run_django_webserver.sh}}}
+* Windows: {{{phlb_run_django_webserver.cmd}}}
+* Linux: {{{phlb_run_django_webserver.sh}}}
 
-And then just request 'localhost'
-(Note: **--noreload** is needed under windows with venv!)
+And then request 'localhost'
+(Note: **--noreload** is needed for Windows with venv!)
 
 
-== run unittests
+== Running the unit tests
 
 Just start: {{{phlb_run_tests.cmd}}} / {{{phlb_run_tests.sh}}} or do this:
 {{{
@@ -219,7 +219,7 @@ $ cd PyHardLinkBackup/
 }}}
 
 
-== the cli
+== Using the CLI
 
 {{{
 $ cd PyHardLinkBackup/
@@ -242,7 +242,7 @@ Commands:
 }}}
 
 
-== Add missing backups to database
+== Add missing backups to the database
 
 **phlb add** can be used in different scenarios:
 * recreate the database
@@ -251,41 +251,42 @@ Commands:
 **phlb add** does this:
 * scan the complete file tree under **BACKUP_PATH** (default: {{{~/PyHardLinkBackups}}})
 * recreate all hash files
-* add all files to database.
-* deduplicate with hardlinks, if possible.
+* add all files to database
+* deduplicate with hardlinks, if possible
 
 So it's possible to recreate the complete database:
 * delete the current {{{.sqlite}}} file
 * run **phlb add** to recreate
 
-A other scenario, e.g.:
-* DSLR images are stored on a network drive
-* You have already a copy of all files locally
-* You would like to add the local copy to PyHardLinkBackup
+Another scenario is e.g.:
+* DSLR images are stored on a network drive.
+* You have already a copy of all files locally.
+* You would like to add the local copy to PyHardLinkBackup.
 
 Do the following steps:
 
-* move the local files to a sub directory unter **BACKUP_PATH**
+* move the local files to a subdirectory below **BACKUP_PATH**
 * e.g.: {{{~/PyHardLinkBackups/pictures/2015-12-29-000015/}}}
-* Note the date sub directory must match the **SUB_DIR_FORMATTER** in your config
+* Note: the date format in the subdirectory name must match the **SUB_DIR_FORMATTER** in your config
 * run: **phlb add**
 
-Now you can run **phlb backup** from your network drive to made a new, up-to-date backup
+Now you can run **phlb backup** from your network drive to make a new, up-to-date backup.
 
 
 === Windows Development
 
-Some notes about to setup a development under windows, please look at: [[https://github.com/jedie/PyHardLinkBackup/blob/master/dev/WindowsDevelopment.creole|/dev/WindowsDevelopment.creole]]
+Some notes about setting up a development environment on Windows: [[https://github.com/jedie/PyHardLinkBackup/blob/master/dev/WindowsDevelopment.creole|/dev/WindowsDevelopment.creole]]
 
 
-=== alternative solutions
+=== Alternative solutions
 
-* Attic: https://attic-backup.org/ (Not working under Windows, own backup archive format)
-* msbackup: https://pypi.python.org/pypi/msbackup/ (used tar for backup archives)
+* Attic: https://attic-backup.org/ (Not working on Windows, own backup archive format)
+* BorgBackup: https://borgbackup.readthedocs.io/ (Fork of Attic with lots of improvements)
+* msbackup: https://pypi.python.org/pypi/msbackup/ (Uses tar for backup archives)
 * Duplicity: http://duplicity.nongnu.org/ (No Windows support, tar archive format)
 * Burp: http://burp.grke.org/ (Client/Server solution)
 * dirvish: http://www.dirvish.org/ (Client/Server solution)
-* restic: https://github.com/restic/restic/ (Used own backup archive format)
+* restic: https://github.com/restic/restic/ (Uses own backup archive format)
 
 See also: https://github.com/restic/others#list-of-backup-software
 
@@ -364,7 +365,7 @@ See also: https://github.com/restic/others#list-of-backup-software
 * https://github.com/jedie/pathlib_revised
 
 
-== Donation
+== Donating
 
 * [[https://www.paypal.me/JensDiemer|paypal.me/JensDiemer]]
 * [[https://flattr.com/submit/auto?uid=jedie&url=https%3A%2F%2Fgithub.com%2Fjedie%2Fdjango-reversion-compare%2F|Flattr This!]]
