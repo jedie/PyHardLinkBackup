@@ -293,6 +293,8 @@ See also: https://github.com/restic/others#list-of-backup-software
 
 == History
 
+* 09.09.2016 - v0.10.1 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.10.0...v0.10.1|compare v0.10.0...v0.10.1]]
+** Bugfix [[https://github.com/jedie/PyHardLinkBackup/issues/24|Catch scan dir errors #24]]
 * 26.04.2016 - v0.10.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.9.1...v0.10.0|compare v0.9.1...v0.10.0]]
 ** move under Windows the install location from {{{%APPDATA%\PyHardLinkBackup}}} to {{{%ProgramFiles%\PyHardLinkBackup}}}
 ** to 'migrate': Just delete {{{%APPDATA%\PyHardLinkBackup}}} and install via **boot_pyhardlinkbackup.cmd**
