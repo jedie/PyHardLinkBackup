@@ -103,7 +103,14 @@ def iter_filtered_dir_entry(dir_entries, match_patterns, on_skip):
         return False
 
     for entry in dir_entries:
-        dir_entry_path = DirEntryPath(entry)
+        try:
+            dir_entry_path = DirEntryPath(entry)
+        except FileNotFoundError as err:
+            # e.g.: A file was deleted after the first filesystem scan
+            # Will be obsolete if we use shadow-copy / snapshot function from filesystem
+            # see: https://github.com/jedie/PyHardLinkBackup/issues/6
+            log.error("Can't make DirEntryPath() instance: %s" % err)
+            continue
         if match(dir_entry_path, match_patterns, on_skip):
             yield None
         else:
