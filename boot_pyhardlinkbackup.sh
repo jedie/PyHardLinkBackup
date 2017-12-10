@@ -15,7 +15,7 @@ DESTINATION=~/PyHardLinkBackup
 (
     source ${DESTINATION}/bin/activate
     set -x
-    python -m ensurepip
+    python3 -m ensurepip
 )
 if [ "$?" == "0" ]; then
     echo "pip installed, ok"
@@ -34,11 +34,11 @@ fi
     set -e
     source ${DESTINATION}/bin/activate
     set -x
-    pip install --upgrade pip
+    ${DESTINATION}/bin/pip3 install --upgrade pip
 
-    pip install PyHardLinkBackup
+    ${DESTINATION}/bin/pip3 install PyHardLinkBackup
 
-    phlb helper ${DESTINATION}
+    ${DESTINATION}/bin/phlb helper ${DESTINATION}
 
     manage migrate
 )
