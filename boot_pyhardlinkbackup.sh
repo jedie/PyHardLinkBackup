@@ -34,12 +34,10 @@ fi
     set -e
     source ${DESTINATION}/bin/activate
     set -x
-    ls -la ${DESTINATION}/bin/
-    ${DESTINATION}/bin/pip3 install --upgrade pip
-
-    ${DESTINATION}/bin/pip3 install PyHardLinkBackup
-
-    ${DESTINATION}/bin/phlb helper ${DESTINATION}
-
+    cd ${DESTINATION}/bin/
+    ls -la
+    pip3 install --upgrade pip
+    pip3 install PyHardLinkBackup
+    phlb helper ${DESTINATION}
     manage migrate
 )
