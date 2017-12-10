@@ -34,6 +34,7 @@ fi
     set -e
     source ${DESTINATION}/bin/activate
     set -x
+    ls -la ${DESTINATION}/bin/
     ${DESTINATION}/bin/pip3 install --upgrade pip
 
     ${DESTINATION}/bin/pip3 install PyHardLinkBackup
