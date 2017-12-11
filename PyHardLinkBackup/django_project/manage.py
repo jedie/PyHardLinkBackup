@@ -1,7 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
+
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "PyHardLinkBackup.django_project.settings")
 
 
 def cli():
@@ -11,5 +14,4 @@ def cli():
 
 if __name__ == '__main__':
     # Needed if direct called
-    os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
     cli()
