@@ -11,8 +11,8 @@ source ${ACTIVATE_SCRIPT}
 
 set -x
 
-pip install --upgrade pip
-pip install --upgrade PyHardLinkBackup
+pip3 install --upgrade pip
+pip3 install --upgrade PyHardLinkBackup
 
 manage migrate
 phlb helper ${ENV_PATH}
