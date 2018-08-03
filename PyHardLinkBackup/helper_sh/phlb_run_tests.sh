@@ -15,8 +15,8 @@ echo PKG_PATH: ${PKG_PATH}
 cd ${PKG_PATH}
 (
     set -x
-    pip install --upgrade pip
-    pip install -r requirements/dev_extras.txt
+    pip3 install --upgrade pip
+    pip3 install -r requirements/dev_extras.txt
     coverage run --source=PyHardLinkBackup --parallel-mode -m PyHardLinkBackup.django_project.manage test PyHardLinkBackup --verbosity=2
 )
 
@@ -26,7 +26,7 @@ if [ "${1}" != "no_report" ]; then
         set -x
         coverage combine
         coverage html
-        python -m webbrowser -t "htmlcov/index.html"
+        python3 -m webbrowser -t "htmlcov/index.html"
     )
 fi
 
