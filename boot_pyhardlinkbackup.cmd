@@ -61,6 +61,12 @@ call:test_exist "%ACTIVATE%" "venv activate not found here:"
 echo on
 call "%ACTIVATE%"
 
+set PYTHON_EXE=%SCRIPT_PATH%\python.exe
+call:test_exist "%PYTHON_EXE%" "Python not found here:"
+echo on
+"%PYTHON_EXE%" -m pip install --upgrade pip
+@echo off
+
 set PIP_EXE=%SCRIPT_PATH%\pip.exe
 call:test_exist "%PIP_EXE%" "pip not found here:"
 echo on
