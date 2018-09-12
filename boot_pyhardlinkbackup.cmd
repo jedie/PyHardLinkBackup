@@ -2,6 +2,10 @@
 title %~0
 cd /d "%~dp0"
 
+REM ~ Windows Batch file to boot PyHardLinkBackup
+REM ~
+REM ~ It's create a virtualenv under "C:\Program Files\PyHardLinkBackup"
+
 for /f "delims=;" %%i in ('py -V') do set VERSION=%%i
 for /f "delims=;" %%i in ('py -3 -V') do set VERSION3=%%i
 
