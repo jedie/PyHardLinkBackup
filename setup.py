@@ -233,7 +233,7 @@ setup(
     include_package_data=True, # include package data under version control
     install_requires=[
         "pathlib_revised", # https://github.com/jedie/pathlib_revised/
-        "Django>=1.8,<1.9",
+        "Django<2.0",
         "django-tools", # https://github.com/jedie/django-tools/
         "tqdm", # https://github.com/tqdm/tqdm
         "click", # https://github.com/mitsuhiko/click
