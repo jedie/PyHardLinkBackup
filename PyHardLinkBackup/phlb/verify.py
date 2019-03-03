@@ -6,7 +6,7 @@ import sys
 import django
 from tqdm import tqdm
 
-from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
 
 from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
@@ -35,20 +35,15 @@ def verify_backup(backup_path, fast):
     backup_run = BackupRun.objects.get_from_config_file(backup_path)
     print("\nBackup run:\n%s\n" % backup_run)
 
-    backup_entries = BackupEntry.objects.filter(backup_run = backup_run)
+    backup_entries = BackupEntry.objects.filter(backup_run=backup_run)
     backup_entries_count = backup_entries.count()
     print("%i File entry exist in database." % backup_entries_count)
 
     mtime_mismatch = 0
 
-    tqdm_iterator = tqdm(
-        backup_entries.iterator(),
-        total=backup_entries_count,
-        unit=" files",
-        leave=True
-    )
+    tqdm_iterator = tqdm(backup_entries.iterator(), total=backup_entries_count, unit=" files", leave=True)
     for entry in tqdm_iterator:
-        entry_path = entry.get_backup_path() # Path2() instance
+        entry_path = entry.get_backup_path()  # Path2() instance
 
         if not entry_path.exists():
             print("\nERROR: File not found: %s" % entry_path)
@@ -65,9 +60,7 @@ def verify_backup(backup_path, fast):
         db_file_size = entry.content_info.file_size
         if file_stat.st_size != db_file_size:
             print("\n%s" % entry_path)
-            print("ERROR: File size mismatch: %s != %s" % (
-                file_stat.st_size, db_file_size
-            ))
+            print("ERROR: File size mismatch: %s != %s" % (file_stat.st_size, db_file_size))
 
         hash_file = Path2("%s%s%s" % (entry_path, os.extsep, phlb_config.hash_name))
         if not hash_file.exists():
@@ -81,26 +74,22 @@ def verify_backup(backup_path, fast):
         db_hash = entry.content_info.hash_hexdigest
         if hash_file_content != db_hash:
             print("\n%s" % entry_path)
-            print("ERROR: Hash file mismatch: %s != %s" % (
-                hash_file_content, db_hash
-            ))
+            print("ERROR: Hash file mismatch: %s != %s" % (hash_file_content, db_hash))
 
         if fast:
             # Skip verify the file content
             continue
 
-        process_bar_size=phlb_config.chunk_size * 3
+        process_bar_size = phlb_config.chunk_size * 3
         if file_stat.st_size > process_bar_size:
-            with tqdm(total=file_stat.st_size, unit='B', unit_scale=True) as process_bar:
+            with tqdm(total=file_stat.st_size, unit="B", unit_scale=True) as process_bar:
                 hash_hexdigest = calc_hash(entry_path, process_bar)
         else:
             hash_hexdigest = calc_hash(entry_path, process_bar=None)
 
         if hash_hexdigest != db_hash:
             print("\n%s" % entry_path)
-            print("ERROR: File content changed: Hash mismatch: %s != %s" % (
-                hash_hexdigest, db_hash
-            ))
+            print("ERROR: File content changed: Hash mismatch: %s != %s" % (hash_hexdigest, db_hash))
 
     print()
 
@@ -114,13 +103,13 @@ def verify_backup(backup_path, fast):
     print("\nVerify done.")
 
 
-
-if __name__ == '__main__':
-    backup_path=os.path.expanduser(
+if __name__ == "__main__":
+    backup_path = os.path.expanduser(
         # "~/PyHardLinkBackups/PyHardLinkBackup"
         "~/PyHardLinkBackups/PyHardLinkBackup/2016-01-29-160915"
     )
-    verify_backup(backup_path,
+    verify_backup(
+        backup_path,
         fast=True
         # fast=False
     )

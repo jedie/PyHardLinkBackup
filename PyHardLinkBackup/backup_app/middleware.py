@@ -1,4 +1,3 @@
-
 import sys
 
 from django.conf import settings
@@ -7,6 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 
 from PyHardLinkBackup.phlb.config import phlb_config
+
 
 def _print_and_message(request, msg, level=messages.WARNING):
     print(" *** %s ***" % msg, file=sys.stderr)
@@ -20,6 +20,7 @@ class AlwaysLoggedInAsSuperUser(object):
 
     Disable it by deactivate the default user.
     """
+
     def process_request(self, request):
         if request.user.is_authenticated():
             return
@@ -33,9 +34,7 @@ class AlwaysLoggedInAsSuperUser(object):
         except User.DoesNotExist:
             _print_and_message(request, "Create default django user.")
             User.objects.create_superuser(
-                settings.DEFAULT_USERNAME,
-                "nobody@local.intranet",
-                settings.DEFAULT_USERPASS,
+                settings.DEFAULT_USERNAME, "nobody@local.intranet", settings.DEFAULT_USERPASS
             )
         else:
             if not user.is_active:

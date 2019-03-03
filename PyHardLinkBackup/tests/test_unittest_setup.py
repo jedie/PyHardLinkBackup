@@ -3,9 +3,12 @@ import pprint
 
 from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.tests.base import BaseTestCase, \
-    BaseWithSourceFilesTestCase, BaseCreatedOneBackupsTestCase, \
-    BaseCreatedTwoBackupsTestCase
+from PyHardLinkBackup.tests.base import (
+    BaseTestCase,
+    BaseWithSourceFilesTestCase,
+    BaseCreatedOneBackupsTestCase,
+    BaseCreatedTwoBackupsTestCase,
+)
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 
 
@@ -32,20 +35,23 @@ class TestBaseBackup(BaseWithSourceFilesTestCase):
         fs_helper = UnittestFileSystemHelper()
         tree_list = fs_helper.pformat_tree(self.source_path, with_timestamps=True)
         # pprint.pprint(tree_list,indent=0, width=200)
-        self.assertListEqual(tree_list, [
-            self.source_path,
-            'root_file_A.txt                F 19730710:001151 - The root file A content.',
-            'root_file_B.txt                F 19730710:001152 - The root file B content.',
-            'sub dir A                      D 19730710:001155',
-            'sub dir A/dir_A_file_A.txt     F 19730710:001153 - File A in sub dir A.',
-            'sub dir A/dir_A_file_B.txt     F 19730710:001154 - File B in sub dir A.',
-            'sub dir B                      D 19730710:001157',
-            'sub dir B/sub_file.txt         F 19730710:001156 - File in sub dir B.'
-        ])
+        self.assertListEqual(
+            tree_list,
+            [
+                self.source_path,
+                "root_file_A.txt                F 19730710:001151 - The root file A content.",
+                "root_file_B.txt                F 19730710:001152 - The root file B content.",
+                "sub dir A                      D 19730710:001155",
+                "sub dir A/dir_A_file_A.txt     F 19730710:001153 - File A in sub dir A.",
+                "sub dir A/dir_A_file_B.txt     F 19730710:001154 - File B in sub dir A.",
+                "sub dir B                      D 19730710:001157",
+                "sub dir B/sub_file.txt         F 19730710:001156 - File in sub dir B.",
+            ],
+        )
 
 
 class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
-    #def test_database_entries(self):
+    # def test_database_entries(self):
     #    self.assertEqual(BackupRun.objects.all().count(), 1)
 
     def test_first_backup_run(self):
@@ -84,7 +90,6 @@ class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
 
 
 class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
-
     def test_first_backup_run(self):
         """
         After a 2nd backup exist all files are hardlinks!

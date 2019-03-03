@@ -16,14 +16,15 @@ class UnittestFileSystemHelper(object):
     Every test file has his own mtime. So that the order
     is always the same.
     """
-    DATETIME_FORMATTER="%Y%m%d:%H%M%S"
+
+    DATETIME_FORMATTER = "%Y%m%d:%H%M%S"
 
     def __init__(self):
         self.mtime_offset = 0
-        self.default_mtime = 111111111 # UTC: 1973-07-10 00:11:51
+        self.default_mtime = 111111111  # UTC: 1973-07-10 00:11:51
         self.default_mtime_string = "19730710:001151"
 
-        mtime_string=self.timestamp2string(self.default_mtime)
+        mtime_string = self.timestamp2string(self.default_mtime)
         assert mtime_string == self.default_mtime_string, "%s != %s" % (mtime_string, self.default_mtime_string)
 
     def timestamp2string(self, timestamp):
@@ -31,12 +32,12 @@ class UnittestFileSystemHelper(object):
         return dt.strftime(self.DATETIME_FORMATTER)
 
     def set_test_stat(self, path):
-        atime = 222222222 # UTC: 1977-01-16 01:23:42
-        os.utime(path, (atime, self.default_mtime+self.mtime_offset))
+        atime = 222222222  # UTC: 1977-01-16 01:23:42
+        os.utime(path, (atime, self.default_mtime + self.mtime_offset))
 
         # check mtime:
-        if self.mtime_offset==0:
-            mtime_string=self.timestamp2string(os.stat(path).st_mtime)
+        if self.mtime_offset == 0:
+            mtime_string = self.timestamp2string(os.stat(path).st_mtime)
             assert mtime_string == self.default_mtime_string, "%s != %s" % (mtime_string, self.default_mtime_string)
 
     def create_test_fs(self, fs_dict, dir=None):
@@ -53,7 +54,6 @@ class UnittestFileSystemHelper(object):
             self.mtime_offset += 1
 
     def pformat_tree(self, path, with_timestamps):
-
         def pformat_stat(path):
             result = ["%-30s" % force_posixpath(path)]
             stat = os.stat(path)
@@ -72,9 +72,7 @@ class UnittestFileSystemHelper(object):
             result.append(fs_type)
 
             if with_timestamps:
-                result.append(
-                    self.timestamp2string(stat.st_mtime)
-                )
+                result.append(self.timestamp2string(stat.st_mtime))
 
             return " ".join(result)
 
@@ -109,7 +107,7 @@ class UnittestFileSystemHelper(object):
             kwargs = {}
         elif sys.platform.startswith("win"):
             args = ["tree", path, "/f", "/a"]
-            kwargs = {"shell": True} # otherwise: File Not Found
+            kwargs = {"shell": True}  # otherwise: File Not Found
         else:
             raise NotImplementedError("TODO: %s" % sys.platform)
 
@@ -124,6 +122,7 @@ class PatchOpen:
         io.open("foo", "r")
         self.assertEqual(p.raise_count, 0)
     """
+
     def __init__(self, origin_open, deny_paths):
         self.origin_open = origin_open
         self.deny_paths = deny_paths

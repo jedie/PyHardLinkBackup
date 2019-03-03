@@ -14,12 +14,12 @@ import configparser
 # https://github.com/mitsuhiko/click
 import click
 
-from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
 
 log = logging.getLogger("phlb.%s" % __name__)
 
-CONFIG_FILENAME="PyHardLinkBackup.ini"
-DEAFULT_CONFIG_FILENAME="config_defaults.ini"
+CONFIG_FILENAME = "PyHardLinkBackup.ini"
+DEAFULT_CONFIG_FILENAME = "config_defaults.ini"
 
 
 def strftime(value):
@@ -27,51 +27,50 @@ def strftime(value):
     datetime.datetime.now().strftime(value)
     return value
 
+
 def commalist(value):
-    values = [v.strip() for v in value.split(",")] # split and strip
-    values = [v for v in values if v!=""] # remove empty strings
+    values = [v.strip() for v in value.split(",")]  # split and strip
+    values = [v for v in values if v != ""]  # remove empty strings
     return tuple(values)
+
 
 def int8(value):
     return int(value, 8)
+
 
 def hashname(value):
     # test if exist
     hashlib.new(value)
     return value
 
+
 def expand_abs_path(value):
-    value=value.strip()
-    if value==":memory:":
+    value = value.strip()
+    if value == ":memory:":
         return value
     return os.path.normpath(os.path.abspath(os.path.expanduser(value)))
 
+
 def logging_level(value):
-    level=getattr(logging, value)
+    level = getattr(logging, value)
     return level
 
 
 INI_CONVERTER_DICT = {
     "database_name": expand_abs_path,
     "enable_auto_login": bool,
-
     "backup_path": expand_abs_path,
     "sub_dir_formatter": strftime,
-
-    "language_code": str, # FIXME: validate
-
+    "language_code": str,  # FIXME: validate
     "skip_dirs": commalist,
     "skip_patterns": commalist,
-
     "print_update_interval": int,
     "logging_console_level": logging_level,
     "logging_file_level": logging_level,
-
     "default_new_path_mode": int8,
     "hash_name": hashname,
     "chunk_size": int,
 }
-
 
 
 def get_dict_from_ini(filepath):
@@ -79,11 +78,9 @@ def get_dict_from_ini(filepath):
     parser = configparser.ConfigParser(interpolation=None)
     parser.read_file(filepath.open("r"))
 
-    config={}
+    config = {}
     for section in parser.sections():
-        config.update(
-            dict(parser.items(section))
-        )
+        config.update(dict(parser.items(section)))
     log.debug("readed config:")
     log.debug(pprint.pformat(config))
     return config
@@ -108,7 +105,7 @@ def get_ini_search_paths():
 
 
 def get_ini_filepath():
-    search_paths=get_ini_search_paths()
+    search_paths = get_ini_search_paths()
     for filepath in search_paths:
         # print("Look for .ini: %r" % filepath)
         if filepath.is_file():
@@ -120,7 +117,7 @@ def edit_ini(ini_filepath=None):
     """
     Open the .ini file with the operating system’s associated editor.
     """
-    if ini_filepath==None:
+    if ini_filepath == None:
         ini_filepath = get_ini_filepath()
 
     try:
@@ -131,8 +128,8 @@ def edit_ini(ini_filepath=None):
 
 
 class PyHardLinkBackupConfig(object):
-    ini_filepath=None
-    _config=None
+    ini_filepath = None
+    _config = None
 
     def __init__(self, ini_converter_dict):
         super(PyHardLinkBackupConfig, self).__init__()
@@ -148,9 +145,10 @@ class PyHardLinkBackupConfig(object):
         try:
             return self._config[item]
         except KeyError:
-            raise AttributeError("%s missing in '%s'\nExisting keys:\n * %s" % (
-                item.upper(), self.ini_filepath, "\n * ".join(sorted(self._config.keys()))
-            ))
+            raise AttributeError(
+                "%s missing in '%s'\nExisting keys:\n * %s"
+                % (item.upper(), self.ini_filepath, "\n * ".join(sorted(self._config.keys())))
+            )
 
     def __repr__(self):
         self._load()
@@ -174,7 +172,7 @@ class PyHardLinkBackupConfig(object):
                 value = d[key]
             except KeyError as err:
                 traceback.print_exc()
-                print("_"*79)
+                print("_" * 79)
                 print("ERROR: %r is missing in your config!" % err)
                 print("Debug '%s':" % filepath)
                 try:
@@ -200,9 +198,7 @@ class PyHardLinkBackupConfig(object):
         """
         returns the config as a dict.
         """
-        default_config_filepath = Path2(
-            os.path.dirname(__file__), DEAFULT_CONFIG_FILENAME
-        )
+        default_config_filepath = Path2(os.path.dirname(__file__), DEAFULT_CONFIG_FILENAME)
         log.debug("Read defaults from: '%s'" % default_config_filepath)
         if not default_config_filepath.is_file():
             raise RuntimeError(
@@ -231,9 +227,7 @@ class PyHardLinkBackupConfig(object):
         else:
             print("\nread user configuration from:")
             print("\t%s\n" % self.ini_filepath)
-            config.update(
-                self._read_and_convert(self.ini_filepath, all_values=False)
-            )
+            config.update(self._read_and_convert(self.ini_filepath, all_values=False))
             log.debug("RawConfig changed to: %s", pprint.pformat(config))
 
         return config
@@ -243,15 +237,17 @@ class PyHardLinkBackupConfig(object):
         print("Debug config '%s':" % self.ini_filepath)
         pprint.pprint(self._config)
 
-phlb_config=PyHardLinkBackupConfig(INI_CONVERTER_DICT)
+
+phlb_config = PyHardLinkBackupConfig(INI_CONVERTER_DICT)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
-    sys.stdout = sys.stderr # work-a-round for PyCharm to sync output
+
+    sys.stdout = sys.stderr  # work-a-round for PyCharm to sync output
     logging.basicConfig(level=logging.DEBUG)
 
-    phlb_config=PyHardLinkBackupConfig(INI_CONVERTER_DICT)
+    phlb_config = PyHardLinkBackupConfig(INI_CONVERTER_DICT)
 
     print("INI filepath: '%s'" % phlb_config.ini_filepath)
     pprint.pprint(phlb_config)

@@ -1,4 +1,3 @@
-
 """
     Python HardLink Backup
     ~~~~~~~~~~~~~~~~~~~~~~
@@ -24,7 +23,7 @@ except ImportError as err:
 # os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
 import django
 
-from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
 
 from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME
 from PyHardLinkBackup.phlb.deduplicate import deduplicate
@@ -53,12 +52,14 @@ def calculate_hash(f, callback):
 
     return hash
 
+
 class HashCallback:
     def __init__(self, process_bar):
-        self.process_bar=process_bar
+        self.process_bar = process_bar
 
     def __call__(self, data):
         self.process_bar.update(len(data))
+
 
 class DeduplicateResult:
     def __init__(self):
@@ -92,14 +93,12 @@ def add_dir_entry(backup_run, dir_entry_path, process_bar, result):
     # print(dir_entry_path.stat.st_nlink)
 
     backup_entry = Path2(dir_entry_path.path)
-    filesize=dir_entry_path.stat.st_size
-    hash_filepath = Path2(
-        "%s%s%s" % (backup_entry.path, os.extsep, phlb_config.hash_name)
-    )
+    filesize = dir_entry_path.stat.st_size
+    hash_filepath = Path2("%s%s%s" % (backup_entry.path, os.extsep, phlb_config.hash_name))
     if hash_filepath.is_file():
         with hash_filepath.open("r") as hash_file:
             hash_hexdigest = hash_file.read().strip()
-        if filesize>0:
+        if filesize > 0:
             process_bar.update(filesize)
     else:
         with hash_filepath.open("w") as hash_file:
@@ -117,9 +116,7 @@ def add_dir_entry(backup_run, dir_entry_path, process_bar, result):
         result.add_stined_file(filesize)
 
     BackupEntry.objects.create(
-        backup_run,
-        dir_entry_path.path_instance, # Path2() instance
-        hash_hexdigest=hash_hexdigest,
+        backup_run, dir_entry_path.path_instance, hash_hexdigest=hash_hexdigest  # Path2() instance
     )
 
 
@@ -128,13 +125,13 @@ def add_dir_entries(backup_run, filtered_dir_entries, result):
     print("total size:", human_filesize(total_size))
     path_iterator = sorted(
         filtered_dir_entries,
-        key=lambda x: x.stat.st_mtime, # sort by last modify time
-        reverse=True # sort from newest to oldes
+        key=lambda x: x.stat.st_mtime,  # sort by last modify time
+        reverse=True,  # sort from newest to oldes
     )
     # FIXME: The process bar will stuck if many small/null byte files are processed
     # Maybe: Change from bytes to file count and use a second bar if a big file
     # hash will be calculated.
-    with tqdm(total=total_size, unit='B', unit_scale=True) as process_bar:
+    with tqdm(total=total_size, unit="B", unit_scale=True) as process_bar:
         for dir_entry in path_iterator:
             try:
                 add_dir_entry(backup_run, dir_entry, process_bar, result)
@@ -145,48 +142,53 @@ def add_dir_entries(backup_run, filtered_dir_entries, result):
                 for line in exc_plus():
                     log.error(strip_ansi(line))
 
+
 def add_backup_entries(backup_run, result):
     backup_path = backup_run.path_part()
     filtered_dir_entries = scan_dir_tree(
-        backup_path, extra_skip_patterns=(
-            "*.%s" % phlb_config.hash_name, # skip all existing hash files
-            BACKUP_RUN_CONFIG_FILENAME, # skip phlb_config.ini
-        )
+        backup_path,
+        extra_skip_patterns=(
+            "*.%s" % phlb_config.hash_name,  # skip all existing hash files
+            BACKUP_RUN_CONFIG_FILENAME,  # skip phlb_config.ini
+        ),
     )
     add_dir_entries(backup_run, filtered_dir_entries, result)
+
 
 def add_backup_run(backup_run_path):
     print("*** add backup run: %s" % backup_run_path.path)
 
-    backup_name=backup_run_path.parent.stem
+    backup_name = backup_run_path.parent.stem
     date_part = backup_run_path.stem
     try:
-        backup_datetime=datetime.datetime.strptime(date_part, phlb_config.sub_dir_formatter)
+        backup_datetime = datetime.datetime.strptime(date_part, phlb_config.sub_dir_formatter)
     except ValueError as err:
         print("\nERROR parsing datetime from given path: %s" % err)
         print(" * Is the given path right?")
         print()
         return
 
-    backup_run = BackupRun.objects.create(
-        name = backup_name,
-        backup_datetime=backup_datetime,
-        completed = False,
-    )
+    backup_run = BackupRun.objects.create(name=backup_name, backup_datetime=backup_datetime, completed=False)
     result = DeduplicateResult()
     add_backup_entries(backup_run, result)
     print("*** backup run %s - %s added:" % (backup_name, date_part))
     total_size = result.get_total_size()
-    print(" * new content saved: %i files (%s %.1f%%)" % (
-        result.total_new_file_count,
-        human_filesize(result.total_new_bytes),
-        to_percent(result.total_new_bytes, total_size)
-    ))
-    print(" * stint space via hardlinks: %i files (%s %.1f%%)" % (
-        result.total_stined_file_count,
-        human_filesize(result.total_stined_bytes),
-        to_percent(result.total_stined_bytes, total_size)
-    ))
+    print(
+        " * new content saved: %i files (%s %.1f%%)"
+        % (
+            result.total_new_file_count,
+            human_filesize(result.total_new_bytes),
+            to_percent(result.total_new_bytes, total_size),
+        )
+    )
+    print(
+        " * stint space via hardlinks: %i files (%s %.1f%%)"
+        % (
+            result.total_stined_file_count,
+            human_filesize(result.total_stined_bytes),
+            to_percent(result.total_stined_bytes, total_size),
+        )
+    )
 
 
 def add_backup_name(backup_name_path):
@@ -209,7 +211,7 @@ def add_all_backups():
     backup_names = scandir_limited(abs_dst_root.path, limit=1)
     for dir_entry in backup_names:
         backup_name_path = Path2(dir_entry.path)
-        print("_"*79)
+        print("_" * 79)
         print("'%s' (path: %s)" % (backup_name_path.stem, backup_name_path.path))
         add_backup_name(backup_name_path)
 

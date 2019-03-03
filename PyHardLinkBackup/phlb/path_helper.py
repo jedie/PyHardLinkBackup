@@ -4,7 +4,7 @@ import os
 import sys
 import tempfile
 
-from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
 
 from PyHardLinkBackup.phlb.config import phlb_config
 
@@ -17,6 +17,7 @@ def get_tempname(path, prefix="", suffix=""):
     for seq in range(tempfile.TMP_MAX):
         name = next(names)
         yield Path2(path, prefix + name + suffix)
+
 
 def rename2temp(src, dst, prefix="", suffix="", tmp_max=10):
     paths = get_tempname(path=dst, prefix=prefix, suffix=suffix)
@@ -62,6 +63,7 @@ class PathHelper(object):
     |                `<- self.backup_name
     `- phlb_config.backup_path (root dir storage for all backups runs)
     """
+
     def __init__(self, src_path, force_name=None):
         """
         :param src_path: Path2() instance of the source directory
@@ -134,7 +136,5 @@ class PathHelper(object):
         self.abs_dst_filepath = Path2(self.abs_dst_root, self.sub_filepath)
         log.debug(" * abs_dst_filepath: %s" % self.abs_dst_filepath)
 
-        self.abs_dst_hash_filepath = Path2(
-            "%s%s%s" % (self.abs_dst_filepath, os.extsep, phlb_config.hash_name)
-        )
+        self.abs_dst_hash_filepath = Path2("%s%s%s" % (self.abs_dst_filepath, os.extsep, phlb_config.hash_name))
         log.debug(" * abs_dst_hash_filepath: %s" % self.abs_dst_hash_filepath)

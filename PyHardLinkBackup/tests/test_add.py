@@ -13,8 +13,7 @@ from PyHardLinkBackup.tests.base import BaseCreatedOneBackupsTestCase
 class TestOneBackups(BaseCreatedOneBackupsTestCase):
     def _copy_first_backup(self, remove_old_config=True):
         new_path = pathlib.Path(
-            pathlib.Path(self.first_run_path).parent,
-            "2015-12-29-000015-000000" # First commit date ;)
+            pathlib.Path(self.first_run_path).parent, "2015-12-29-000015-000000"  # First commit date ;)
         )
         shutil.copytree(self.first_run_path, str(new_path))
 
@@ -36,10 +35,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         assert_msg = str(result.exception)
         self.assertIn("Backup path mismatch", assert_msg)
-        self.assertIn(
-            str(pathlib.Path("2015-12-29-000015-000000", BACKUP_RUN_CONFIG_FILENAME)),
-            assert_msg
-        )
+        self.assertIn(str(pathlib.Path("2015-12-29-000015-000000", BACKUP_RUN_CONFIG_FILENAME)), assert_msg)
 
     def test_add(self):
         self._copy_first_backup(remove_old_config=True)
@@ -61,7 +57,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         # Just run a second time:
         result = self.invoke_cli("add")
-        print("*"*79)
+        print("*" * 79)
         print(result.output)
 
         self.assertIn("Backup exists", result.output)

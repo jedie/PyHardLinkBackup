@@ -26,7 +26,7 @@ def human_filesize(i):
     """
     bytes = float(i)
     if bytes < 1024:
-        return u"%d Byte%s" % (bytes, bytes != 1 and u's' or u'')
+        return u"%d Byte%s" % (bytes, bytes != 1 and u"s" or u"")
     if bytes < 1024 * 1024:
         return u"%.1f KB" % (bytes / 1024)
     if bytes < 1024 * 1024 * 1024:
@@ -36,7 +36,7 @@ def human_filesize(i):
 
 def to_percent(part, total):
     try:
-        return part/total*100
+        return part / total * 100
     except ZeroDivisionError:
         # e.g.: Backup only 0-Bytes files ;)
         return 0
@@ -62,4 +62,3 @@ def ns2naturaltimesince(ns):
     timestamp = ns / 1000000000
     dt = datetime.datetime.utcfromtimestamp(timestamp)
     return dt2naturaltimesince(dt)
-

@@ -21,15 +21,15 @@ import traceback
 try:
     import click
 except ImportError as err:
-    msg=("Import error: %s - Please install 'click' !" % err)
+    msg = "Import error: %s - Please install 'click' !" % err
     raise ImportError(msg)
 
 MAX_CHARS = 256
 
 
 def print_exc_plus():
-    sys.stderr.flush() # for eclipse/PyCharm
-    sys.stdout.flush() # for eclipse/PyCharm
+    sys.stderr.flush()  # for eclipse/PyCharm
+    sys.stdout.flush()  # for eclipse/PyCharm
     for line in exc_plus():
         print(line)
 
@@ -61,16 +61,9 @@ def exc_plus():
         else:
             yield click.style(line, fg="white", bold=True)
     yield click.style(last_line, fg="red")
-    yield click.style(
-        "\nLocals by frame, most recent call first:",
-        fg="blue", bold=True
-    )
+    yield click.style("\nLocals by frame, most recent call first:", fg="blue", bold=True)
     for frame in stack:
-        msg = 'File "%s", line %i, in %s' % (
-            frame.f_code.co_filename,
-            frame.f_lineno,
-            frame.f_code.co_name,
-        )
+        msg = 'File "%s", line %i, in %s' % (frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name)
         msg = click.style(msg, fg="white", bold=True, underline=True)
         yield "\n *** %s" % msg
 
@@ -94,14 +87,15 @@ def exc_plus():
 
 
 def demo():
-    #A simplistic demonstration of the kind of problem this approach can help
-    #with. Basically, we have a simple function which manipulates all the
-    #strings in a list. The function doesn't do any error checking, so when
-    #we pass a list which contains something other than strings, we get an
-    #error. Figuring out what bad data caused the error is easier with our
-    #new function.
+    # A simplistic demonstration of the kind of problem this approach can help
+    # with. Basically, we have a simple function which manipulates all the
+    # strings in a list. The function doesn't do any error checking, so when
+    # we pass a list which contains something other than strings, we get an
+    # error. Figuring out what bad data caused the error is easier with our
+    # new function.
 
-    data = ["1", "2", 3, "4"] #Typo: We 'forget' the quotes on data[2]
+    data = ["1", "2", 3, "4"]  # Typo: We 'forget' the quotes on data[2]
+
     def pad4(seq):
         """
         Pad each string in seq with zeros, to four places. Note there
@@ -114,17 +108,17 @@ def demo():
             return_value.append("0" * (4 - len(thing)) + thing)
         return return_value
 
-    #First, show the information we get from a normal traceback.print_exc().
+    # First, show the information we get from a normal traceback.print_exc().
     try:
         pad4(data)
     except:
         traceback.print_exc()
     print("\n----------------\n")
 
-    #Now with our new function. Note how easy it is to see the bad data that
-    #caused the problem. The variable 'thing' has the value 3, so we know
-    #that the TypeError we got was because of that. A quick look at the
-    #value for 'data' shows us we simply forgot the quotes on that item.
+    # Now with our new function. Note how easy it is to see the bad data that
+    # caused the problem. The variable 'thing' has the value 3, so we know
+    # that the TypeError we got was because of that. A quick look at the
+    # value for 'data' shows us we simply forgot the quotes on that item.
     try:
         pad4(data)
     except:
@@ -149,18 +143,18 @@ def scite_run():
     sys.path.insert(0, current_dir)
 
     locals_globals = {
-        '__builtins__': __builtins__,
-        '__name__': '__main__',
-        '__file__': filename,
-        #~ '__doc__': None,
-        #~ '__package__': None
+        "__builtins__": __builtins__,
+        "__name__": "__main__",
+        "__file__": filename,
+        # ~ '__doc__': None,
+        # ~ '__package__': None
     }
     sys.argv = [script_file]
 
     try:
         with open(filename, "rb") as f:
             content = f.read()
-            compiled = compile(content, filename, 'exec')
+            compiled = compile(content, filename, "exec")
             exec(compiled, locals_globals, locals_globals)
     except SystemExit as err:
         sys.exit(err.code)
@@ -168,6 +162,6 @@ def scite_run():
         print_exc_plus()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo()
     # scite_run()

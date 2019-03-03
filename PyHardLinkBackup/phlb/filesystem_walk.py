@@ -1,6 +1,6 @@
 import logging
 
-from pathlib_revised import Path2, DirEntryPath # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2, DirEntryPath  # https://github.com/jedie/pathlib revised/
 from pathlib_revised.pathlib import pprint_path
 
 log = logging.getLogger("phlb.%s" % __name__)
@@ -69,7 +69,7 @@ class PathLibFilter:
         :param filter: callable to filter in self.iter()
         """
         assert callable(filter)
-        self.filter=filter
+        self.filter = filter
 
     def iter(self, dir_entries):
         """
@@ -95,6 +95,7 @@ def iter_filtered_dir_entry(dir_entries, match_patterns, on_skip):
             log.error("Skip pattern %r hit: %s" % (pattern, entry.path))
     :return: yields None or DirEntryPath instances
     """
+
     def match(dir_entry_path, match_patterns, on_skip):
         for match_pattern in match_patterns:
             if dir_entry_path.path_instance.match(match_pattern):
@@ -117,8 +118,7 @@ def iter_filtered_dir_entry(dir_entries, match_patterns, on_skip):
             yield dir_entry_path
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     from tqdm import tqdm
 
     # path = Path2("/")
@@ -129,41 +129,35 @@ if __name__ == '__main__':
     def on_skip(entry, pattern):
         log.error("Skip pattern %r hit: %s" % (pattern, entry.path))
 
-    skip_dirs=("__pycache__", "temp")
+    skip_dirs = ("__pycache__", "temp")
 
-    tqdm_iterator = tqdm(
-        scandir_walk(path.path, skip_dirs, on_skip=on_skip),
-        unit=" dir entries",
-        leave=True
-    )
+    tqdm_iterator = tqdm(scandir_walk(path.path, skip_dirs, on_skip=on_skip), unit=" dir entries", leave=True)
     dir_entries = [entry for entry in tqdm_iterator]
 
     print()
-    print("="*79)
+    print("=" * 79)
     print("\n * %i os.DirEntry() instances" % len(dir_entries))
 
-    match_patterns=(
-        "*.old", ".*",
-        "__pycache__/*", "temp",
-        "*.pyc", "*.tmp", "*.cache",
-    )
+    match_patterns = ("*.old", ".*", "__pycache__/*", "temp", "*.pyc", "*.tmp", "*.cache")
     tqdm_iterator = tqdm(
         iter_filtered_dir_entry(dir_entries, match_patterns, on_skip),
         total=len(dir_entries),
         unit=" dir entries",
-        leave=True
+        leave=True,
     )
     filtered_files = [entry for entry in tqdm_iterator if entry]
 
     print()
-    print("="*79)
+    print("=" * 79)
     print("\n * %i filtered Path2() instances" % len(filtered_files))
 
-    path_iterator = enumerate(sorted(
-        filtered_files,
-        key=lambda x: x.stat.st_mtime, # sort by last modify time
-        reverse=True # sort from newest to oldes
-    ))
+    path_iterator = enumerate(
+        sorted(
+            filtered_files,
+            key=lambda x: x.stat.st_mtime,  # sort by last modify time
+            reverse=True,  # sort from newest to oldes
+        )
+    )
     for no, path in path_iterator:
         print(no, path.stat.st_mtime, end=" ")
         if path.is_symlink:
@@ -179,6 +173,3 @@ if __name__ == '__main__':
         if path.different_path or path.resolve_error:
             print(path.pformat())
             print()
-
-
-

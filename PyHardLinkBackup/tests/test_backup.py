@@ -10,13 +10,17 @@ import io
 
 from click.testing import CliRunner
 
-from pathlib_revised import Path2 # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
 
 from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb_cli import cli
-from PyHardLinkBackup.tests.base import BaseCreatedTwoBackupsTestCase, BaseCreatedOneBackupsTestCase, \
-    BaseSourceDirTestCase, BaseWithSourceFilesTestCase
+from PyHardLinkBackup.tests.base import (
+    BaseCreatedTwoBackupsTestCase,
+    BaseCreatedOneBackupsTestCase,
+    BaseSourceDirTestCase,
+    BaseWithSourceFilesTestCase,
+)
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper, PatchOpen
 
 
@@ -24,6 +28,7 @@ class TestBackup(BaseSourceDirTestCase):
     """
     Tests with empty "source unittests files" directory under /temp/
     """
+
     def test_no_files(self):
         result = self.invoke_cli("backup", self.source_path)
         print(result.output)
@@ -33,12 +38,12 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertIn("fast backup: 0 files", result.output)
 
     def test_same_size_different_content(self):
-        test_file1=pathlib.Path(self.source_path, "dirA", "file.txt")
+        test_file1 = pathlib.Path(self.source_path, "dirA", "file.txt")
         os.mkdir(str(test_file1.parent))
         with test_file1.open("w") as f:
             f.write("content1")
 
-        test_file2=pathlib.Path(self.source_path, "dirB", "file.txt")
+        test_file2 = pathlib.Path(self.source_path, "dirB", "file.txt")
         os.mkdir(str(test_file2.parent))
         with test_file2.open("w") as f:
             f.write("content2")
@@ -55,10 +60,10 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertIn("new content saved: 2 files (16 Bytes 100.0%)", result.output)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
 
-        self.assert_backup_fs_count(1) # there are tree backups in filesystem
+        self.assert_backup_fs_count(1)  # there are tree backups in filesystem
 
     def test_mtime(self):
-        test_file=pathlib.Path(self.source_path, "file.txt")
+        test_file = pathlib.Path(self.source_path, "file.txt")
         test_file.touch()
         atime_ns = 123456789012345678
         mtime_ns = 123456789012345678
@@ -70,7 +75,7 @@ class TestBackup(BaseSourceDirTestCase):
 
         # check mtime
         backup_path1 = self.get_newest_backup_path()
-        backup_file1=pathlib.Path(backup_path1, "file.txt")
+        backup_file1 = pathlib.Path(backup_path1, "file.txt")
         self.assertTrue(backup_file1.is_file())
         self.assert_file_mtime_ns(backup_file1, mtime_ns)
 
@@ -95,7 +100,7 @@ class TestBackup(BaseSourceDirTestCase):
 
         # check mtime
         backup_path2 = self.get_newest_backup_path()
-        backup_file2=pathlib.Path(backup_path2, "file.txt")
+        backup_file2 = pathlib.Path(backup_path2, "file.txt")
         self.assertTrue(backup_file2.is_file())
         self.assert_file_mtime_ns(backup_file2, mtime_ns)
 
@@ -117,7 +122,7 @@ class TestBackup(BaseSourceDirTestCase):
         https://bugs.python.org/issue18199
         https://www.python-forum.de/viewtopic.php?f=1&t=37931#p290999
         """
-        new_path = Path2(self.source_path, "A"*255, "B"*255)
+        new_path = Path2(self.source_path, "A" * 255, "B" * 255)
         new_path.makedirs()
         test_filepath = Path2(new_path, "X")
         with test_filepath.open("w") as f:
@@ -142,8 +147,8 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("new content saved: 5 files (106 Bytes 100.0%)", first_run_result.output)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", first_run_result.output)
 
-        self.simulate_slow_speed(0.1) # slow down backup
-        phlb_config.print_update_interval=0.1 # Very often status infos
+        self.simulate_slow_speed(0.1)  # slow down backup
+        phlb_config.print_update_interval = 0.1  # Very often status infos
 
         second_run_result = self.invoke_cli("backup", self.source_path)
         print("SECOND RUN OUTPUT:\n", second_run_result.output)
@@ -179,8 +184,8 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         result = self.invoke_cli("backup", self.source_path, "--name", "ForcedName")
         print(result.output)
 
-        fs_items=os.listdir(self.backup_path)
-        self.assertEqual(fs_items, ['ForcedName'])
+        fs_items = os.listdir(self.backup_path)
+        self.assertEqual(fs_items, ["ForcedName"])
 
         self.assertIn("/PyHardLinkBackups/ForcedName/".replace("/", os.sep), result.output)
 
@@ -197,7 +202,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         print("\n".join(deny_paths))
 
         # pathlib.Path().open() used io.open and not builtins.open !
-        with mock.patch('io.open', PatchOpen(open, deny_paths)) as p:
+        with mock.patch("io.open", PatchOpen(open, deny_paths)) as p:
             # Work PatchOpen() ?
             content = io.open(os.path.join(self.source_path, "root_file_A.txt"), "r").read()
             self.assertEqual(content, "The root file A content.")
@@ -214,7 +219,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
             print(result.output)
             self.assertEqual(p.raise_count, 3)
 
-        self.assertIn("unittests raise", result.output) # Does the test patch worked?
+        self.assertIn("unittests raise", result.output)  # Does the test patch worked?
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
         self.assertIn("WARNING: 2 omitted files", result.output)
@@ -228,19 +233,18 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         print(log_content)
         self.assertIn("Skip file", log_content)
         self.assertIn(
-            "/source unittests files/root_file_B.txt error: unittests raise".replace("/", os.sep),
-            log_content
+            "/source unittests files/root_file_B.txt error: unittests raise".replace("/", os.sep), log_content
         )
         self.assertIn(
-            "/source unittests files/sub dir B/sub_file.txt error: unittests raise".replace("/", os.sep),
-            log_content
+            "/source unittests files/sub dir B/sub_file.txt error: unittests raise".replace("/", os.sep), log_content
         )
         self.assertIn("unittests raise", log_content)
 
     def test_unexpected_error(self):
         origin_open = os.utime
+
         def patched_open(filename, *args, **kwargs):
-            if "dir_A_file" in filename: # will match on two files!
+            if "dir_A_file" in filename:  # will match on two files!
                 # raise a extraordinary error that will normally not catch ;)
                 raise TabError("test raise")
             return origin_open(filename, *args, **kwargs)
@@ -271,6 +275,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
     def test_keyboard_interrupt(self):
         origin_open = os.utime
+
         def patched_open(filename, *args, **kwargs):
             if filename.endswith("dir_A_file_A.txt"):
                 raise KeyboardInterrupt
@@ -312,13 +317,12 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         pass
 
 
-
 class TestOneBackups(BaseCreatedOneBackupsTestCase):
     def test_summary(self):
         summary_filepath = pathlib.Path(self.first_run_path + " summary.txt")
         self.assertTrue(summary_filepath.is_file(), "%s doesn't exist" % summary_filepath)
 
-        with summary_filepath.open("r") as f: # Path().read_text() is new in Py 2.5
+        with summary_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
             summary_content = f.read()
         print(summary_content)
 
@@ -348,8 +352,9 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         log_content = self.get_log_content(self.first_run_log)
         parts = (
-            "Can't link", # error message about removed source file
-            "Mark", "with 'no link source'", # Mark BackupEntry
+            "Can't link",  # error message about removed source file
+            "Mark",
+            "with 'no link source'",  # Mark BackupEntry
         )
         for part in parts:
             self.assertIn(part, log_content)
@@ -374,12 +379,13 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
     def test_if_os_link_failed(self):
 
         origin_os_link = os.link
+
         def patched_open(source, link_name):
             if source.endswith("root_file_B.txt"):
                 raise IOError("unittests raise")
             return origin_os_link(source, link_name)
 
-        with mock.patch('os.link', patched_open):
+        with mock.patch("os.link", patched_open):
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
 
@@ -448,29 +454,32 @@ class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
         self.assertIn("new content saved: 1 files (24 Bytes 21.8%)", result.output)
         self.assertIn("stint space via hardlinks: 4 files (86 Bytes 78.2%)", result.output)
 
-        self.assert_backup_fs_count(3) # there are tree backups in filesystem
+        self.assert_backup_fs_count(3)  # there are tree backups in filesystem
         backup_path = self.get_newest_backup_path()
 
         fs_helper = UnittestFileSystemHelper()
-        #fs_helper.print_tree(self.backup_path)
+        # fs_helper.print_tree(self.backup_path)
         tree_list = fs_helper.pformat_tree(backup_path, with_timestamps=False)
-        pprint.pprint(tree_list,indent=0, width=200)
-        self.assertListEqual(tree_list, [
-            backup_path,
-            'phlb_config.ini                F - [BACKUP_RUN]\nprimary_key = 3\n\n',
-            'root_file_A.txt                L - The root file A content.',
-            'root_file_A.txt.sha512         F - 13e3e...d7df6',
-            'root_file_B.txt                L - The root file B content.',
-            'root_file_B.txt.sha512         F - 4bb47...5a181',
-            'sub dir A                      D',
-            'sub dir A/dir_A_file_A.txt     L - File A in sub dir A.',
-            'sub dir A/dir_A_file_A.txt.sha512 F - 89091...f8669',
-            'sub dir A/dir_A_file_B.txt     F - >>> The new content! <<<', # <<-- new file
-            'sub dir A/dir_A_file_B.txt.sha512 F - b7203...eb68f', # <<-- new hash
-            'sub dir B                      D',
-            'sub dir B/sub_file.txt         L - File in sub dir B.',
-            'sub dir B/sub_file.txt.sha512  F - bbe59...dbdbb'
-        ])
+        pprint.pprint(tree_list, indent=0, width=200)
+        self.assertListEqual(
+            tree_list,
+            [
+                backup_path,
+                "phlb_config.ini                F - [BACKUP_RUN]\nprimary_key = 3\n\n",
+                "root_file_A.txt                L - The root file A content.",
+                "root_file_A.txt.sha512         F - 13e3e...d7df6",
+                "root_file_B.txt                L - The root file B content.",
+                "root_file_B.txt.sha512         F - 4bb47...5a181",
+                "sub dir A                      D",
+                "sub dir A/dir_A_file_A.txt     L - File A in sub dir A.",
+                "sub dir A/dir_A_file_A.txt.sha512 F - 89091...f8669",
+                "sub dir A/dir_A_file_B.txt     F - >>> The new content! <<<",  # <<-- new file
+                "sub dir A/dir_A_file_B.txt.sha512 F - b7203...eb68f",  # <<-- new hash
+                "sub dir B                      D",
+                "sub dir B/sub_file.txt         L - File in sub dir B.",
+                "sub dir B/sub_file.txt.sha512  F - bbe59...dbdbb",
+            ],
+        )
 
         # first + second data must be untouched:
         self.assert_first_backup()

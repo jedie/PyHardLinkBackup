@@ -5,13 +5,14 @@ from django.db import migrations, models
 
 from PyHardLinkBackup.backup_app.models import BackupRun as OriginBackupRun
 
+
 def forwards_func(apps, schema_editor):
     """
     manage migrate backup_app 0004_BackupRun_ini_file_20160203_1415
     """
     print("\n")
     create_count = 0
-    BackupRun = apps.get_model("backup_app", "BackupRun") # historical version of BackupRun
+    BackupRun = apps.get_model("backup_app", "BackupRun")  # historical version of BackupRun
     backup_runs = BackupRun.objects.all()
     for backup_run in backup_runs:
         # Use the origin BackupRun model to get access to write_config()
@@ -50,9 +51,5 @@ def reverse_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ('backup_app', '0003_auto_20160127_2002'),
-    ]
-    operations = [
-        migrations.RunPython(forwards_func, reverse_func),
-    ]
+    dependencies = [("backup_app", "0003_auto_20160127_2002")]
+    operations = [migrations.RunPython(forwards_func, reverse_func)]
