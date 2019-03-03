@@ -227,7 +227,9 @@ setup(
     keywords="Backup Hardlink Windows Linux",
     license = "GNU General Public License (GNU GPL v3 or above)",
     author=get_authors(),
+    author_email="pypi@jensdiemer.de",
     maintainer="Jens Diemer",
+    maintainer_email="pypi@jensdiemer.de",
     url='https://github.com/jedie/PyHardLinkBackup',
     packages=find_packages(),
     include_package_data=True, # include package data under version control
