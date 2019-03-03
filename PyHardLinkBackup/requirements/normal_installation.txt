@@ -1,4 +1,6 @@
-Django<2.0
+# https://www.djangoproject.com/download/#supported-versions
+# v1.11 LTS - extended support until April 2020
+django>=1.11,<2.0
 
 # https://github.com/jedie/django-tools/
 django-tools

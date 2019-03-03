@@ -233,7 +233,10 @@ setup(
     include_package_data=True, # include package data under version control
     install_requires=[
         "pathlib_revised", # https://github.com/jedie/pathlib_revised/
-        "Django<2.0",
+        #
+        # https://www.djangoproject.com/download/#supported-versions
+        # v1.11 LTS - extended support until April 2020
+        "django>=1.11,<2.0",
         "django-tools", # https://github.com/jedie/django-tools/
         "tqdm", # https://github.com/tqdm/tqdm
         "click", # https://github.com/mitsuhiko/click
