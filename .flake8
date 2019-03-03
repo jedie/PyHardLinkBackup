@@ -1,0 +1,11 @@
+[flake8]
+ignore = W605
+exclude =
+    .eggs
+    .pytest_cache
+    .tox
+    .git,
+    __pycache__,
+    build,
+    dist
+max-line-length = 120
