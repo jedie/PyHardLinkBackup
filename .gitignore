@@ -1,4 +1,5 @@
 .idea
+.virtualenv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
