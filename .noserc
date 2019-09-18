@@ -1,6 +1,0 @@
-[nosetests]
-verbose=True
-verbosity=2
-detailed-errors=1
-with-doctest=1
-nocapture=1

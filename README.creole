@@ -13,7 +13,7 @@ Hardlink/Deduplication Backups with Python.
 ** find duplicate files everywhere (even if renamed or moved files)
 * useable under Windows and Linux
 
-Requirement: Python 3.4 or newer.
+Requirement: Python 3.6 or newer.
 
 Please: try, fork and contribute! ;)
 
@@ -76,14 +76,6 @@ To start the Django webserver, call:
 
 # Download the file [[https://raw.githubusercontent.com/jedie/PyHardLinkBackup/master/boot_pyhardlinkbackup.sh|boot_pyhardlinkbackup.sh]]
 # call **boot_pyhardlinkbackup.sh**
-
-**Note:** If you don't use Python 3.5+, then you must install '[[https://pypi.python.org/pypi/scandir|scandir]]', e.g.:
-{{{
-~ $ cd PyHardLinkBackup
-~/PyHardLinkBackup $ source bin/activate
-(PyHardLinkBackup) ~/PyHardLinkBackup $ pip install scandir
-}}}
-(You need the **python3-dev** package installed)
 
 If everything works fine, you will get a venv here: {{{~\PyHardLinkBackup}}}
 
@@ -294,6 +286,9 @@ See also: https://github.com/restic/others#list-of-backup-software
 == History
 
 * **dev** - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.11.0...master|compare v0.11.0...master]]
+** run tests with pytest and tox
+** run tests only with python 3.6, 3.7
+** remove support for python 3.5 ({{{os.scandir}}} fallback removed)
 ** TBC
 * 03.03.2019 - v0.11.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.10.1...v0.11.0|compare v0.10.1...v0.11.0]]
 ** Update boot files
