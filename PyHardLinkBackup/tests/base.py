@@ -19,18 +19,6 @@ from PyHardLinkBackup.phlb.phlb_main import FileBackup
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 
-try:
-    # Use the built-in version of scandir/walk if possible, otherwise
-    # use the scandir module version
-    from os import scandir  # new in Python 3.5
-except ImportError:
-    # use https://pypi.python.org/pypi/scandir
-    try:
-        from scandir import scandir
-    except ImportError:
-        raise ImportError("For Python <2.5: Please install 'scandir' !")
-
-
 log = logging.getLogger("phlb.%s" % __name__)
 
 BASE_PATH = Path(PyHardLinkBackup.__file__).parent
@@ -40,7 +28,7 @@ def get_newest_directory(path):
     """
     Returns the newest directory path by mtime_ns
     """
-    sub_dirs = [entry for entry in scandir(path) if entry.is_dir()]
+    sub_dirs = [entry for entry in os.scandir(path) if entry.is_dir()]
     sub_dirs.sort(key=lambda x: x.stat().st_mtime_ns)
     print("Backup sub dirs:\n\t%s" % "\n\t".join([p.path for p in sub_dirs]))
     sub_dir = sub_dirs[-1]
@@ -213,7 +201,7 @@ class BaseSourceDirTestCase(BaseTestCase):
     def assert_backup_fs_count(self, count):
         files = []
         dirs = []
-        for item in scandir(self.backup_sub_path):
+        for item in os.scandir(self.backup_sub_path):
             if item.is_file(follow_symlinks=False):
                 files.append(item)
             if item.is_dir(follow_symlinks=False):

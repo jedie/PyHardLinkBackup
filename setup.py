@@ -241,11 +241,6 @@ setup(
         "tqdm", # https://github.com/tqdm/tqdm
         "click", # https://github.com/mitsuhiko/click
     ],
-    extras_require={
-        ':python_version=="3.3" or python_version=="3.4"': [
-            "scandir", # https://pypi.python.org/pypi/scandir
-        ],
-    },
     entry_points={'console_scripts': [
         'phlb = PyHardLinkBackup.phlb_cli:cli',
         'manage = PyHardLinkBackup.django_project.manage:cli',
@@ -257,8 +252,8 @@ setup(
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License (GPL)",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3 :: Only",
         'Framework :: Django',
         "Topic :: Database :: Front-Ends",
