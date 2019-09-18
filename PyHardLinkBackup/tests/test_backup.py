@@ -351,13 +351,10 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         print(result.output)
 
         log_content = self.get_log_content(self.first_run_log)
-        parts = (
-            "Can't link",  # error message about removed source file
-            "Mark",
-            "with 'no link source'",  # Mark BackupEntry
-        )
-        for part in parts:
-            self.assertIn(part, log_content)
+        print("*"*100)
+        print(log_content)
+        print("*"*100)
+        self.assertIn("Old backup file not found", log_content)
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
 

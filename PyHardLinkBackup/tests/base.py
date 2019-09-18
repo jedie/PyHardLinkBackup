@@ -1,15 +1,27 @@
 import configparser
 import logging
-import shutil
 import os
 import pathlib
+import shutil
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
-# Use the built-in version of scandir/walk if possible, otherwise
-# use the scandir module version
+from click.testing import CliRunner
+from django.test import TestCase
+
+# https://github.com/jedie/PyHardLinkBackup
+import PyHardLinkBackup
+from PyHardLinkBackup.backup_app.models import BackupEntry
+from PyHardLinkBackup.phlb.config import phlb_config
+from PyHardLinkBackup.phlb.phlb_main import FileBackup
+from PyHardLinkBackup.phlb_cli import cli
+from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
+
 try:
+    # Use the built-in version of scandir/walk if possible, otherwise
+    # use the scandir module version
     from os import scandir  # new in Python 3.5
 except ImportError:
     # use https://pypi.python.org/pypi/scandir
@@ -18,17 +30,10 @@ except ImportError:
     except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
-import django
-
-from click.testing import CliRunner
-
-from PyHardLinkBackup.backup_app.models import BackupEntry
-from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb_cli import cli
-from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
-from PyHardLinkBackup.phlb.phlb_main import FileBackup
 
 log = logging.getLogger("phlb.%s" % __name__)
+
+BASE_PATH = Path(PyHardLinkBackup.__file__).parent
 
 
 def get_newest_directory(path):
@@ -54,15 +59,18 @@ class BaseTempTestCase(unittest.TestCase):
 
     def tearDown(self):
         super(BaseTempTestCase, self).tearDown()
+
         # FIXME: Under windows the root temp dir can't be deleted:
-        # PermissionError: [WinError 32] The process cannot access the file because it is being used by another process
+        # PermissionError: [WinError 32] The process cannot access the file
+        # because it is being used by another process
         def rmtree_error(function, path, excinfo):
             log.error("\nError remove temp: %r\n%s", path, excinfo[1])
 
+        os.chdir(BASE_PATH)
         shutil.rmtree(self.temp_root_path, ignore_errors=True, onerror=rmtree_error)
 
 
-class BaseTestCase(BaseTempTestCase, django.test.TestCase):
+class BaseTestCase(BaseTempTestCase, TestCase):
     def set_ini_values(self, filepath, debug=False, **ini_extras):
         config = configparser.RawConfigParser()
         config["unittests"] = ini_extras
@@ -142,8 +150,11 @@ class BaseTestCase(BaseTempTestCase, django.test.TestCase):
 EXAMPLE_FS_DATA = {
     "root_file_A.txt": "The root file A content.",
     "root_file_B.txt": "The root file B content.",
-    "sub dir A": {"dir_A_file_A.txt": "File A in sub dir A.", "dir_A_file_B.txt": "File B in sub dir A."},
-    "sub dir B": {"sub_file.txt": "File in sub dir B."},
+    "sub dir A": {
+        "dir_A_file_A.txt": "File A in sub dir A.",
+        "dir_A_file_B.txt": "File B in sub dir A."},
+    "sub dir B": {
+        "sub_file.txt": "File in sub dir B."},
 }
 
 
@@ -208,15 +219,14 @@ class BaseSourceDirTestCase(BaseTestCase):
             if item.is_dir(follow_symlinks=False):
                 dirs.append(item)
 
-        self.assertEqual(len(dirs), count, "dir count: %i != %i - items: %s" % (len(dirs), count, repr(dirs)))
+        self.assertEqual(
+            len(dirs), count, "dir count: %i != %i - items: %s" %
+            (len(dirs), count, repr(dirs)))
 
         # .log and summay files for every backup run
         file_count = count * 2
-        self.assertEqual(
-            len(files),
-            file_count,
-            "files count: %i != %i - items:\n%s" % (len(files), file_count, "\n".join([repr(f) for f in files])),
-        )
+        self.assertEqual(len(files), file_count, "files count: %i != %i - items:\n%s" %
+                         (len(files), file_count, "\n".join([repr(f) for f in files])), )
 
 
 class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
