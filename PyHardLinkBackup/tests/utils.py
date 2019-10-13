@@ -10,7 +10,7 @@ def force_posixpath(path):
     return posixpath.normpath(path.replace(os.sep, "/"))
 
 
-class UnittestFileSystemHelper(object):
+class UnittestFileSystemHelper:
     """
     Creates test files in filesystem.
     Every test file has his own mtime. So that the order

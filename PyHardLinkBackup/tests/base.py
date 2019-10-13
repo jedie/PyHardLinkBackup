@@ -15,7 +15,7 @@ from django.test import TestCase
 import PyHardLinkBackup
 from PyHardLinkBackup.backup_app.models import BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.phlb_main import FileBackup
+from PyHardLinkBackup.phlb.backup import FileBackup
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 

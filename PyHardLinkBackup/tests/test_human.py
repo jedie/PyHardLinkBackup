@@ -1,15 +1,12 @@
-"""
-    e.g.:
 
-"""
 import datetime
 
+import django
 from django.contrib.humanize.templatetags import humanize
 from django.utils import translation
-import django
 
-from PyHardLinkBackup.phlb import human
-
+# https://github.com/jedie/PyHardLinkBackup
+from PyHardLinkBackup.phlb.humanize import ns2naturaltimesince
 
 # ------------------------------------------------------------------------------
 # from https://github.com/django/django/blob/master/tests/humanize_tests/tests.py
@@ -38,10 +35,12 @@ class HumanTestCase(django.test.SimpleTestCase):
 
             # FIXME: why not "hours ago" translated ?!?
             with translation.override("de"):
-                self.assertEqual(human.ns2naturaltimesince(ns), "8. März 2012 22:39 (23 hours ago)")
+                self.assertEqual(ns2naturaltimesince(ns), "8. März 2012 22:39 (23 hours ago)")
 
             with translation.override("en"):
-                self.assertEqual(human.ns2naturaltimesince(ns), "March 8, 2012, 10:39 p.m. (23 hours ago)")
+                self.assertEqual(
+                    ns2naturaltimesince(ns),
+                    "March 8, 2012, 10:39 p.m. (23 hours ago)")
 
         finally:
             humanize.datetime = orig_humanize_datetime

@@ -13,7 +13,7 @@ def _print_and_message(request, msg, level=messages.WARNING):
     messages.add_message(request, level, msg)
 
 
-class AlwaysLoggedInAsSuperUser(object):
+class AlwaysLoggedInAsSuperUser:
     """
     Auto login all users as default superuser.
     Default user will be created, if not exist.

@@ -5,6 +5,9 @@ django>=1.11,<2.0
 # https://github.com/jedie/django-tools/
 django-tools
 
+# https://github.com/jedie/IterFilesystem
+iterfilesystem>=1.2.0
+
 # https://github.com/tqdm/tqdm
 tqdm
 

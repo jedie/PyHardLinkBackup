@@ -2,7 +2,7 @@
     Python HardLink Backup
     ~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2016 by Jens Diemer
+    :copyleft: 2016-2019 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -11,28 +11,31 @@ import hashlib
 import logging
 import os
 
-# time.clock() on windows and time.time() on linux
+import django
 from click._compat import strip_ansi
+
+# https://github.com/jedie/pathlib_revised/
+from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+
+# https://github.com/jedie/IterFilesystem
+from iterfilesystem.humanize import human_filesize, human_time
+from iterfilesystem.iter_scandir import ScandirWalker
+from iterfilesystem.statistic_helper import StatisticHelper
+
+# https://github.com/jedie/PyHardLinkBackup
+from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
+from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME
+from PyHardLinkBackup.phlb.config import phlb_config
+from PyHardLinkBackup.phlb.deduplicate import deduplicate
+from PyHardLinkBackup.phlb.filesystem_walk import scandir_limited
+from PyHardLinkBackup.phlb.humanize import to_percent
+from PyHardLinkBackup.phlb.traceback_plus import exc_plus
 
 try:
     # https://github.com/tqdm/tqdm
     from tqdm import tqdm
 except ImportError as err:
     raise ImportError("Please install 'tqdm': %s" % err)
-
-# os.environ["DJANGO_SETTINGS_MODULE"] = "PyHardLinkBackup.django_project.settings"
-import django
-
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
-
-from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME
-from PyHardLinkBackup.phlb.deduplicate import deduplicate
-from PyHardLinkBackup.phlb.phlb_main import scan_dir_tree
-from PyHardLinkBackup.phlb.traceback_plus import exc_plus
-from PyHardLinkBackup.phlb.filesystem_walk import scandir_limited
-from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.human import human_filesize, to_percent
-from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
 
 
 log = logging.getLogger("phlb.%s" % __name__)
@@ -145,13 +148,18 @@ def add_dir_entries(backup_run, filtered_dir_entries, result):
 
 def add_backup_entries(backup_run, result):
     backup_path = backup_run.path_part()
-    filtered_dir_entries = scan_dir_tree(
-        backup_path,
-        extra_skip_patterns=(
+    stats_helper = StatisticHelper()
+    scandir_walk = ScandirWalker(
+        top_path=backup_path,
+        stats_helper=stats_helper,
+        skip_dir_patterns=(),
+        skip_file_patterns=(
             "*.%s" % phlb_config.hash_name,  # skip all existing hash files
             BACKUP_RUN_CONFIG_FILENAME,  # skip phlb_config.ini
         ),
+        verbose=True
     )
+    filtered_dir_entries = tuple(scandir_walk)
     add_dir_entries(backup_run, filtered_dir_entries, result)
 
 
@@ -168,7 +176,10 @@ def add_backup_run(backup_run_path):
         print()
         return
 
-    backup_run = BackupRun.objects.create(name=backup_name, backup_datetime=backup_datetime, completed=False)
+    backup_run = BackupRun.objects.create(
+        name=backup_name,
+        backup_datetime=backup_datetime,
+        completed=False)
     result = DeduplicateResult()
     add_backup_entries(backup_run, result)
     print("*** backup run %s - %s added:" % (backup_name, date_part))

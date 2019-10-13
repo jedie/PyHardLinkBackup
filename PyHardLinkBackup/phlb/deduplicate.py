@@ -35,7 +35,7 @@ def deduplicate(backup_entry, hash_hexdigest):
             continue
 
         if abs_old_backup_path == backup_entry.path:
-            log.warn("Skip own file: %s" % abs_old_backup_path)
+            log.warning("Skip own file: %s" % abs_old_backup_path)
             continue
 
         # TODO: compare hash / current content before replace with a link

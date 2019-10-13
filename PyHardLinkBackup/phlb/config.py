@@ -127,7 +127,7 @@ def edit_ini(ini_filepath=None):
         webbrowser.open(ini_filepath)
 
 
-class PyHardLinkBackupConfig(object):
+class PyHardLinkBackupConfig:
     ini_filepath = None
     _config = None
 

@@ -13,6 +13,7 @@ import click
 
 # https://github.com/jedie/PyHardLinkBackup
 import PyHardLinkBackup
+import django
 from PyHardLinkBackup.phlb.config import phlb_config
 
 PHLB_BASE_DIR = os.path.abspath(os.path.dirname(PyHardLinkBackup.__file__))
@@ -109,7 +110,8 @@ cli.add_command(config)
 @click.option("--name", help="Force a backup name (If not set: Use parent directory name)")
 def backup(path, name=None):
     """Start a Backup run"""
-    from PyHardLinkBackup.phlb.phlb_main import backup
+    django.setup()
+    from PyHardLinkBackup.phlb.main import backup
 
     backup(path, name)
 
