@@ -4,7 +4,7 @@ import os
 import sys
 import tempfile
 
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2
 
 from PyHardLinkBackup.phlb.config import phlb_config
 

@@ -9,6 +9,7 @@
 
 import logging
 
+# https://github.com/jedie/pathlib_revised/
 from pathlib_revised import DirEntryPath
 from pathlib_revised.pathlib import pprint_path
 
@@ -271,18 +272,16 @@ class BackupIterFilesystem(IterFilesystem):
              f' {to_percent(stats.total_new_bytes, process_file_size):.1f}%)'),
             (f' * stint space via hardlinks: {stats.total_file_link_count} files'
              f' ({human_filesize(stats.total_stined_bytes)}'
-             f' {to_percent(stats.total_stined_bytes,process_file_size)})'),
+             f' {to_percent(stats.total_stined_bytes,process_file_size):.1f}%)'),
             f' * duration: {human_duration} {performance:.1f}MB/s',
-            '\n'
         ]
-
         return summary
 
     def print_summary(self):
         self.summary("\n%s\n" % "\n".join(self.get_summary()))
 
     def done(self):
-        self.summary(self.stats_helper.pformat())
+        self.summary(f'stats={self.stats_helper.pformat()}', verbose=False)
         self.print_summary()
         self.summary_file.close()
 
@@ -304,13 +303,4 @@ def backup(path, name, wait=False):
         backup_name=name
     )
     stats_helper = backup_worker.process()
-
-    print('\n\n')
-    print(
-        f'Processed '
-        f' in {stats_helper.process_duration:.2f} sec'
-    )
-    print(f'File count: {stats_helper.walker_file_count}')
-    print(f'Total file size: {human_filesize(stats_helper.collect_file_size)}')
-
     return stats_helper

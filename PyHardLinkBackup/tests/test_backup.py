@@ -1,27 +1,27 @@
+import io
 import os
 import pathlib
 import pprint
 import sys
-import tempfile
-import unittest
 from unittest import mock
 
-import io
-
 from click.testing import CliRunner
+from django_tools.unittest_utils.assertments import assert_pformat_equal
 
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+# https://github.com/jedie/pathlib_revised/
+from pathlib_revised import Path2
 
-from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
+# https://github.com/jedie/PyHardLinkBackup
+from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.base import (
-    BaseCreatedTwoBackupsTestCase,
     BaseCreatedOneBackupsTestCase,
+    BaseCreatedTwoBackupsTestCase,
     BaseSourceDirTestCase,
-    BaseWithSourceFilesTestCase,
+    BaseWithSourceFilesTestCase
 )
-from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper, PatchOpen
+from PyHardLinkBackup.tests.utils import PatchOpen, UnittestFileSystemHelper
 
 
 class TestBackup(BaseSourceDirTestCase):
@@ -48,8 +48,8 @@ class TestBackup(BaseSourceDirTestCase):
         with test_file2.open("w") as f:
             f.write("content2")
 
-        self.assertEqual(os.stat(str(test_file1)).st_size, 8)
-        self.assertEqual(os.stat(str(test_file2)).st_size, 8)
+        assert_pformat_equal(os.stat(str(test_file1)).st_size, 8)
+        assert_pformat_equal(os.stat(str(test_file2)).st_size, 8)
 
         result = self.invoke_cli("backup", self.source_path)
         print(result.output)
@@ -84,7 +84,7 @@ class TestBackup(BaseSourceDirTestCase):
 
         # check mtime in database
         backup_entries = BackupEntry.objects.all()
-        self.assertEqual(backup_entries.count(), 1)
+        assert_pformat_equal(backup_entries.count(), 1)
         backup_entry = backup_entries[0]
         self.assert_mtime_ns(backup_entry.file_mtime_ns, mtime_ns)
 
@@ -159,7 +159,9 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("Update info:", second_run_result.output)
 
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", second_run_result.output)
-        self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", second_run_result.output)
+        self.assertIn(
+            "stint space via hardlinks: 5 files (106 Bytes 100.0%)",
+            second_run_result.output)
 
         # run_log = self.get_last_log_content()
         # print("+++ LAST LOGGING OUTPUT: +++\n", run_log)
@@ -185,7 +187,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         print(result.output)
 
         fs_items = os.listdir(self.backup_path)
-        self.assertEqual(fs_items, ["ForcedName"])
+        assert_pformat_equal(fs_items, ["ForcedName"])
 
         self.assertIn("/PyHardLinkBackups/ForcedName/".replace("/", os.sep), result.output)
 
@@ -205,19 +207,19 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         with mock.patch("io.open", PatchOpen(open, deny_paths)) as p:
             # Work PatchOpen() ?
             content = io.open(os.path.join(self.source_path, "root_file_A.txt"), "r").read()
-            self.assertEqual(content, "The root file A content.")
-            self.assertEqual(p.call_count, 1)
-            self.assertEqual(p.raise_count, 0)
+            assert_pformat_equal(content, "The root file A content.")
+            assert_pformat_equal(p.call_count, 1)
+            assert_pformat_equal(p.raise_count, 0)
             try:
                 io.open(deny_paths[0], "r").read()
             except OSError as err:
-                self.assertEqual("%s" % err, "unittests raise")
-            self.assertEqual(p.call_count, 2)
-            self.assertEqual(p.raise_count, 1)
+                assert_pformat_equal("%s" % err, "unittests raise")
+            assert_pformat_equal(p.call_count, 2)
+            assert_pformat_equal(p.raise_count, 1)
 
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
-            self.assertEqual(p.raise_count, 3)
+            assert_pformat_equal(p.raise_count, 3)
 
         self.assertIn("unittests raise", result.output)  # Does the test patch worked?
 
@@ -226,17 +228,17 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("new content saved: 3 files (64 Bytes 60.4%)", result.output)
         self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
 
-        self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
+        assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(1)
 
         log_content = self.get_last_log_content()
         print(log_content)
         self.assertIn("Skip file", log_content)
         self.assertIn(
-            "/source unittests files/root_file_B.txt error: unittests raise".replace("/", os.sep), log_content
+            "/source unittests files/root_file_B.txt error: unittests raise".replace("/", os.sep), log_content  # noqa
         )
         self.assertIn(
-            "/source unittests files/sub dir B/sub_file.txt error: unittests raise".replace("/", os.sep), log_content
+            "/source unittests files/sub dir B/sub_file.txt error: unittests raise".replace("/", os.sep), log_content  # noqa
         )
         self.assertIn("unittests raise", log_content)
 
@@ -287,8 +289,12 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
         summary = self.get_last_summary_content()
 
-        self.assertIn("Abort backup, because user hits the interrupt key during execution!", result.output)
-        self.assertIn("Abort backup, because user hits the interrupt key during execution!", summary)
+        self.assertIn(
+            "Abort backup, because user hits the interrupt key during execution!",
+            result.output)
+        self.assertIn(
+            "Abort backup, because user hits the interrupt key during execution!",
+            summary)
 
         self.assertNotIn("Traceback", result.output)
         self.assertNotIn("Traceback", summary)
@@ -305,16 +311,6 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
         self.assertIn("---END---", result.output)
         self.assertIn("---END---", summary)
-
-    @unittest.skipIf(True, "TODO!")
-    def test_skip_dirs(self):
-        # TODO: test phlb_config.SKIP_DIRS
-        pass
-
-    @unittest.skipIf(True, "TODO!")
-    def test_skip_patterns(self):
-        # TODO: test phlb_config SKIP_PATTERNS
-        pass
 
 
 class TestOneBackups(BaseCreatedOneBackupsTestCase):
@@ -351,9 +347,9 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         print(result.output)
 
         log_content = self.get_log_content(self.first_run_log)
-        print("*"*100)
+        print("*" * 100)
         print(log_content)
-        print("*"*100)
+        print("*" * 100)
         self.assertIn("Old backup file not found", log_content)
 
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
@@ -370,7 +366,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         # 5-2 files from old backup
         self.assertIn("stint space via hardlinks: 3 files (64 Bytes 60.4%)", result.output)
 
-        self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
+        assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)
 
     def test_if_os_link_failed(self):
@@ -395,7 +391,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("new content saved: 1 files (24 Bytes 22.6%)", result.output)
         self.assertIn("stint space via hardlinks: 4 files (82 Bytes 77.4%)", result.output)
 
-        self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
+        assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)
 
         log_content = self.get_log_content(self.first_run_log)
@@ -414,7 +410,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         hash is the same.
         """
         backup_runs = BackupRun.objects.all()
-        self.assertEqual(backup_runs.count(), 1)
+        assert_pformat_equal(backup_runs.count(), 1)
         backup_run = backup_runs[0]
         backup_run.completed = False
         backup_run.save()

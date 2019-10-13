@@ -63,7 +63,8 @@ def exc_plus():
     yield click.style(last_line, fg="red")
     yield click.style("\nLocals by frame, most recent call first:", fg="blue", bold=True)
     for frame in stack:
-        msg = 'File "%s", line %i, in %s' % (frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name)
+        msg = 'File "%s", line %i, in %s' % (
+            frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name)
         msg = click.style(msg, fg="white", bold=True, underline=True)
         yield "\n *** %s" % msg
 
@@ -82,7 +83,7 @@ def exc_plus():
 
             try:
                 yield key_info + value
-            except:
+            except BaseException:
                 yield key_info + " <ERROR WHILE PRINTING VALUE>"
 
 
@@ -111,7 +112,7 @@ def demo():
     # First, show the information we get from a normal traceback.print_exc().
     try:
         pad4(data)
-    except:
+    except BaseException:
         traceback.print_exc()
     print("\n----------------\n")
 
@@ -121,7 +122,7 @@ def demo():
     # value for 'data' shows us we simply forgot the quotes on that item.
     try:
         pad4(data)
-    except:
+    except BaseException:
         print_exc_plus()
 
 

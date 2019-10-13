@@ -11,15 +11,15 @@ def patch(filepath, debug):
         origin_content = infile.read()
 
     new_content = origin_content.replace("pause\n", """echo "'pause'"\n""")
-    assert new_content!=origin_content, "not changed: %s" % origin_content
+    assert new_content != origin_content, "not changed: %s" % origin_content
 
     with open(filepath, "w") as outfile:
         outfile.write(new_content)
 
     print("%r patched" % filepath)
     if debug:
-        print("-"*79)
+        print("-" * 79)
         print(repr(new_content))
-        print("-"*79)
+        print("-" * 79)
         print(new_content)
-        print("-"*79)
+        print("-" * 79)

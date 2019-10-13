@@ -1,13 +1,15 @@
 import os
-import pprint
 
-from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
+from django_tools.unittest_utils.assertments import assert_pformat_equal
+
+# https://github.com/jedie/PyHardLinkBackup
+from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.tests.base import (
-    BaseTestCase,
-    BaseWithSourceFilesTestCase,
     BaseCreatedOneBackupsTestCase,
     BaseCreatedTwoBackupsTestCase,
+    BaseTestCase,
+    BaseWithSourceFilesTestCase
 )
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 
@@ -17,12 +19,12 @@ class TestUnittestSetup(BaseTestCase):
         self.assertTrue(os.path.isfile(self.ini_path))
 
     def test_unittests_settings_active(self):
-        self.assertEqual(phlb_config.database_name, ":memory:")
-        self.assertEqual(phlb_config.sub_dir_formatter, "%Y-%m-%d-%H%M%S-%f")
+        assert_pformat_equal(phlb_config.database_name, ":memory:")
+        assert_pformat_equal(phlb_config.sub_dir_formatter, "%Y-%m-%d-%H%M%S-%f")
 
     def test_db_empty(self):
-        self.assertEqual(BackupRun.objects.all().count(), 0)
-        self.assertEqual(BackupEntry.objects.all().count(), 0)
+        assert_pformat_equal(BackupRun.objects.all().count(), 0)
+        assert_pformat_equal(BackupEntry.objects.all().count(), 0)
 
 
 class TestBaseBackup(BaseWithSourceFilesTestCase):
@@ -51,29 +53,27 @@ class TestBaseBackup(BaseWithSourceFilesTestCase):
 
 
 class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
-    # def test_database_entries(self):
-    #    self.assertEqual(BackupRun.objects.all().count(), 1)
-
     def test_first_backup_run(self):
         self.assert_click_exception(self.first_backup_result)
+
+        output = self.first_backup_result.output
+
         print(self.first_backup_result.output)
 
-        self.assertIn("PyHardLinkBackup", self.first_backup_result.output)
-        self.assertIn("5 dir entries", self.first_backup_result.output)
-        self.assertIn("5 filtered dir entries", self.first_backup_result.output)
-        self.assertIn("106 Bytes in 5 files to backup.", self.first_backup_result.output)
+        assert "PyHardLinkBackup" in output
 
-        self.assertIn("Backup done:", self.first_backup_result.output)
-        self.assertIn("Source file sizes: 106 Bytes", self.first_backup_result.output)
-        self.assertNotIn("WARNING: Omitted", self.first_backup_result.output)
-        self.assertIn("fast backup: 0 files", self.first_backup_result.output)
-        self.assertIn("new content saved: 5 files (106 Bytes 100.0%)", self.first_backup_result.output)
-        self.assertIn("stint space via hardlinks: 0 files (0 Bytes 0.0%)", self.first_backup_result.output)
+        assert "* 0 directories skipped." in output
+        assert "* 0 files skipped." in output
+        assert "* Files to backup: 5 files" in output
+        assert "* Source file sizes: 106 Bytes" in output
+        assert "* fast backup: 0 files" in output
+        assert "* new content saved: 5 files (106 Bytes 100.0%)" in output
+        assert "* stint space via hardlinks: 0 files (0 Bytes 0.0%)" in output
 
-        self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
+        assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(1)
 
-        self.assertIn(self.first_run_path, self.first_backup_result.output)
+        assert self.first_run_path in output
 
         self.assert_first_backup()
 
@@ -85,7 +85,7 @@ class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
 
         Here we have 5 files in one backup run
         """
-        self.assertEqual(BackupRun.objects.all().count(), 1)
+        assert_pformat_equal(BackupRun.objects.all().count(), 1)
         self.assert_database_backup_entries(count=5)
 
 
@@ -104,9 +104,11 @@ class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
         self.assertNotIn("WARNING: Omitted", self.second_backup_result.output)
         self.assertIn("fast backup: 5 files", self.second_backup_result.output)
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", self.second_backup_result.output)
-        self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", self.second_backup_result.output)
+        self.assertIn(
+            "stint space via hardlinks: 5 files (106 Bytes 100.0%)",
+            self.second_backup_result.output)
 
-        self.assertEqual(os.listdir(self.backup_path), ["source unittests files"])
+        assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)
 
         self.assertIn(self.second_run_path, self.second_backup_result.output)
@@ -121,5 +123,5 @@ class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
 
         Here we have 5 files in two backup runs
         """
-        self.assertEqual(BackupRun.objects.all().count(), 2)
+        assert_pformat_equal(BackupRun.objects.all().count(), 2)
         self.assert_database_backup_entries(count=10)

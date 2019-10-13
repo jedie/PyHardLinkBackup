@@ -4,6 +4,7 @@ import datetime
 import django
 from django.contrib.humanize.templatetags import humanize
 from django.utils import translation
+from django_tools.unittest_utils.assertments import assert_pformat_equal
 
 # https://github.com/jedie/PyHardLinkBackup
 from PyHardLinkBackup.phlb.humanize import ns2naturaltimesince
@@ -35,10 +36,10 @@ class HumanTestCase(django.test.SimpleTestCase):
 
             # FIXME: why not "hours ago" translated ?!?
             with translation.override("de"):
-                self.assertEqual(ns2naturaltimesince(ns), "8. März 2012 22:39 (23 hours ago)")
+                assert_pformat_equal(ns2naturaltimesince(ns), "8. März 2012 22:39 (23 hours ago)")
 
             with translation.override("en"):
-                self.assertEqual(
+                assert_pformat_equal(
                     ns2naturaltimesince(ns),
                     "March 8, 2012, 10:39 p.m. (23 hours ago)")
 

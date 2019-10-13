@@ -16,16 +16,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 import os
 import shutil
 import subprocess
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
+# https://github.com/jedie/PyHardLinkBackup
 from PyHardLinkBackup import __version__
-
 
 PACKAGE_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -39,7 +38,9 @@ for arg in ("test", "check", "register", "sdist", "--long-description"):
         try:
             from creole.setup_utils import get_long_description
         except ImportError as err:
-            raise ImportError("%s - Please install python-creole - e.g.: pip install python-creole" % err)
+            raise ImportError(
+                "%s - Please install python-creole - e.g.: pip install python-creole" %
+                err)
         else:
             long_description = get_long_description(PACKAGE_ROOT)
         break
@@ -71,20 +72,26 @@ if "publish" in sys.argv:
     try:
         # Test if wheel is installed, otherwise the user will only see:
         #   error: invalid command 'bdist_wheel'
-        import wheel
+        import wheel  # noqa
     except ImportError as err:
-        print("\nError: %s" % err)
-        print("\nMaybe https://pypi.org/project/wheel is not installed or virtualenv not activated?!?")
+        print("\nError: %s\n" % err)
+        print(
+            "Maybe https://pypi.org/project/wheel is not installed"
+            " or virtualenv not activated?!?"
+        )
         print("e.g.:")
         print("    ~/your/env/$ source bin/activate")
         print("    ~/your/env/$ pip install wheel")
         import_error = True
 
     try:
-        import twine
+        import twine  # noqa
     except ImportError as err:
-        print("\nError: %s" % err)
-        print("\nMaybe https://pypi.org/project/twine is not installed or virtualenv not activated?!?")
+        print("\nError: %s\n" % err)
+        print(
+            "Maybe https://pypi.org/project/twine is not installed"
+            " or virtualenv not activated?!?"
+        )
         print("e.g.:")
         print("    ~/your/env/$ source bin/activate")
         print("    ~/your/env/$ pip install twine")
@@ -97,7 +104,8 @@ if "publish" in sys.argv:
         """ 'verbose' version of subprocess.check_output() """
         call_info = "Call: %r" % " ".join(args)
         try:
-            output = subprocess.check_output(args, universal_newlines=True, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(
+                args, universal_newlines=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
             print("\n***ERROR:")
             print(err.output)
@@ -165,7 +173,6 @@ if "publish" in sys.argv:
         if os.path.isdir(path):
             print("\tremove tree:", path)
             shutil.rmtree(path)
-
     rmtree("./dist")
     rmtree("./build")
 
@@ -173,7 +180,8 @@ if "publish" in sys.argv:
     log_filename = "build.log"
     with open(log_filename, "a") as log:
         call_info, output = verbose_check_output(
-            sys.executable or "python", "setup.py", "sdist", "bdist_wheel", "bdist_egg"
+            sys.executable or "python",
+            "setup.py", "sdist", "bdist_wheel", "bdist_egg"
         )
         print("\t%s" % call_info)
         log.write(call_info)
@@ -197,7 +205,6 @@ if "publish" in sys.argv:
     twine_args.insert(1, "dist/*")
     print("\ttwine upload command args: %r" % " ".join(twine_args))
     from twine.commands.upload import main as twine_upload
-
     twine_upload(twine_args)
 
     print("\ngit tag version")
@@ -207,7 +214,6 @@ if "publish" in sys.argv:
     verbose_check_call("git", "push", "--tags")
 
     sys.exit(0)
-
 
 
 def get_authors():
@@ -225,23 +231,23 @@ setup(
     description='HardLink/Deduplication Backups with Python',
     long_description=long_description,
     keywords="Backup Hardlink Windows Linux",
-    license = "GNU General Public License (GNU GPL v3 or above)",
+    license="GNU General Public License (GNU GPL v3 or above)",
     author=get_authors(),
     author_email="pypi@jensdiemer.de",
     maintainer="Jens Diemer",
     maintainer_email="pypi@jensdiemer.de",
     url='https://github.com/jedie/PyHardLinkBackup',
     packages=find_packages(),
-    include_package_data=True, # include package data under version control
+    include_package_data=True,  # include package data under version control
     install_requires=[
-        "pathlib_revised", # https://github.com/jedie/pathlib_revised/
+        "pathlib_revised",  # https://github.com/jedie/pathlib_revised/
         #
         # https://www.djangoproject.com/download/#supported-versions
         # v1.11 LTS - extended support until April 2020
         "django>=1.11,<2.0",
-        "django-tools", # https://github.com/jedie/django-tools/
-        "tqdm", # https://github.com/tqdm/tqdm
-        "click", # https://github.com/mitsuhiko/click
+        "django-tools",  # https://github.com/jedie/django-tools/
+        "tqdm",  # https://github.com/tqdm/tqdm
+        "click",  # https://github.com/mitsuhiko/click
     ],
     entry_points={'console_scripts': [
         'phlb = PyHardLinkBackup.phlb_cli:cli',
@@ -250,7 +256,7 @@ setup(
     zip_safe=False,
     classifiers=[
         "Development Status :: 4 - Beta",
-       #  "Development Status :: 5 - Production/Stable",
+        #  "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License (GPL)",

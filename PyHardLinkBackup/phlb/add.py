@@ -15,10 +15,10 @@ import django
 from click._compat import strip_ansi
 
 # https://github.com/jedie/pathlib_revised/
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2
 
 # https://github.com/jedie/IterFilesystem
-from iterfilesystem.humanize import human_filesize, human_time
+from iterfilesystem.humanize import human_filesize
 from iterfilesystem.iter_scandir import ScandirWalker
 from iterfilesystem.statistic_helper import StatisticHelper
 

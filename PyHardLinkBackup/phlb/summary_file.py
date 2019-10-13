@@ -8,8 +8,10 @@ class SummaryFileHelper:
     def __init__(self, summary_file):
         self.summary_file = summary_file
 
-    def __call__(self, *parts, sep=" ", end="\n", flush=False):
-        print(*parts, sep=sep, end=end, flush=flush)
+    def __call__(self, *parts, sep=" ", end="\n", flush=False, verbose=True):
+        if verbose:
+            print(*parts, sep=sep, end=end, flush=flush)
+
         self.summary_file.write(sep.join([strip_ansi(str(i)) for i in parts]))
         self.summary_file.write(end)
         if flush:

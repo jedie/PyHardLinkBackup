@@ -8,7 +8,7 @@ from timeit import default_timer
 from pathlib_revised import DirEntryPath, Path2
 
 # https://github.com/jedie/IterFilesystem
-from iterfilesystem.humanize import human_filesize, human_time
+from iterfilesystem.humanize import human_time
 
 log = logging.getLogger("phlb.%s" % __name__)
 

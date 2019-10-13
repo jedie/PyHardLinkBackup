@@ -1,6 +1,6 @@
 import logging
 
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2
 
 from PyHardLinkBackup.backup_app.models import BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config

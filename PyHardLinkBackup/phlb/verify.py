@@ -1,14 +1,17 @@
-import datetime
+
 import hashlib
 import os
-import sys
 
-import django
+# https://github.com/tqdm/tqdm
 from tqdm import tqdm
 
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+import django
 
-from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
+# https://github.com/jedie/pathlib_revised/
+from pathlib_revised import Path2
+
+# https://github.com/jedie/PyHardLinkBackup
+from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
 from PyHardLinkBackup.phlb.config import phlb_config
 
 
@@ -41,7 +44,11 @@ def verify_backup(backup_path, fast):
 
     mtime_mismatch = 0
 
-    tqdm_iterator = tqdm(backup_entries.iterator(), total=backup_entries_count, unit=" files", leave=True)
+    tqdm_iterator = tqdm(
+        backup_entries.iterator(),
+        total=backup_entries_count,
+        unit=" files",
+        leave=True)
     for entry in tqdm_iterator:
         entry_path = entry.get_backup_path()  # Path2() instance
 
@@ -89,7 +96,9 @@ def verify_backup(backup_path, fast):
 
         if hash_hexdigest != db_hash:
             print("\n%s" % entry_path)
-            print("ERROR: File content changed: Hash mismatch: %s != %s" % (hash_hexdigest, db_hash))
+            print(
+                "ERROR: File content changed: Hash mismatch: %s != %s" %
+                (hash_hexdigest, db_hash))
 
     print()
 
