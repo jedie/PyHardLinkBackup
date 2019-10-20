@@ -249,6 +249,7 @@ setup(
         "tqdm",  # https://github.com/tqdm/tqdm
         "click",  # https://github.com/mitsuhiko/click
     ],
+    tests_require=['pytest',],
     entry_points={'console_scripts': [
         'phlb = PyHardLinkBackup.phlb_cli:cli',
         'manage = PyHardLinkBackup.django_project.manage:cli',
