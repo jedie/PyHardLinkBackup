@@ -294,10 +294,10 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         summary = self.get_last_summary_content()
 
         self.assertIn(
-            "Abort backup, because user hits the interrupt key during execution!",
+            "*** Abort via keyboard interrupt! ***",
             result.output)
         self.assertIn(
-            "Abort backup, because user hits the interrupt key during execution!",
+            "*** Abort via keyboard interrupt! ***",
             summary)
 
         self.assertNotIn("Traceback", result.output)
