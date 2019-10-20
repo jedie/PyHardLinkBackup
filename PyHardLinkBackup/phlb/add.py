@@ -15,7 +15,7 @@ import django
 from click._compat import strip_ansi
 
 # https://github.com/jedie/pathlib_revised/
-from pathlib_revised import Path2
+from pathlib_revised import Path2, DirEntryPath
 
 # https://github.com/jedie/IterFilesystem
 from iterfilesystem.humanize import human_filesize
@@ -159,7 +159,7 @@ def add_backup_entries(backup_run, result):
         ),
         verbose=True
     )
-    filtered_dir_entries = tuple(scandir_walk)
+    filtered_dir_entries = [DirEntryPath(dir_entry) for dir_entry in scandir_walk]
     add_dir_entries(backup_run, filtered_dir_entries, result)
 
 
@@ -227,9 +227,4 @@ def add_all_backups():
         add_backup_name(backup_name_path)
 
 
-def add_backups():
-    """
-    Scan all existing backup and add missing ones to database.
-    """
-    django.setup()
-    add_all_backups()
+

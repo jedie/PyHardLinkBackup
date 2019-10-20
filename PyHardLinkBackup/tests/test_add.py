@@ -39,6 +39,8 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
                                        BACKUP_RUN_CONFIG_FILENAME)), assert_msg)
 
     def test_add(self):
+        self.assert_first_backup()
+
         self._copy_first_backup(remove_old_config=True)
 
         self.assert_database_backup_entries(count=5)
@@ -46,13 +48,8 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         result = self.invoke_cli("add")
         print(result.output)
 
-        self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
-        self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", result.output)
-
-        self.assertIn("total size: 106 Bytes", result.output)
-
-        self.assertIn("'*.sha512' match on 5 items", result.output)
-        self.assertIn("'phlb_config.ini' match on 1 items", result.output)
+        self.assertIn(" * new content saved: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn(" * stint space via hardlinks: 5 files (106 Bytes 100.0%)", result.output)
 
         self.assert_database_backup_entries(count=10)
 
