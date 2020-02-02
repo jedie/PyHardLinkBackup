@@ -62,5 +62,7 @@ update-rst-readme: ## update README.rst from README.creole
 publish: ## Release new version to PyPi
 	poetry run publish
 
+runserver:  ## run Django development server
+	poetry run manage runserver
 
 .PHONY: help install lint fix test publish
