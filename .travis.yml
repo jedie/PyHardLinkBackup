@@ -1,69 +1,38 @@
 # Config file for automatic testing at travis-ci.org
 
 language: python
+cache: pip
 
-python:
-    - "3.6"
-    - "3.7"
-
-sudo: false
-
-os:
-    # Python builds are not available on the OSX environment.
-    # see: https://docs.travis-ci.com/user/languages/python
-    #- osx
-    - linux
-
-virtualenv:
-    system_site_packages: false
-
-before_install:
-    # https://docs.travis-ci.com/user/environment-variables#Default-Environment-Variables
-    - pip install --upgrade pip
-    - pip freeze
-    - CHECKOUT_DIR=$(pwd)
-    - echo ${CHECKOUT_DIR}
-    - echo ${TRAVIS_BRANCH}
-    - echo ${TRAVIS_COMMIT}
-    - echo ${TRAVIS_REPO_SLUG}
-    - echo ${GIT_TARGET_EXTRA}
-    - echo ${GIT_SOURCE_EXTRA}
-    - echo ${TRAVIS_PYTHON_VERSION}
-    - git clone --depth 1 git://github.com/${TRAVIS_REPO_SLUG}.git ~/pyhardlinkbackup_clone
+matrix:
+  include:
+  - os: linux
+    python: 3.6
+    env: TOXENV=py36
+  - os: linux
+    python: 3.7
+    env: TOXENV=py37
+  - os: linux
+    python: 3.8
+    env: TOXENV=py38
+  - os: linux
+    python: pypy3
+  # TODO:
+  #- os: osx
+  #  language: generic
 
 install:
-    - cd ~/pyhardlinkbackup_clone
-    - ls
-    - ./boot_pyhardlinkbackup.sh
-    - cd ~/PyHardLinkBackup
-    - ls
-    - pip uninstall -y PyHardLinkBackup
-    - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
-    - pip install appveyor-artifacts
-    - ls
-    - PKG_PATH=$(python -c "import os,PyHardLinkBackup;print(os.path.dirname(PyHardLinkBackup.__file__))")
-    - cd ${PKG_PATH}
-    - git checkout -qf $TRAVIS_COMMIT
-    - cd ~/PyHardLinkBackup
-    - ls
-    - phlb helper ~/PyHardLinkBackup
+  - make install-poetry
+  - source $HOME/.poetry/env
+  - make install
+  - poetry run pip freeze
+  - make tox-listenvs
 
 script:
-    - cd ~/PyHardLinkBackup
-    - ls
-    - ./phlb_run_tests.sh no_report
+  - if [ "$TOXENV" == "" ]; then make pytest; fi
+  - if [ "$TOXENV" != "" ]; then make tox; fi
+  - if [ "$TOXENV" != "" ]; then make lint; fi
 
 after_success:
-    - cd ${PKG_PATH}
-    - ls
-    - coverage report
-    - mv .coverage .coverage.travis
-    - appveyor-artifacts -m download
-    - coverage combine
-    - coverage report
-    - coveralls
-    # https://github.com/codecov/codecov-bash
-    - bash <(curl -s https://codecov.io/bash)
-
-notifications:
-    irc: "irc.freenode.org#pylucid"
+  - coveralls
+  # https://github.com/codecov/codecov-bash
+  - bash <(curl -s https://codecov.io/bash)

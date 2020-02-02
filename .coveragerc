@@ -1,11 +1,14 @@
 [run]
 branch = True
 source = PyHardLinkBackup
+omit =
+    */extend_parser.py
+    */after_install.py
+    */adjust_options.py
+    */tests/*
+    */site-packages/*
 
 [report]
-# Theres files will only be used with open(..., "r"):
-omit = */extend_parser.py, */after_install.py, */adjust_options.py
-
 # Regexes for lines to exclude from consideration
 exclude_lines =
     # Have to re-enable the standard pragma
