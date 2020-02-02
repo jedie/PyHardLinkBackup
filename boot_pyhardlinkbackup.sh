@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DESTINATION=~/PyHardLinkBackup
+DESTINATION=~/pyhardlinkbackup
 
 (
     set -e
@@ -37,7 +37,7 @@ fi
     cd ${DESTINATION}/bin/
     ls -la
     pip3 install --upgrade pip
-    pip3 install PyHardLinkBackup
+    pip3 install pyhardlinkbackup
     phlb helper ${DESTINATION}
     manage migrate
 )

@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = PyHardLinkBackup
+source = pyhardlinkbackup
 omit =
     */extend_parser.py
     */after_install.py

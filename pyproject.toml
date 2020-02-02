@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "PyHardLinkBackup"
+name = "pyhardlinkbackup"
 version = "0.12.0"
 description = "HardLink/Deduplication Backups with Python"
 authors = ["JensDiemer <git@jensdiemer.de>"]
@@ -52,10 +52,10 @@ flynt = "^0.40.1"
 autopep8 = "^1.4.4"
 
 [tool.poetry.scripts]
-phlb = "PyHardLinkBackup.phlb_cli:cli"
-manage = "PyHardLinkBackup.django_project.manage:cli"
-update_rst_readme = "PyHardLinkBackup.phlb.publish:update_readme"
-publish = "PyHardLinkBackup.phlb.publish:publish"
+phlb = "pyhardlinkbackup.phlb_cli:cli"
+manage = "pyhardlinkbackup.django_project.manage:cli"
+update_rst_readme = "pyhardlinkbackup.phlb.publish:update_readme"
+publish = "pyhardlinkbackup.phlb.publish:publish"
 
 [build-system]
 requires = ["poetry>=0.12"]

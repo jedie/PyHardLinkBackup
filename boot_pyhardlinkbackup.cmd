@@ -2,9 +2,9 @@
 title %~0
 cd /d "%~dp0"
 
-REM ~ Windows Batch file to boot PyHardLinkBackup
+REM ~ Windows Batch file to boot pyhardlinkbackup
 REM ~
-REM ~ It's create a virtualenv under "C:\Program Files\PyHardLinkBackup"
+REM ~ It's create a virtualenv under "C:\Program Files\pyhardlinkbackup"
 
 for /f "delims=;" %%i in ('py -V') do set VERSION=%%i
 for /f "delims=;" %%i in ('py -3 -V') do set VERSION3=%%i
@@ -29,7 +29,7 @@ echo Python 'py' launcher exists, default version is: %VERSION%
 if "%VERSION3%"=="" (
     echo.
     echo Python v3 not installed!
-    echo Sorry, PyHardLinkBackup doesn't run with Python v2 :(
+    echo Sorry, pyhardlinkbackup doesn't run with Python v2 :(
     echo.
     pause
     exit
@@ -46,7 +46,7 @@ if errorlevel 1 (
     exit /b
 )
 
-set BASE_PATH=%ProgramFiles%\PyHardLinkBackup
+set BASE_PATH=%ProgramFiles%\pyhardlinkbackup
 echo on
 mkdir "%BASE_PATH%"
 @echo off
@@ -74,7 +74,7 @@ echo on
 set PIP_EXE=%SCRIPT_PATH%\pip.exe
 call:test_exist "%PIP_EXE%" "pip not found here:"
 echo on
-"%PIP_EXE%" install PyHardLinkBackup
+"%PIP_EXE%" install pyhardlinkbackup
 @echo off
 
 set PHLB_EXE=%SCRIPT_PATH%\phlb.exe

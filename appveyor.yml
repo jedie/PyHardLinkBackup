@@ -55,27 +55,27 @@ install:
     - cd c:/pyhardlinkbackup_clone
     - "py -3 -c \"from dev.patch_cmd import patch;patch('boot_pyhardlinkbackup.cmd', debug=False)\""
     - boot_pyhardlinkbackup.cmd
-    - cd "%ProgramFiles%/PyHardLinkBackup/Scripts"
-    - set PATH=%ProgramFiles%/PyHardLinkBackup/Scripts;%PATH%
-    - pip uninstall -y PyHardLinkBackup
+    - cd "%ProgramFiles%/pyhardlinkbackup/Scripts"
+    - set PATH=%ProgramFiles%/pyhardlinkbackup/Scripts;%PATH%
+    - pip uninstall -y pyhardlinkbackup
     - pip install -e git+https://github.com/jedie/PyHardLinkBackup.git#egg=pyhardlinkbackup
     - pip install appveyor-artifacts
-    - cd "%ProgramFiles%/PyHardLinkBackup/src/pyhardlinkbackup"
+    - cd "%ProgramFiles%/pyhardlinkbackup/src/pyhardlinkbackup"
     - git fetch
     - git checkout -qf %APPVEYOR_REPO_COMMIT%
     - manage.exe migrate
-    - phlb.exe helper "%ProgramFiles%/PyHardLinkBackup"
+    - phlb.exe helper "%ProgramFiles%/pyhardlinkbackup"
 
 test_script:
-    - cd "%ProgramFiles%/PyHardLinkBackup"
+    - cd "%ProgramFiles%/pyhardlinkbackup"
     - call phlb_run_tests.cmd no_report
-    - cd "%ProgramFiles%/PyHardLinkBackup/src/pyhardlinkbackup"
+    - cd "%ProgramFiles%/pyhardlinkbackup/src/pyhardlinkbackup"
 
 artifacts:
     - path: .coverage
 
 on_finish:
-    - cd "%ProgramFiles%/PyHardLinkBackup/src/pyhardlinkbackup"
+    - cd "%ProgramFiles%/pyhardlinkbackup/src/pyhardlinkbackup"
     - coverage combine
     - coverage report
 

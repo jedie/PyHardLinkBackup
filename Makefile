@@ -54,7 +54,8 @@ tox-py38: check-poetry ## Run pytest via tox with *python v3.8*
 	poetry run tox -e py38
 
 pytest: check-poetry ## Run pytest
-	poetry run pytest
+	# poetry run pytest # <- FIXME: will not work, why?
+	poetry run python3 -m pytest
 
 update-rst-readme: ## update README.rst from README.creole
 	poetry run update_rst_readme
