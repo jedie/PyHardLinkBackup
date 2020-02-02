@@ -1,8 +1,7 @@
 import datetime
-import subprocess
-
 import os
 import posixpath
+import subprocess
 import sys
 
 
@@ -25,7 +24,7 @@ class UnittestFileSystemHelper:
         self.default_mtime_string = "19730710:001151"
 
         mtime_string = self.timestamp2string(self.default_mtime)
-        assert mtime_string == self.default_mtime_string, "%s != %s" % (mtime_string, self.default_mtime_string)
+        assert mtime_string == self.default_mtime_string, f"{mtime_string} != {self.default_mtime_string}"
 
     def timestamp2string(self, timestamp):
         dt = datetime.datetime.utcfromtimestamp(timestamp)
@@ -38,7 +37,7 @@ class UnittestFileSystemHelper:
         # check mtime:
         if self.mtime_offset == 0:
             mtime_string = self.timestamp2string(os.stat(path).st_mtime)
-            assert mtime_string == self.default_mtime_string, "%s != %s" % (mtime_string, self.default_mtime_string)
+            assert mtime_string == self.default_mtime_string, f"{mtime_string} != {self.default_mtime_string}"
 
     def create_test_fs(self, fs_dict, dir=None):
         for name, data in sorted(fs_dict.items()):
@@ -92,9 +91,9 @@ class UnittestFileSystemHelper:
                     content = f.read()
 
                 if len(content) > 30:
-                    content = "%s...%s" % (content[:5], content[-5:])
+                    content = f"{content[:5]}...{content[-5:]}"
 
-                lines.append("%s - %s" % (pformat_stat(file_path), content))
+                lines.append(f"{pformat_stat(file_path)} - {content}")
 
         lines.sort()
         os.chdir(cwd)
@@ -109,7 +108,7 @@ class UnittestFileSystemHelper:
             args = ["tree", path, "/f", "/a"]
             kwargs = {"shell": True}  # otherwise: File Not Found
         else:
-            raise NotImplementedError("TODO: %s" % sys.platform)
+            raise NotImplementedError(f"TODO: {sys.platform}")
 
         subprocess.run(args, timeout=5, check=True, **kwargs)
 

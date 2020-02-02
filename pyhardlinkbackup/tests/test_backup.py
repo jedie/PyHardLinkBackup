@@ -217,7 +217,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
             try:
                 io.open(deny_paths[0], "r").read()
             except OSError as err:
-                assert_pformat_equal("%s" % err, "unittests raise")
+                assert_pformat_equal(f"{err}", "unittests raise")
             assert_pformat_equal(p.call_count, 2)
             assert_pformat_equal(p.raise_count, 1)
 
@@ -320,7 +320,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 class TestOneBackups(BaseCreatedOneBackupsTestCase):
     def test_summary(self):
         summary_filepath = pathlib.Path(self.first_run_path + " summary.txt")
-        self.assertTrue(summary_filepath.is_file(), "%s doesn't exist" % summary_filepath)
+        self.assertTrue(summary_filepath.is_file(), f"{summary_filepath} doesn't exist")
 
         with summary_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
             summary_content = f.read()
@@ -344,7 +344,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
             os.path.join(self.first_run_path, "sub dir B", "sub_file.txt"),
         )
         for path in paths:
-            print("Delete: %r" % path)
+            print(f"Delete: {path!r}")
             os.remove(path)
 
         result = self.invoke_cli("backup", self.source_path)

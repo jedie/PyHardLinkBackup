@@ -22,15 +22,11 @@ from iterfilesystem.main import IterFilesystem
 from pyhardlinkbackup.backup_app.models import BackupEntry, BackupRun
 from pyhardlinkbackup.phlb.backup import FileBackup
 from pyhardlinkbackup.phlb.config import phlb_config
-from pyhardlinkbackup.phlb.humanize import (
-    dt2naturaltimesince,
-    ns2naturaltimesince,
-    to_percent
-)
+from pyhardlinkbackup.phlb.humanize import dt2naturaltimesince, ns2naturaltimesince, to_percent
 from pyhardlinkbackup.phlb.path_helper import PathHelper
 from pyhardlinkbackup.phlb.summary_file import SummaryFileHelper
 
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 
 class BackupIterFilesystem(IterFilesystem):
@@ -52,19 +48,18 @@ class BackupIterFilesystem(IterFilesystem):
         self.summary = SummaryFileHelper(self.summary_file)
 
         old_backups = BackupRun.objects.filter(name=self.path_helper.backup_name)
-        self.summary("%r was backuped %i time(s)" %
-                     (self.path_helper.backup_name, old_backups.count()))
+        self.summary(f"{self.path_helper.backup_name!r} was backuped {old_backups.count():d} time(s)")
 
         old_backups = old_backups.filter(completed=True)
         completed_count = old_backups.count()
-        self.summary("There are %i backups finished completed." % completed_count)
+        self.summary(f"There are {completed_count:d} backups finished completed.")
 
         self.latest_backup = None
         self.latest_mtime_ns = None
         try:
             self.latest_backup = old_backups.latest()
         except BackupRun.DoesNotExist:
-            self.summary("No old backup found with name %r" % self.path_helper.backup_name)
+            self.summary(f"No old backup found with name {self.path_helper.backup_name!r}")
         else:
             latest_backup_datetime = self.latest_backup.backup_datetime
             self.summary("Latest backup from:", dt2naturaltimesince(latest_backup_datetime))
@@ -81,23 +76,22 @@ class BackupIterFilesystem(IterFilesystem):
                     ns2naturaltimesince(
                         self.latest_mtime_ns))
 
-        self.summary("Backup to: '%s'" % self.path_helper.abs_dst_root)
+        self.summary(f"Backup to: '{self.path_helper.abs_dst_root}'")
         self.path_helper.abs_dst_root.makedirs(  # call os.makedirs()
             mode=phlb_config.default_new_path_mode, exist_ok=True
         )
         if not self.path_helper.abs_dst_root.is_dir():
             raise NotADirectoryError(
-                "Backup path '%s' doesn't exists!" %
-                self.path_helper.abs_dst_root)
+                f"Backup path '{self.path_helper.abs_dst_root}' doesn't exists!")
 
         self.backup_run = BackupRun.objects.create(
             name=self.path_helper.backup_name,
             backup_datetime=self.path_helper.backup_datetime,
             completed=False)
-        log.debug(" * backup_run: %s" % self.backup_run)
+        log.debug(f" * backup_run: {self.backup_run}")
 
-        self.summary("Start backup: %s" % self.path_helper.time_string)
-        self.summary("Source path: %s" % self.path_helper.abs_src_root)
+        self.summary(f"Start backup: {self.path_helper.time_string}")
+        self.summary(f"Source path: {self.path_helper.abs_src_root}")
 
         # init own attributes in Statistics() instance:
         self.stats_helper.total_file_link_count = 0
@@ -147,15 +141,14 @@ class BackupIterFilesystem(IterFilesystem):
         file_size = content_info.file_size
         if file_size != dir_path.stat.st_size:
             log.info(
-                "Fast compare: File size is different: %i != %i" %
-                (file_size, dir_path.stat.st_size))
+                f"Fast compare: File size is different: {file_size:d} != {dir_path.stat.st_size:d}")
             return
 
         old_backup_filepath = old_backup_entry.get_backup_path()
         try:
             old_file_mtime_ns = old_backup_filepath.stat().st_mtime_ns
         except FileNotFoundError as err:
-            log.error("Old backup file not found: %s" % err)
+            log.error(f"Old backup file not found: {err}")
             old_backup_entry.no_link_source = True
             old_backup_entry.save()
             return
@@ -163,15 +156,15 @@ class BackupIterFilesystem(IterFilesystem):
         if old_file_mtime_ns != old_backup_entry.file_mtime_ns:
             return
             log.error("ERROR: mtime from database is different to the file!")
-            log.error(" * File: %s" % old_backup_filepath)
-            log.error(" * Database mtime: %s" % old_backup_entry.file_mtime_ns)
-            log.error(" * File mtime: %s" % old_file_mtime_ns)
+            log.error(f" * File: {old_backup_filepath}")
+            log.error(f" * Database mtime: {old_backup_entry.file_mtime_ns}")
+            log.error(f" * File mtime: {old_file_mtime_ns}")
 
         if old_file_mtime_ns != dir_path.stat.st_mtime_ns:
             log.info("Fast compare mtime is different between:")
-            log.info(" * %s" % old_backup_entry)
-            log.info(" * %s" % dir_path)
-            log.info(" * mtime: %i != %i" % (old_file_mtime_ns, dir_path.stat.st_mtime_ns))
+            log.info(f" * {old_backup_entry}")
+            log.info(f" * {dir_path}")
+            log.info(f" * mtime: {old_file_mtime_ns:d} != {dir_path.stat.st_mtime_ns:d}")
             return
 
         # We found a old entry with same size and mtime
@@ -188,7 +181,7 @@ class BackupIterFilesystem(IterFilesystem):
             return
 
         if dir_path.resolve_error is not None:
-            self.summary("TODO resolve error: %s" % dir_path.resolve_error)
+            self.summary(f"TODO resolve error: {dir_path.resolve_error}")
             pprint_path(dir_path)
             return
 

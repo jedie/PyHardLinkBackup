@@ -21,7 +21,7 @@ import traceback
 try:
     import click
 except ImportError as err:
-    msg = "Import error: %s - Please install 'click' !" % err
+    msg = f"Import error: {err} - Please install 'click' !"
     raise ImportError(msg)
 
 MAX_CHARS = 256
@@ -63,10 +63,9 @@ def exc_plus():
     yield click.style(last_line, fg="red")
     yield click.style("\nLocals by frame, most recent call first:", fg="blue", bold=True)
     for frame in stack:
-        msg = 'File "%s", line %i, in %s' % (
-            frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name)
+        msg = f'File "{frame.f_code.co_filename}", line {frame.f_lineno:d}, in {frame.f_code.co_name}'
         msg = click.style(msg, fg="white", bold=True, underline=True)
-        yield "\n *** %s" % msg
+        yield f"\n *** {msg}"
 
         for key, value in list(frame.f_locals.items()):
             key_info = "%30s = " % click.style(key, bold=True)
@@ -74,12 +73,12 @@ def exc_plus():
             # printer! Calling str() on an unknown object could cause an
             # error we don't want.
             if isinstance(value, int):
-                value = "$%x (decimal: %i)" % (value, value)
+                value = f"${value:x} (decimal: {value:d})"
             else:
                 value = repr(value)
 
             if len(value) > MAX_CHARS:
-                value = "%s..." % value[:MAX_CHARS]
+                value = f"{value[:MAX_CHARS]}..."
 
             try:
                 yield key_info + value
@@ -134,10 +133,10 @@ def scite_run():
         sys.exit(-1)
 
     script_file = os.path.abspath(os.path.normpath(script_file))
-    assert os.path.isfile(script_file), "Skipt %r doesn't exists!" % sys.argv[1]
+    assert os.path.isfile(script_file), f"Skipt {sys.argv[1]!r} doesn't exists!"
 
     filepath, filename = os.path.split(sys.argv[1])
-    print("Start %r from %r:" % (filename, filepath))
+    print(f"Start {filename!r} from {filepath!r}:")
 
     os.chdir(filepath)
     current_dir = os.getcwd()

@@ -33,14 +33,14 @@ def verify_backup(backup_path, fast):
     django.setup()
 
     backup_path = Path2(backup_path).resolve()
-    print("\nVerify: %s" % backup_path)
+    print(f"\nVerify: {backup_path}")
 
     backup_run = BackupRun.objects.get_from_config_file(backup_path)
-    print("\nBackup run:\n%s\n" % backup_run)
+    print(f"\nBackup run:\n{backup_run}\n")
 
     backup_entries = BackupEntry.objects.filter(backup_run=backup_run)
     backup_entries_count = backup_entries.count()
-    print("%i File entry exist in database." % backup_entries_count)
+    print(f"{backup_entries_count:d} File entry exist in database.")
 
     mtime_mismatch = 0
 
@@ -53,7 +53,7 @@ def verify_backup(backup_path, fast):
         entry_path = entry.get_backup_path()  # Path2() instance
 
         if not entry_path.exists():
-            print("\nERROR: File not found: %s" % entry_path)
+            print(f"\nERROR: File not found: {entry_path}")
             continue
 
         file_stat = entry_path.stat()
@@ -66,13 +66,13 @@ def verify_backup(backup_path, fast):
 
         db_file_size = entry.content_info.file_size
         if file_stat.st_size != db_file_size:
-            print("\n%s" % entry_path)
-            print("ERROR: File size mismatch: %s != %s" % (file_stat.st_size, db_file_size))
+            print(f"\n{entry_path}")
+            print(f"ERROR: File size mismatch: {file_stat.st_size} != {db_file_size}")
 
-        hash_file = Path2("%s%s%s" % (entry_path, os.extsep, phlb_config.hash_name))
+        hash_file = Path2(f"{entry_path}{os.extsep}{phlb_config.hash_name}")
         if not hash_file.exists():
-            print("\n%s" % entry_path)
-            print("ERROR: Hash file not found: %s" % hash_file)
+            print(f"\n{entry_path}")
+            print(f"ERROR: Hash file not found: {hash_file}")
             continue
 
         with hash_file.open("r") as f:
@@ -80,8 +80,8 @@ def verify_backup(backup_path, fast):
 
         db_hash = entry.content_info.hash_hexdigest
         if hash_file_content != db_hash:
-            print("\n%s" % entry_path)
-            print("ERROR: Hash file mismatch: %s != %s" % (hash_file_content, db_hash))
+            print(f"\n{entry_path}")
+            print(f"ERROR: Hash file mismatch: {hash_file_content} != {db_hash}")
 
         if fast:
             # Skip verify the file content
@@ -95,10 +95,9 @@ def verify_backup(backup_path, fast):
             hash_hexdigest = calc_hash(entry_path, process_bar=None)
 
         if hash_hexdigest != db_hash:
-            print("\n%s" % entry_path)
+            print(f"\n{entry_path}")
             print(
-                "ERROR: File content changed: Hash mismatch: %s != %s" %
-                (hash_hexdigest, db_hash))
+                f"ERROR: File content changed: Hash mismatch: {hash_hexdigest} != {db_hash}")
 
     print()
 
@@ -107,7 +106,7 @@ def verify_backup(backup_path, fast):
         print("The file content was not verified!")
 
     if mtime_mismatch:
-        print("\nINFO: %i files have different modify timestamps!" % mtime_mismatch)
+        print(f"\nINFO: {mtime_mismatch:d} files have different modify timestamps!")
 
     print("\nVerify done.")
 

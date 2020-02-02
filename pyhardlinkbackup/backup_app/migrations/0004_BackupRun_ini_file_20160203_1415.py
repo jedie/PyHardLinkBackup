@@ -18,11 +18,11 @@ def forwards_func(apps, schema_editor):
         try:
             temp.write_config()
         except OSError as err:
-            print("ERROR creating config file: %s" % err)
+            print(f"ERROR creating config file: {err}")
         else:
             create_count += 1
             # print("%r created." % config_path.path)
-    print("%i config files created.\n" % create_count)
+    print(f"{create_count:d} config files created.\n")
 
 
 def reverse_func(apps, schema_editor):
@@ -40,12 +40,12 @@ def reverse_func(apps, schema_editor):
         try:
             config_path.unlink()
         except OSError as err:
-            print("ERROR removing config file: %s" % err)
+            print(f"ERROR removing config file: {err}")
         else:
             remove_count += 1
             # print("%r removed." % config_path.path)
 
-    print("%i config files removed.\n" % remove_count)
+    print(f"{remove_count:d} config files removed.\n")
 
 
 class Migration(migrations.Migration):

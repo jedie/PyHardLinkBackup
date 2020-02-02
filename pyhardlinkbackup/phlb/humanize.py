@@ -21,7 +21,7 @@ def dt2naturaltimesince(dt):
     """
     date = defaultfilters.date(dt, _("DATETIME_FORMAT"))
     nt = humanize.naturaltime(dt)
-    return "%s (%s)" % (date, nt)
+    return f"{date} ({nt})"
 
 
 def ns2naturaltimesince(ns):

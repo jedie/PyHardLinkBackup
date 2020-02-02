@@ -10,7 +10,7 @@ from pathlib_revised import DirEntryPath, Path2
 # https://github.com/jedie/IterFilesystem
 from iterfilesystem.humanize import human_time
 
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 
 class SkipPatternInformation:
@@ -34,7 +34,7 @@ class SkipPatternInformation:
             return ['Nothing skipped.']
         lines = []
         for pattern, entries in sorted(self.data.items()):
-            lines.append(" * %r match on %i items" % (pattern, len(entries)))
+            lines.append(f" * {pattern!r} match on {len(entries):d} items")
         return lines
 
     def long_info(self):
@@ -42,20 +42,20 @@ class SkipPatternInformation:
             return ['Nothing skipped.']
         lines = []
         for pattern, entries in sorted(self.data.items()):
-            lines.append("%r match on:" % pattern)
+            lines.append(f"{pattern!r} match on:")
             for entry in entries:
-                lines.append(" * %s" % entry.path)
+                lines.append(f" * {entry.path}")
         return lines
 
     def print_skip_pattern_info(self, name):
         if not self.has_hits():
-            print("%s doesn't match on any dir entry." % name)
+            print(f"{name} doesn't match on any dir entry.")
         else:
-            print("%s match information:" % name)
+            print(f"{name} match information:")
             for line in self.long_info():
                 log.info(line)
             for line in self.short_info():
-                print("%s\n" % line)
+                print(f"{line}\n")
 
 
 class ScanResult:
@@ -103,7 +103,7 @@ class FilesystemScanner:
         try:
             scandir_it = Path2(top).scandir()
         except PermissionError as err:
-            log.error("scandir error: %s" % err)
+            log.error(f"scandir error: {err}")
             return
 
         for entry in scandir_it:
@@ -170,7 +170,7 @@ def scandir_walk(top, skip_dirs=(), on_skip=None):
     try:
         scandir_it = Path2(top).scandir()
     except PermissionError as err:
-        log.error("scandir error: %s" % err)
+        log.error(f"scandir error: {err}")
         return
 
     for entry in scandir_it:
@@ -196,7 +196,7 @@ def scandir_limited(top, limit, deep=0):
     try:
         scandir_it = Path2(top).scandir()
     except PermissionError as err:
-        log.error("scandir error: %s" % err)
+        log.error(f"scandir error: {err}")
         return
 
     for entry in scandir_it:
@@ -254,7 +254,7 @@ def iter_filtered_dir_entry(dir_entries, match_patterns, on_skip):
             # e.g.: A file was deleted after the first filesystem scan
             # Will be obsolete if we use shadow-copy / snapshot function from filesystem
             # see: https://github.com/jedie/PyHardLinkBackup/issues/6
-            log.error("Can't make DirEntryPath() instance: %s" % err)
+            log.error(f"Can't make DirEntryPath() instance: {err}")
             continue
         if match(dir_entry_path, match_patterns, on_skip):
             yield None

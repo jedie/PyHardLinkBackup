@@ -98,7 +98,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": _phlb_config.database_name,
         "TEST_NAME": ":memory:"}}
-print("Use Database file: '%s'" % DATABASES["default"]["NAME"])
+print(f"Use Database file: '{DATABASES['default']['NAME']}'")
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -120,12 +120,12 @@ STATIC_URL = "/static/"
 
 
 fd, LOG_FILEPATH = tempfile.mkstemp(prefix="pyhardlinkbackup_", suffix=".log")
-print("temp log file: %s" % LOG_FILEPATH)
+print(f"temp log file: {LOG_FILEPATH}")
 with open(fd, "w") as f:
     f.write("\n\n")
     f.write("_" * 79)
     f.write("\n")
-    f.write("Start low level logging from: %s\n" % __file__)
+    f.write(f"Start low level logging from: {__file__}\n")
     f.write("\n")
 
 # CRITICAL 	50

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BackupRun, BackupFilename, BackupEntry, ContentInfo
+from .models import BackupEntry, BackupFilename, BackupRun, ContentInfo
 
 
 class BackupEntryAdmin(admin.ModelAdmin):

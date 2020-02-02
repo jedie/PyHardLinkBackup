@@ -13,7 +13,7 @@ from pyhardlinkbackup.phlb import BACKUP_RUN_CONFIG_FILENAME, INTERNAL_FILES
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.humanize import dt2naturaltimesince
 
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 
 def setup_sqlite(sender, connection, **kwargs):
@@ -24,7 +24,7 @@ def setup_sqlite(sender, connection, **kwargs):
             "PRAGMA temp_store = MEMORY;",
             "PRAGMA synchronous = OFF;")
         for pragma in pragmas:
-            log.info("Execute: '%s'" % pragma)
+            log.info(f"Execute: '{pragma}'")
             cursor.execute(pragma)
 
 
@@ -38,11 +38,11 @@ def build_config_path(backup_path):
 class BackupRunManager(models.Manager):
     def get_from_config_file(self, backup_path):
         if not backup_path.is_dir():
-            raise NotADirectoryError("Backup path %r not found!" % backup_path.path)
+            raise NotADirectoryError(f"Backup path {backup_path.path!r} not found!")
 
         config_path = build_config_path(backup_path)
         if not config_path.is_file():
-            raise FileNotFoundError("Config file %r not found!" % config_path.path)
+            raise FileNotFoundError(f"Config file {config_path.path!r} not found!")
 
         config = configparser.ConfigParser()
         config.read(config_path.path)
@@ -56,7 +56,7 @@ class BackupRunManager(models.Manager):
         except (KeyError, ValueError) as err:
             with config_path.open("r") as f:
                 content = f.read().strip()
-            raise KeyError("%s in %s\nconfig content:\n%s" % (err, config_path.path, content))
+            raise KeyError(f"{err} in {config_path.path}\nconfig content:\n{content}")
 
         backup_run = self.get_queryset().get(pk=backup_run_pk)
 
@@ -111,12 +111,12 @@ class BackupRun(models.Model):
 
         config_path = self.get_config_path()
         if not config_path.parent.is_dir():
-            raise NotADirectoryError("Path %r doesn't exists!" % config_path.parent.path)
+            raise NotADirectoryError(f"Path {config_path.parent.path!r} doesn't exists!")
 
         config = self.make_config()
         with config_path.open("w") as configfile:
             config.write(configfile)
-        log.info("BackupRun config written: %s" % config_path)
+        log.info(f"BackupRun config written: {config_path}")
 
     def save(self, *args, **kwargs):
         super(BackupRun, self).save(*args, **kwargs)
@@ -184,11 +184,7 @@ class ContentInfo(models.Model):
     file_size = models.PositiveIntegerField(help_text=_("The file size in Bytes"))
 
     def __str__(self):
-        return "Hash: %s...%s File Size: %i Bytes" % (
-            self.hash_hexdigest[:4],
-            self.hash_hexdigest[-4:],
-            self.file_size,
-        )
+        return f"Hash: {self.hash_hexdigest[:4]}...{self.hash_hexdigest[-4:]} File Size: {self.file_size:d} Bytes"
 
 
 class BackupEntryManager(models.Manager):
@@ -221,7 +217,7 @@ class BackupEntryManager(models.Manager):
             file_mtime_ns=file_stat.st_mtime_ns,
         )
         path = backup_entry.get_backup_path()
-        assert path.is_file(), "File not exists: %s" % path
+        assert path.is_file(), f"File not exists: {path}"
         assert path.stat().st_mtime_ns == backup_entry.file_mtime_ns
         return backup_entry
 
@@ -245,7 +241,7 @@ class BackupEntry(models.Model):
             self.filename.path_part())
 
     def __str__(self):
-        return "%s %s mtime:%s" % (self.get_backup_path(), self.content_info, self.file_mtime_ns)
+        return f"{self.get_backup_path()} {self.content_info} mtime:{self.file_mtime_ns}"
 
     class Meta:
         ordering = ["-backup_run__backup_datetime"]

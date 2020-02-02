@@ -20,7 +20,7 @@ from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb_cli import cli
 from pyhardlinkbackup.tests.utils import UnittestFileSystemHelper
 
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 BASE_PATH = Path(pyhardlinkbackup.__file__).parent
 
@@ -43,7 +43,7 @@ class BaseTempTestCase(unittest.TestCase):
 
     def setUp(self):
         super(BaseTempTestCase, self).setUp()
-        self.temp_root_path = tempfile.mkdtemp(prefix="%s_" % __name__)
+        self.temp_root_path = tempfile.mkdtemp(prefix=f"{__name__}_")
         os.chdir(self.temp_root_path)
 
     def tearDown(self):
@@ -65,7 +65,7 @@ class BaseTestCase(BaseTempTestCase, TestCase):
         config["unittests"] = ini_extras
         with open(filepath, "w") as ini:
             config.write(ini)
-        print("%r for unittests created." % filepath)
+        print(f"{filepath!r} for unittests created.")
 
         if debug:
             with open(filepath, "r") as ini:
@@ -118,7 +118,7 @@ class BaseTestCase(BaseTempTestCase, TestCase):
         queryset = BackupEntry.objects.all()
         for entry in queryset:
             path = entry.get_backup_path()  # Path2() instance
-            self.assertTrue(os.path.isfile(path.path), "File not found: %r" % path)
+            self.assertTrue(os.path.isfile(path.path), f"File not found: {path!r}")
 
         assert_pformat_equal(queryset.count(), count)
 
@@ -174,7 +174,7 @@ class BaseSourceDirTestCase(BaseTestCase):
         return pathlib.Path(run_path + ".log")
 
     def get_log_content(self, log_filepath):
-        self.assertTrue(log_filepath.is_file(), "%s doesn't exist" % log_filepath)
+        self.assertTrue(log_filepath.is_file(), f"{log_filepath} doesn't exist")
         with log_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
             return f.read()
 
@@ -189,7 +189,7 @@ class BaseSourceDirTestCase(BaseTestCase):
         return pathlib.Path(run_path + " summary.txt")
 
     def get_summary_content(self, summary_filepath):
-        self.assertTrue(summary_filepath.is_file(), "%s doesn't exist" % summary_filepath)
+        self.assertTrue(summary_filepath.is_file(), f"{summary_filepath} doesn't exist")
         with summary_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
             return f.read()
 
@@ -210,7 +210,7 @@ class BaseSourceDirTestCase(BaseTestCase):
 
         assert_pformat_equal(
             len(dirs), count,
-            "dir count: %i != %i - items: %s" % (len(dirs), count, repr(dirs))
+            f"dir count: {len(dirs):d} != {count:d} - items: {repr(dirs)}"
         )
 
         # .log and summary files for every backup run

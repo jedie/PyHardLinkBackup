@@ -1,13 +1,14 @@
 import logging
 
+# https://github.com/jedie/pathlib_revised/
 from pathlib_revised import Path2
 
+# https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.backup_app.models import BackupEntry
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.path_helper import rename2temp
 
-
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 
 def deduplicate(backup_entry, hash_hexdigest):
@@ -16,9 +17,9 @@ def deduplicate(backup_entry, hash_hexdigest):
     try:
         backup_entry.relative_to(abs_dst_root)
     except ValueError as err:
-        raise ValueError("Backup entry not in backup root path: %s" % err)
+        raise ValueError(f"Backup entry not in backup root path: {err}")
 
-    assert backup_entry.is_file(), "Is not a file: %s" % backup_entry.path
+    assert backup_entry.is_file(), f"Is not a file: {backup_entry.path}"
 
     old_backups = BackupEntry.objects.filter(content_info__hash_hexdigest=hash_hexdigest)
     # log.debug("There are %i old backup entries for the hash", old_backups.count())
@@ -35,7 +36,7 @@ def deduplicate(backup_entry, hash_hexdigest):
             continue
 
         if abs_old_backup_path == backup_entry.path:
-            log.warning("Skip own file: %s" % abs_old_backup_path)
+            log.warning(f"Skip own file: {abs_old_backup_path}")
             continue
 
         # TODO: compare hash / current content before replace with a link
@@ -52,20 +53,20 @@ def deduplicate(backup_entry, hash_hexdigest):
             #   https://github.com/jedie/PyHardLinkBackup/issues/13#issuecomment-176241894
             # So we use the destination root directory:
             dst=abs_dst_root,
-            prefix="%s_" % backup_entry.name,
+            prefix=f"{backup_entry.name}_",
             suffix=".tmp",
             tmp_max=10,
         )
-        log.debug("%s was renamed to %s" % (backup_entry, temp_filepath))
+        log.debug(f"{backup_entry} was renamed to {temp_filepath}")
         try:
             abs_old_backup_path.link(backup_entry)  # call os.link()
         except OSError as err:
             temp_filepath.rename(backup_entry)
-            log.error("Can't link '%s' to '%s': %s" % (abs_old_backup_path, backup_entry, err))
+            log.error(f"Can't link '{abs_old_backup_path}' to '{backup_entry}': {err}")
             log.info("Mark %r with 'no link source'.", old_backup)
             old_backup.no_link_source = True
             old_backup.save()
         else:
             temp_filepath.unlink()  # FIXME
-            log.info("Replaced with a hardlink to: '%s'" % abs_old_backup_path)
+            log.info(f"Replaced with a hardlink to: '{abs_old_backup_path}'")
             return old_backup

@@ -4,12 +4,13 @@ import os
 import sys
 import tempfile
 
+# https://github.com/jedie/pathlib_revised/
 from pathlib_revised import Path2
 
+# https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.phlb.config import phlb_config
 
-
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 
 def get_tempname(path, prefix="", suffix=""):
@@ -29,7 +30,7 @@ def rename2temp(src, dst, prefix="", suffix="", tmp_max=10):
             continue
         else:
             return temp_filepath
-    raise OSError("Can't find useable temp name! Have tried %i variants." % tmp_max)
+    raise OSError(f"Can't find useable temp name! Have tried {tmp_max:d} variants.")
 
 
 class PathHelper:
@@ -73,7 +74,7 @@ class PathHelper:
         log.debug(" * abs_src_root: '%s'", self.abs_src_root)
 
         if not self.abs_src_root.is_dir():
-            raise OSError("Source path '%s' doesn't exists!" % self.abs_src_root)
+            raise OSError(f"Source path '{self.abs_src_root}' doesn't exists!")
 
         self.src_prefix_path = self.abs_src_root.parent
         log.debug(" * src_prefix_path: '%s'", self.src_prefix_path)
@@ -115,26 +116,26 @@ class PathHelper:
         """
         log.debug("set_src_filepath() with: '%s'", src_dir_path)
         self.abs_src_filepath = src_dir_path.resolved_path
-        log.debug(" * abs_src_filepath: %s" % self.abs_src_filepath)
+        log.debug(f" * abs_src_filepath: {self.abs_src_filepath}")
 
         if self.abs_src_filepath is None:
             log.info("Can't resolve source path: %s", src_dir_path)
             return
 
         self.sub_filepath = self.abs_src_filepath.relative_to(self.abs_src_root)
-        log.debug(" * sub_filepath: %s" % self.sub_filepath)
+        log.debug(f" * sub_filepath: {self.sub_filepath}")
 
         self.sub_path = self.sub_filepath.parent
-        log.debug(" * sub_path: %s" % self.sub_path)
+        log.debug(f" * sub_path: {self.sub_path}")
 
         self.filename = self.sub_filepath.name
-        log.debug(" * filename: %s" % self.filename)
+        log.debug(f" * filename: {self.filename}")
 
         self.abs_dst_path = Path2(self.abs_dst_root, self.sub_path)
-        log.debug(" * abs_dst_path: %s" % self.abs_dst_path)
+        log.debug(f" * abs_dst_path: {self.abs_dst_path}")
 
         self.abs_dst_filepath = Path2(self.abs_dst_root, self.sub_filepath)
-        log.debug(" * abs_dst_filepath: %s" % self.abs_dst_filepath)
+        log.debug(f" * abs_dst_filepath: {self.abs_dst_filepath}")
 
-        self.abs_dst_hash_filepath = Path2("%s%s%s" % (self.abs_dst_filepath, os.extsep, phlb_config.hash_name))
-        log.debug(" * abs_dst_hash_filepath: %s" % self.abs_dst_hash_filepath)
+        self.abs_dst_hash_filepath = Path2(f"{self.abs_dst_filepath}{os.extsep}{phlb_config.hash_name}")
+        log.debug(f" * abs_dst_hash_filepath: {self.abs_dst_hash_filepath}")

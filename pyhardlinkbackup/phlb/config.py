@@ -13,7 +13,7 @@ import click
 # https://github.com/jedie/pathlib_revised/
 from pathlib_revised import Path2
 
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 CONFIG_FILENAME = "pyhardlinkbackup.ini"
 DEAFULT_CONFIG_FILENAME = "config_defaults.ini"
@@ -71,7 +71,7 @@ INI_CONVERTER_DICT = {
 
 
 def get_dict_from_ini(filepath):
-    log.debug("Read config '%s'" % filepath)
+    log.debug(f"Read config '{filepath}'")
     parser = configparser.ConfigParser(interpolation=None)
     parser.read_file(filepath.open("r"))
 
@@ -84,7 +84,7 @@ def get_dict_from_ini(filepath):
 
 
 def get_user_ini_filepath():
-    return Path2("~/%s" % CONFIG_FILENAME).expanduser()
+    return Path2(f"~/{CONFIG_FILENAME}").expanduser()
 
 
 def get_ini_search_paths():
@@ -120,7 +120,7 @@ def edit_ini(ini_filepath=None):
     try:
         click.edit(filename=ini_filepath)
     except click.exceptions.ClickException as err:
-        print("Click err: %s" % err)
+        print(f"Click err: {err}")
         webbrowser.open(ini_filepath)
 
 
@@ -149,7 +149,7 @@ class pyhardlinkbackupConfig:
 
     def __repr__(self):
         self._load()
-        return "'%s' with '%s'" % (self.ini_filepath, self._config)
+        return f"'{self.ini_filepath}' with '{self._config}'"
 
     def open_editor(self):
         self._load()
@@ -170,8 +170,8 @@ class pyhardlinkbackupConfig:
             except KeyError as err:
                 traceback.print_exc()
                 print("_" * 79)
-                print("ERROR: %r is missing in your config!" % err)
-                print("Debug '%s':" % filepath)
+                print(f"ERROR: {err!r} is missing in your config!")
+                print(f"Debug '{filepath}':")
                 try:
                     print(pprint.pformat(d))
                 except KeyError:
@@ -186,7 +186,7 @@ class pyhardlinkbackupConfig:
                     value = func(value)
                 except (KeyError, ValueError) as err:
                     edit_ini(self.ini_filepath)
-                    raise Exception("%s - .ini file: '%s'" % (err, self.ini_filepath))
+                    raise Exception(f"{err} - .ini file: '{self.ini_filepath}'")
 
             result[key] = value
         return result
@@ -196,11 +196,10 @@ class pyhardlinkbackupConfig:
         returns the config as a dict.
         """
         default_config_filepath = Path2(os.path.dirname(__file__), DEAFULT_CONFIG_FILENAME)
-        log.debug("Read defaults from: '%s'" % default_config_filepath)
+        log.debug(f"Read defaults from: '{default_config_filepath}'")
         if not default_config_filepath.is_file():
             raise RuntimeError(
-                "Internal error: Can't locate the default .ini file here: '%s'" %
-                default_config_filepath)
+                f"Internal error: Can't locate the default .ini file here: '{default_config_filepath}'")
         config = self._read_and_convert(default_config_filepath, all_values=True)
         log.debug("Defaults: %s", pprint.pformat(config))
 
@@ -218,12 +217,12 @@ class pyhardlinkbackupConfig:
 
             print("\n*************************************************************")
             print("Default config file was created into your home:")
-            print("\t%s" % self.ini_filepath)
+            print(f"\t{self.ini_filepath}")
             print("Change it for your needs ;)")
             print("*************************************************************\n")
         else:
             print("\nread user configuration from:")
-            print("\t%s\n" % self.ini_filepath)
+            print(f"\t{self.ini_filepath}\n")
             config.update(self._read_and_convert(self.ini_filepath, all_values=False))
             log.debug("RawConfig changed to: %s", pprint.pformat(config))
 
@@ -231,7 +230,7 @@ class pyhardlinkbackupConfig:
 
     def print_config(self):
         self._load()
-        print("Debug config '%s':" % self.ini_filepath)
+        print(f"Debug config '{self.ini_filepath}':")
         pprint.pprint(self._config)
 
 
@@ -246,7 +245,7 @@ if __name__ == "__main__":
 
     phlb_config = pyhardlinkbackupConfig(INI_CONVERTER_DICT)
 
-    print("INI filepath: '%s'" % phlb_config.ini_filepath)
+    print(f"INI filepath: '{phlb_config.ini_filepath}'")
     pprint.pprint(phlb_config)
 
     print()

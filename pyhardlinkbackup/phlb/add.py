@@ -15,7 +15,7 @@ import django
 from click._compat import strip_ansi
 
 # https://github.com/jedie/pathlib_revised/
-from pathlib_revised import Path2, DirEntryPath
+from pathlib_revised import DirEntryPath, Path2
 
 # https://github.com/jedie/IterFilesystem
 from iterfilesystem.humanize import human_filesize
@@ -35,10 +35,10 @@ try:
     # https://github.com/tqdm/tqdm
     from tqdm import tqdm
 except ImportError as err:
-    raise ImportError("Please install 'tqdm': %s" % err)
+    raise ImportError(f"Please install 'tqdm': {err}")
 
 
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 
 def calculate_hash(f, callback):
@@ -97,7 +97,7 @@ def add_dir_entry(backup_run, dir_entry_path, process_bar, result):
 
     backup_entry = Path2(dir_entry_path.path)
     filesize = dir_entry_path.stat.st_size
-    hash_filepath = Path2("%s%s%s" % (backup_entry.path, os.extsep, phlb_config.hash_name))
+    hash_filepath = Path2(f"{backup_entry.path}{os.extsep}{phlb_config.hash_name}")
     if hash_filepath.is_file():
         with hash_filepath.open("r") as hash_file:
             hash_hexdigest = hash_file.read().strip()
@@ -141,7 +141,7 @@ def add_dir_entries(backup_run, filtered_dir_entries, result):
             except Exception as err:
                 # A unexpected error occurred.
                 # Print and add traceback to summary
-                log.error("Can't backup %s: %s" % (dir_entry, err))
+                log.error(f"Can't backup {dir_entry}: {err}")
                 for line in exc_plus():
                     log.error(strip_ansi(line))
 
@@ -154,7 +154,7 @@ def add_backup_entries(backup_run, result):
         stats_helper=stats_helper,
         skip_dir_patterns=(),
         skip_file_patterns=(
-            "*.%s" % phlb_config.hash_name,  # skip all existing hash files
+            f"*.{phlb_config.hash_name}",  # skip all existing hash files
             BACKUP_RUN_CONFIG_FILENAME,  # skip phlb_config.ini
         ),
         verbose=True
@@ -164,14 +164,14 @@ def add_backup_entries(backup_run, result):
 
 
 def add_backup_run(backup_run_path):
-    print("*** add backup run: %s" % backup_run_path.path)
+    print(f"*** add backup run: {backup_run_path.path}")
 
     backup_name = backup_run_path.parent.stem
     date_part = backup_run_path.stem
     try:
         backup_datetime = datetime.datetime.strptime(date_part, phlb_config.sub_dir_formatter)
     except ValueError as err:
-        print("\nERROR parsing datetime from given path: %s" % err)
+        print(f"\nERROR parsing datetime from given path: {err}")
         print(" * Is the given path right?")
         print()
         return
@@ -182,7 +182,7 @@ def add_backup_run(backup_run_path):
         completed=False)
     result = DeduplicateResult()
     add_backup_entries(backup_run, result)
-    print("*** backup run %s - %s added:" % (backup_name, date_part))
+    print(f"*** backup run {backup_name} - {date_part} added:")
     total_size = result.get_total_size()
     print(
         " * new content saved: %i files (%s %.1f%%)"
@@ -206,11 +206,11 @@ def add_backup_name(backup_name_path):
     backup_runs = scandir_limited(backup_name_path.path, limit=1)
     for dir_entry in backup_runs:
         backup_run_path = Path2(dir_entry.path)
-        print(" * %s" % backup_run_path.stem)
+        print(f" * {backup_run_path.stem}")
         try:
             backup_run = BackupRun.objects.get_from_config_file(backup_run_path)
         except (FileNotFoundError, BackupRun.DoesNotExist) as err:
-            print("Error: %s" % err)
+            print(f"Error: {err}")
             # no phlb_config.ini
             add_backup_run(backup_run_path)
         else:
@@ -223,8 +223,5 @@ def add_all_backups():
     for dir_entry in backup_names:
         backup_name_path = Path2(dir_entry.path)
         print("_" * 79)
-        print("'%s' (path: %s)" % (backup_name_path.stem, backup_name_path.path))
+        print(f"'{backup_name_path.stem}' (path: {backup_name_path.path})")
         add_backup_name(backup_name_path)
-
-
-

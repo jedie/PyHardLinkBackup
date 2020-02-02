@@ -8,7 +8,7 @@ from pyhardlinkbackup.backup_app.models import BackupEntry
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.deduplicate import deduplicate
 
-log = logging.getLogger("phlb.%s" % __name__)
+log = logging.getLogger(f"phlb.{__name__}")
 
 
 class BackupFileError(Exception):
@@ -101,18 +101,17 @@ class FileBackup:
                 self.worker.path_helper.abs_dst_path.makedirs(
                     mode=phlb_config.default_new_path_mode)
             except OSError as err:
-                raise BackupFileError("Error creating out path: %s" % err)
+                raise BackupFileError(f"Error creating out path: {err}")
         else:
             assert not self.worker.path_helper.abs_dst_filepath.is_file(), (
-                "Out file already exists: %r" % self.worker.path_helper.abs_src_filepath
+                f"Out file already exists: {self.worker.path_helper.abs_src_filepath!r}"
             )
 
         with self.worker.path_helper.abs_dst_hash_filepath.open("w") as hash_file:
             try:
                 old_file_path.link(self.worker.path_helper.abs_dst_filepath)  # call os.link()
             except OSError as err:
-                log.error("Can't link '%s' to '%s': %s" % (
-                    old_file_path, self.worker.path_helper.abs_dst_filepath, err))
+                log.error(f"Can't link '{old_file_path}' to '{self.worker.path_helper.abs_dst_filepath}': {err}")
                 log.info("Mark %r with 'no link source'.", old_backup_entry)
                 old_backup_entry.no_link_source = True
                 old_backup_entry.save()
@@ -156,10 +155,10 @@ class FileBackup:
                 self.worker.path_helper.abs_dst_path.makedirs(
                     mode=phlb_config.default_new_path_mode)
             except OSError as err:
-                raise BackupFileError("Error creating out path: %s" % err)
+                raise BackupFileError(f"Error creating out path: {err}")
         else:
             assert not self.worker.path_helper.abs_dst_filepath.is_file(), (
-                "Out file already exists: %r" % self.worker.path_helper.abs_src_filepath
+                f"Out file already exists: {self.worker.path_helper.abs_src_filepath!r}"
             )
 
         try:
@@ -178,8 +177,7 @@ class FileBackup:
             except OSError as err:
                 # FIXME: Better error message
                 raise BackupFileError(
-                    "Skip file %s error: %s" %
-                    (self.worker.path_helper.abs_src_filepath, err))
+                    f"Skip file {self.worker.path_helper.abs_src_filepath} error: {err}")
         except KeyboardInterrupt:
             # Try to remove created files
             try:
@@ -199,14 +197,14 @@ class FileBackup:
             log.debug("File is unique.")
             self.file_linked = False  # Was a hardlink used?
         else:
-            log.debug("File was deduplicated via hardlink to: %s" % old_backup_entry)
+            log.debug(f"File was deduplicated via hardlink to: {old_backup_entry}")
             self.file_linked = True  # Was a hardlink used?
 
         # set origin access/modified times to the new created backup file
         atime_ns = self.dir_path.stat.st_atime_ns
         mtime_ns = self.dir_path.stat.st_mtime_ns
         self.worker.path_helper.abs_dst_filepath.utime(ns=(atime_ns, mtime_ns))  # call os.utime()
-        log.debug("Set mtime to: %s" % mtime_ns)
+        log.debug(f"Set mtime to: {mtime_ns}")
 
         BackupEntry.objects.create(
             backup_run=self.worker.backup_run,

@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
+# https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.backup_app import views
 
 urlpatterns = [

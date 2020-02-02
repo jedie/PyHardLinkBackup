@@ -1,15 +1,16 @@
 import sys
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
-from django.contrib import messages
 
+# https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.phlb.config import phlb_config
 
 
 def _print_and_message(request, msg, level=messages.WARNING):
-    print(" *** %s ***" % msg, file=sys.stderr)
+    print(f" *** {msg} ***", file=sys.stderr)
     messages.add_message(request, level, msg)
 
 
@@ -44,6 +45,6 @@ class AlwaysLoggedInAsSuperUser:
             user.set_password(settings.DEFAULT_USERPASS)
             user.save()
 
-        _print_and_message(request, "Autologin applyed. Your logged in as %r" % settings.DEFAULT_USERNAME)
+        _print_and_message(request, f"Autologin applyed. Your logged in as {settings.DEFAULT_USERNAME!r}")
         user = authenticate(username=settings.DEFAULT_USERNAME, password=settings.DEFAULT_USERPASS)
         login(request, user)
