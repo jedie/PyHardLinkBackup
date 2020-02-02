@@ -35,7 +35,6 @@ INSTALLED_APPS = (
     "pyhardlinkbackup.backup_app",
 )
 ROOT_URLCONF = "pyhardlinkbackup.django_project.urls"
-WSGI_APPLICATION = "pyhardlinkbackup.django_project.wsgi.application"
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
