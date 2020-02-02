@@ -1,18 +1,17 @@
 import configparser
-import os
 import logging
-import pathlib
 
 from django.db import models
-from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 from django.db.backends.signals import connection_created
+from django.utils.translation import ugettext_lazy as _
 
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+# https://github.com/jedie/pathlib_revised/
+from pathlib_revised import Path2
 
+# https://github.com/jedie/PyHardLinkBackup
 from PyHardLinkBackup.phlb import BACKUP_RUN_CONFIG_FILENAME, INTERNAL_FILES
-from PyHardLinkBackup.phlb.human import dt2naturaltimesince
 from PyHardLinkBackup.phlb.config import phlb_config
+from PyHardLinkBackup.phlb.humanize import dt2naturaltimesince
 
 log = logging.getLogger("phlb.%s" % __name__)
 
@@ -20,7 +19,10 @@ log = logging.getLogger("phlb.%s" % __name__)
 def setup_sqlite(sender, connection, **kwargs):
     if connection.vendor == "sqlite":
         cursor = connection.cursor()
-        pragmas = ("PRAGMA journal_mode = MEMORY;", "PRAGMA temp_store = MEMORY;", "PRAGMA synchronous = OFF;")
+        pragmas = (
+            "PRAGMA journal_mode = MEMORY;",
+            "PRAGMA temp_store = MEMORY;",
+            "PRAGMA synchronous = OFF;")
         for pragma in pragmas:
             log.info("Execute: '%s'" % pragma)
             cursor.execute(pragma)
@@ -89,7 +91,11 @@ class BackupRun(models.Model):
     objects = BackupRunManager()
 
     def path_part(self):
-        return Path2(phlb_config.backup_path, self.name, self.backup_datetime.strftime(phlb_config.sub_dir_formatter))
+        return Path2(
+            phlb_config.backup_path,
+            self.name,
+            self.backup_datetime.strftime(
+                phlb_config.sub_dir_formatter))
 
     def get_config_path(self):
         return build_config_path(self.path_part())
@@ -138,9 +144,8 @@ class BackupDir(models.Model):
     Unique sub path of backup files.
     """
 
-    directory = models.CharField(
-        max_length=1024, unique=True, help_text=_("The path in the backup without datetime and filename")
-    )
+    directory = models.CharField(max_length=1024, unique=True, help_text=_(
+        "The path in the backup without datetime and filename"))
 
     def path_part(self):
         return Path2(self.directory)
@@ -154,7 +159,10 @@ class BackupFilename(models.Model):
     Unique Filename.
     """
 
-    filename = models.CharField(max_length=1024, unique=True, help_text=_("Filename of one file in backup"))
+    filename = models.CharField(
+        max_length=1024,
+        unique=True,
+        help_text=_("Filename of one file in backup"))
 
     def save(self, *args, **kwargs):
         # e.g: Test if 'phlb_config.ini' should be added
@@ -169,7 +177,10 @@ class BackupFilename(models.Model):
 
 
 class ContentInfo(models.Model):
-    hash_hexdigest = models.CharField(max_length=128, unique=True, help_text=_("Hash (hexdigest) of the file content"))
+    hash_hexdigest = models.CharField(
+        max_length=128,
+        unique=True,
+        help_text=_("Hash (hexdigest) of the file content"))
     file_size = models.PositiveIntegerField(help_text=_("The file size in Bytes"))
 
     def __str__(self):
@@ -189,7 +200,13 @@ class BackupEntryManager(models.Manager):
         filename = backup_entry_path.name
         file_stat = backup_entry_path.stat()
 
-        log.debug("Save: %r %r %r %r %r", backup_run, directory, filename, hash_hexdigest, file_stat)
+        log.debug(
+            "Save: %r %r %r %r %r",
+            backup_run,
+            directory,
+            filename,
+            hash_hexdigest,
+            file_stat)
         directory, created = BackupDir.objects.get_or_create(directory=directory)
         filename, created = BackupFilename.objects.get_or_create(filename=filename)
         content_info, created = ContentInfo.objects.get_or_create(
@@ -214,17 +231,18 @@ class BackupEntry(models.Model):
     directory = models.ForeignKey(BackupDir)
     filename = models.ForeignKey(BackupFilename)
     content_info = models.ForeignKey(ContentInfo)
-    file_mtime_ns = models.PositiveIntegerField(
-        help_text=_("Time of most recent content modification expressed in nanoseconds as an integer.")
-    )
-    no_link_source = models.BooleanField(
-        default=False, help_text=_("Can this file be used as a hardlink source? (Will be set if a os.link() failed.)")
-    )
+    file_mtime_ns = models.PositiveIntegerField(help_text=_(
+        "Time of most recent content modification expressed in nanoseconds as an integer."))
+    no_link_source = models.BooleanField(default=False, help_text=_(
+        "Can this file be used as a hardlink source? (Will be set if a os.link() failed.)"))
 
     objects = BackupEntryManager()
 
     def get_backup_path(self):
-        return Path2(self.backup_run.path_part(), self.directory.path_part(), self.filename.path_part())
+        return Path2(
+            self.backup_run.path_part(),
+            self.directory.path_part(),
+            self.filename.path_part())
 
     def __str__(self):
         return "%s %s mtime:%s" % (self.get_backup_path(), self.content_info, self.file_mtime_ns)

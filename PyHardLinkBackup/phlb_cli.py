@@ -10,8 +10,11 @@ import os
 import sys
 
 import click
+import django
 
 # https://github.com/jedie/PyHardLinkBackup
+from django.core import management
+
 import PyHardLinkBackup
 from PyHardLinkBackup.phlb.config import phlb_config
 
@@ -109,9 +112,10 @@ cli.add_command(config)
 @click.option("--name", help="Force a backup name (If not set: Use parent directory name)")
 def backup(path, name=None):
     """Start a Backup run"""
-    from PyHardLinkBackup.phlb.phlb_main import backup
-
+    django.setup()
+    from PyHardLinkBackup.phlb.main import backup
     backup(path, name)
+    print('Backup done.')
 
 
 cli.add_command(backup)
@@ -132,8 +136,8 @@ cli.add_command(backup)
               help="Don't compare real file content (Skip calculate hash)")
 def verify(backup_path, fast):
     """Verify a existing backup"""
+    django.setup()
     from PyHardLinkBackup.phlb.verify import verify_backup
-
     verify_backup(backup_path, fast)
 
 
@@ -143,9 +147,9 @@ cli.add_command(verify)
 @click.command()
 def add():
     """Scan all existing backup and add missing ones to database."""
-    from PyHardLinkBackup.phlb.add import add_backups
-
-    add_backups()
+    django.setup()
+    from PyHardLinkBackup.backup_app.management.commands import add
+    management.call_command(add.Command())
 
 
 cli.add_command(add)

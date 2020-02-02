@@ -1,20 +1,17 @@
-import inspect
-import traceback
-
-import shutil
-import os
-import sys
-import logging
-import pprint
-import hashlib
-import datetime
-import webbrowser
 import configparser
+import datetime
+import hashlib
+import logging
+import os
+import pprint
+import traceback
+import webbrowser
 
 # https://github.com/mitsuhiko/click
 import click
 
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+# https://github.com/jedie/pathlib_revised/
+from pathlib_revised import Path2
 
 log = logging.getLogger("phlb.%s" % __name__)
 
@@ -117,7 +114,7 @@ def edit_ini(ini_filepath=None):
     """
     Open the .ini file with the operating system’s associated editor.
     """
-    if ini_filepath == None:
+    if ini_filepath is None:
         ini_filepath = get_ini_filepath()
 
     try:
@@ -127,7 +124,7 @@ def edit_ini(ini_filepath=None):
         webbrowser.open(ini_filepath)
 
 
-class PyHardLinkBackupConfig(object):
+class PyHardLinkBackupConfig:
     ini_filepath = None
     _config = None
 
@@ -202,8 +199,8 @@ class PyHardLinkBackupConfig(object):
         log.debug("Read defaults from: '%s'" % default_config_filepath)
         if not default_config_filepath.is_file():
             raise RuntimeError(
-                "Internal error: Can't locate the default .ini file here: '%s'" % default_config_filepath
-            )
+                "Internal error: Can't locate the default .ini file here: '%s'" %
+                default_config_filepath)
         config = self._read_and_convert(default_config_filepath, all_values=True)
         log.debug("Defaults: %s", pprint.pformat(config))
 

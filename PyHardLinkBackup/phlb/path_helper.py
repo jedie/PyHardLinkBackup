@@ -4,7 +4,7 @@ import os
 import sys
 import tempfile
 
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2
 
 from PyHardLinkBackup.phlb.config import phlb_config
 
@@ -32,7 +32,7 @@ def rename2temp(src, dst, prefix="", suffix="", tmp_max=10):
     raise OSError("Can't find useable temp name! Have tried %i variants." % tmp_max)
 
 
-class PathHelper(object):
+class PathHelper:
     """
     e.g.: backup run called with: /abs/source/path/source_root
 

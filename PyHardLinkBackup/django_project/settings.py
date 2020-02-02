@@ -10,10 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import tempfile
 
-
+# https://github.com/jedie/PyHardLinkBackup
 from PyHardLinkBackup.phlb.config import phlb_config as _phlb_config
 
 # _phlb_config.print_config()
@@ -93,8 +94,10 @@ TEMPLATES = [
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": _phlb_config.database_name, "TEST_NAME": ":memory:"}
-}
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": _phlb_config.database_name,
+        "TEST_NAME": ":memory:"}}
 print("Use Database file: '%s'" % DATABASES["default"]["NAME"])
 
 # Internationalization
@@ -115,7 +118,6 @@ USE_L10N = True
 
 STATIC_URL = "/static/"
 
-import tempfile
 
 fd, LOG_FILEPATH = tempfile.mkstemp(prefix="PyHardLinkBackup_", suffix=".log")
 print("temp log file: %s" % LOG_FILEPATH)
@@ -137,8 +139,15 @@ LOGGING = {
     "disable_existing_loggers": True,
     # "disable_existing_loggers": False,
     "handlers": {
-        "console": {"class": "logging.StreamHandler", "level": _phlb_config.logging_console_level},
-        "file": {"class": "logging.FileHandler", "filename": LOG_FILEPATH, "level": _phlb_config.logging_file_level},
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": _phlb_config.logging_console_level
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": LOG_FILEPATH,
+            "level": _phlb_config.logging_file_level
+        },
     },
     "loggers": {
         "django": {"handlers": ["file"], "level": "INFO", "propagate": False},

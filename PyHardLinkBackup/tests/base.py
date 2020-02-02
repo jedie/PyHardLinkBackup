@@ -10,12 +10,13 @@ from pathlib import Path
 
 from click.testing import CliRunner
 from django.test import TestCase
+from django_tools.unittest_utils.assertments import assert_pformat_equal
 
 # https://github.com/jedie/PyHardLinkBackup
 import PyHardLinkBackup
 from PyHardLinkBackup.backup_app.models import BackupEntry
+from PyHardLinkBackup.phlb.backup import FileBackup
 from PyHardLinkBackup.phlb.config import phlb_config
-from PyHardLinkBackup.phlb.phlb_main import FileBackup
 from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 
@@ -119,7 +120,7 @@ class BaseTestCase(BaseTempTestCase, TestCase):
             path = entry.get_backup_path()  # Path2() instance
             self.assertTrue(os.path.isfile(path.path), "File not found: %r" % path)
 
-        self.assertEqual(queryset.count(), count)
+        assert_pformat_equal(queryset.count(), count)
 
     def assert_mtime_ns(self, mtime_ns1, mtime_ns2):
         if sys.platform.startswith("win"):
@@ -128,7 +129,7 @@ class BaseTestCase(BaseTempTestCase, TestCase):
             mtime_ns1 = int(mtime_ns1 / 100) * 100
             mtime_ns2 = int(mtime_ns2 / 100) * 100
 
-        self.assertEqual(mtime_ns1, mtime_ns2)
+        assert_pformat_equal(mtime_ns1, mtime_ns2)
 
     def assert_file_mtime_ns(self, filepath, mtime_ns):
         file_mtime_ns = os.stat(str(filepath)).st_mtime_ns
@@ -207,14 +208,19 @@ class BaseSourceDirTestCase(BaseTestCase):
             if item.is_dir(follow_symlinks=False):
                 dirs.append(item)
 
-        self.assertEqual(
-            len(dirs), count, "dir count: %i != %i - items: %s" %
-            (len(dirs), count, repr(dirs)))
+        assert_pformat_equal(
+            len(dirs), count,
+            "dir count: %i != %i - items: %s" % (len(dirs), count, repr(dirs))
+        )
 
-        # .log and summay files for every backup run
+        # .log and summary files for every backup run
         file_count = count * 2
-        self.assertEqual(len(files), file_count, "files count: %i != %i - items:\n%s" %
-                         (len(files), file_count, "\n".join([repr(f) for f in files])), )
+        assert_pformat_equal(
+            len(files), file_count,
+            "files count: %i != %i - items:\n%s" % (
+                len(files), file_count, "\n".join([repr(f) for f in files])
+            )
+        )
 
 
 class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):

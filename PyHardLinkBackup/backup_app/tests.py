@@ -1,17 +1,19 @@
-from unittest import mock
 
-import os
+
 import datetime
-import hashlib
+import os
 
-from PyHardLinkBackup.backup_app.models import BackupRun, BackupEntry
+# https://github.com/jedie/PyHardLinkBackup
+from PyHardLinkBackup.backup_app.models import BackupRun
 from PyHardLinkBackup.tests.base import BaseTestCase
 
 
 class ModelTests(BaseTestCase):
     def test_path(self):
         test_backup_name = "Unittest"
-        test_datetime = datetime.datetime(2016, 1, 2, hour=3, minute=4, second=5, microsecond=123456)
+        test_datetime = datetime.datetime(
+            2016, 1, 2, hour=3, minute=4, second=5, microsecond=123456
+        )
 
         test_backup_run = BackupRun(name=test_backup_name, backup_datetime=test_datetime)
         backup_path = test_backup_run.path_part()

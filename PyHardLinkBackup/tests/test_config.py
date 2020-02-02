@@ -1,16 +1,12 @@
 import os
-import sys
-import unittest
-
-from django.conf import settings
 
 from click.testing import CliRunner
+from django.conf import settings
+from django_tools.unittest_utils.assertments import assert_pformat_equal
 
+# https://github.com/jedie/PyHardLinkBackup
 from PyHardLinkBackup.phlb.config import phlb_config
-
-from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.base import BaseTestCase
-
 
 USER_INI_PATH = os.path.join(os.path.expanduser("~"), "PyHardLinkBackup.ini")
 
@@ -32,7 +28,7 @@ class TestConfig(BaseTestCase):
         self.assertIn("'database_name': ':memory:',", result.output)
         self.assertIn("'default_new_path_mode': 448,", result.output)
         self.assertIn("'hash_name': 'sha512',", result.output)
-        self.assertEqual(result.exit_code, 0)
+        assert_pformat_equal(result.exit_code, 0)
 
         # go into a new temp dir, without a .ini:
         runner = CliRunner()
@@ -75,4 +71,4 @@ class TestConfig(BaseTestCase):
             self.assertIn(ini_path, result.output)
 
             self.assertIn("'hash_name': 'md5',", result.output)
-            self.assertEqual(result.exit_code, 0)
+            assert_pformat_equal(result.exit_code, 0)

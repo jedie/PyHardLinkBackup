@@ -1,6 +1,6 @@
 import logging
 
-from pathlib_revised import Path2  # https://github.com/jedie/pathlib revised/
+from pathlib_revised import Path2
 
 from PyHardLinkBackup.backup_app.models import BackupEntry
 from PyHardLinkBackup.phlb.config import phlb_config
@@ -35,7 +35,7 @@ def deduplicate(backup_entry, hash_hexdigest):
             continue
 
         if abs_old_backup_path == backup_entry.path:
-            log.warn("Skip own file: %s" % abs_old_backup_path)
+            log.warning("Skip own file: %s" % abs_old_backup_path)
             continue
 
         # TODO: compare hash / current content before replace with a link

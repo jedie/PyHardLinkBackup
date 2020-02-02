@@ -10,7 +10,7 @@ def force_posixpath(path):
     return posixpath.normpath(path.replace(os.sep, "/"))
 
 
-class UnittestFileSystemHelper(object):
+class UnittestFileSystemHelper:
     """
     Creates test files in filesystem.
     Every test file has his own mtime. So that the order
@@ -120,7 +120,7 @@ class PatchOpen:
 
     with mock.patch('io.open', PatchOpen(open, deny_paths)) as p:
         io.open("foo", "r")
-        self.assertEqual(p.raise_count, 0)
+        assert_pformat_equal(p.raise_count, 0)
     """
 
     def __init__(self, origin_open, deny_paths):

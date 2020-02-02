@@ -1,8 +1,6 @@
-# coding: utf-8
+from django.db import migrations
 
-
-from django.db import migrations, models
-
+# https://github.com/jedie/PyHardLinkBackup
 from PyHardLinkBackup.backup_app.models import BackupRun as OriginBackupRun
 
 
