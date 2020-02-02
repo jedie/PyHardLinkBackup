@@ -237,8 +237,8 @@ category = "main"
 description = "Multiprocess directory iteration via os.scandir() with progress indicator via tqdm bars."
 name = "iterfilesystem"
 optional = false
-python-versions = ">=3.6"
-version = "1.3.1"
+python-versions = ">=3.6,<4.0"
+version = "1.4.0"
 
 [package.dependencies]
 psutil = "*"
@@ -317,7 +317,7 @@ description = "Helper to build and upload a project that used poetry to PyPi, wi
 name = "poetry-publish"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.2.2"
+version = "0.2.3"
 
 [package.dependencies]
 python-creole = ">=1.4.2,<2.0.0"
@@ -701,9 +701,8 @@ isort = [
     {file = "isort-4.3.21.tar.gz", hash = "sha256:54da7e92468955c4fceacd0c86bd0ec997b0e1ee80d97f67c35a78b719dccab1"},
 ]
 iterfilesystem = [
-    {file = "iterfilesystem-1.3.1-py2.py3-none-any.whl", hash = "sha256:bb8d6d7d0db70fc10e68e9387ddf2cd5414847e2edff135eb27b9b396d4bec86"},
-    {file = "iterfilesystem-1.3.1-py3.6.egg", hash = "sha256:88d1b8198e8d03342fc148703df58ed40923cb78a17ab129537b676f67010a78"},
-    {file = "iterfilesystem-1.3.1.tar.gz", hash = "sha256:32f458fea0c606adc21c113e4379f7b9845c7f4bb498b63dc27e33363a419421"},
+    {file = "IterFilesystem-1.4.0-py3-none-any.whl", hash = "sha256:d7b864492c29a03e94c1e6c458574d55e627a014489d5f568eb5d6329b48d204"},
+    {file = "IterFilesystem-1.4.0.tar.gz", hash = "sha256:ba9334f0d06dd955f9860e4a81b5c9d9b239f5f3b9f13d2e673a9cada665284b"},
 ]
 lxml = [
     {file = "lxml-4.5.0-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:0701f7965903a1c3f6f09328c1278ac0eee8f56f244e66af79cb224b7ef3801c"},
@@ -756,8 +755,8 @@ pluggy = [
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
 ]
 poetry-publish = [
-    {file = "poetry-publish-0.2.2.tar.gz", hash = "sha256:cecb2183cbd3bcc6ab83a4f464e4bfc59f960d23376a3cc803d7067a41f9dfe4"},
-    {file = "poetry_publish-0.2.2-py3-none-any.whl", hash = "sha256:b0d29335af89f15c7387d34b0dfa2b69aa889760e219dc0acac84d518c161594"},
+    {file = "poetry-publish-0.2.3.tar.gz", hash = "sha256:01f4a29da89140074f4de45120a801ea3b527af2897b0d4f103d960457e69239"},
+    {file = "poetry_publish-0.2.3-py3-none-any.whl", hash = "sha256:8bf2e20751340e707834050d2b477d4e6bbc4f9cd37f6675df7b354aec2c9cc8"},
 ]
 pprintpp = [
     {file = "pprintpp-0.4.0-py2.py3-none-any.whl", hash = "sha256:b6b4dcdd0c0c0d75e4d7b2f21a9e933e5b2ce62b26e1a54537f9651ae5a5c01d"},
