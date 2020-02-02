@@ -5,7 +5,7 @@ from click.testing import CliRunner
 
 # https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.phlb import BACKUP_RUN_CONFIG_FILENAME
-from pyhardlinkbackup.phlb_cli import cli
+from pyhardlinkbackup.phlb.cli import cli
 from pyhardlinkbackup.tests.base import BaseCreatedOneBackupsTestCase
 
 

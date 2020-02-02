@@ -4,7 +4,7 @@ from click.testing import CliRunner
 from django_tools.unittest_utils.assertments import assert_pformat_equal
 
 # https://github.com/jedie/PyHardLinkBackup
-from pyhardlinkbackup.phlb_cli import cli
+from pyhardlinkbackup.phlb.cli import cli
 
 
 class TestCli(unittest.TestCase):

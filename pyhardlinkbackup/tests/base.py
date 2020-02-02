@@ -16,8 +16,8 @@ from django_tools.unittest_utils.assertments import assert_pformat_equal
 import pyhardlinkbackup
 from pyhardlinkbackup.backup_app.models import BackupEntry
 from pyhardlinkbackup.phlb.backup import FileBackup
+from pyhardlinkbackup.phlb.cli import cli
 from pyhardlinkbackup.phlb.config import phlb_config
-from pyhardlinkbackup.phlb_cli import cli
 from pyhardlinkbackup.tests.utils import UnittestFileSystemHelper
 
 log = logging.getLogger(f"phlb.{__name__}")

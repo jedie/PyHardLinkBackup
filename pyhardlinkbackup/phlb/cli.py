@@ -1,8 +1,10 @@
-#!/usr/bin/env python3
-
 """
     pyhardlinkbackup cli using click
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    usage, e.g.:
+
+        ~/PyHardLinkBackup$ poetry run phlb --help
 """
 
 
@@ -154,4 +156,4 @@ cli.add_command(add)
 
 
 if __name__ == "__main__":
-    cli()
+    raise RuntimeError('Do not call this file directly! Use: "poetry run phlb --help" !')
