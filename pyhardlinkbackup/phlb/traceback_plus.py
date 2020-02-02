@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
     origin code from:
@@ -12,7 +11,6 @@
         command.go.*.py=python -u /path/to/traceback_plus.py "$(FilePath)"
 """
 
-from __future__ import print_function, unicode_literals
 
 import os
 import sys

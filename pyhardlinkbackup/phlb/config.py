@@ -129,7 +129,7 @@ class pyhardlinkbackupConfig:
     _config = None
 
     def __init__(self, ini_converter_dict):
-        super(pyhardlinkbackupConfig, self).__init__()
+        super().__init__()
         self.ini_converter_dict = ini_converter_dict
 
     def _load(self, force=False):

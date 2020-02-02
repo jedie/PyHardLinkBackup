@@ -119,7 +119,7 @@ class BackupRun(models.Model):
         log.info(f"BackupRun config written: {config_path}")
 
     def save(self, *args, **kwargs):
-        super(BackupRun, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         self.write_config()
 
     def __str__(self):
@@ -127,7 +127,7 @@ class BackupRun(models.Model):
             complete = "Completed Backup"
         else:
             complete = "*Unfinished* Backup"
-        return "%s %r from: %s stored: %r" % (
+        return "{} {!r} from: {} stored: {!r}".format(
             complete,
             self.name,
             dt2naturaltimesince(self.backup_datetime),
@@ -167,7 +167,7 @@ class BackupFilename(models.Model):
     def save(self, *args, **kwargs):
         # e.g: Test if 'phlb_config.ini' should be added
         assert self.filename not in INTERNAL_FILES  # TODO: Add unittest
-        super(BackupFilename, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def path_part(self):
         return Path2(self.filename)
@@ -209,7 +209,7 @@ class BackupEntryManager(models.Manager):
             hash_hexdigest=hash_hexdigest, file_size=file_stat.st_size
         )
 
-        backup_entry = super(BackupEntryManager, self).create(
+        backup_entry = super().create(
             backup_run=backup_run,
             directory=directory,
             filename=filename,

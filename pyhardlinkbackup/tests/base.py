@@ -42,12 +42,12 @@ class BaseTempTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        super(BaseTempTestCase, self).setUp()
+        super().setUp()
         self.temp_root_path = tempfile.mkdtemp(prefix=f"{__name__}_")
         os.chdir(self.temp_root_path)
 
     def tearDown(self):
-        super(BaseTempTestCase, self).tearDown()
+        super().tearDown()
 
         # FIXME: Under windows the root temp dir can't be deleted:
         # PermissionError: [WinError 32] The process cannot access the file
@@ -76,7 +76,7 @@ class BaseTestCase(BaseTempTestCase, TestCase):
         phlb_config._load(force=True)
 
     def setUp(self):
-        super(BaseTestCase, self).setUp()
+        super().setUp()
         self.backup_path = os.path.join(self.temp_root_path, "pyhardlinkbackups")
         self.ini_path = os.path.join(self.temp_root_path, "pyhardlinkbackup.ini")
 
@@ -94,7 +94,7 @@ class BaseTestCase(BaseTempTestCase, TestCase):
         )
 
     def tearDown(self):
-        super(BaseTestCase, self).tearDown()
+        super().tearDown()
         FileBackup._SIMULATE_SLOW_SPEED = False  # disable it
 
     def simulate_slow_speed(self, sec):
@@ -155,7 +155,7 @@ class BaseSourceDirTestCase(BaseTestCase):
     maxDiff = 10000
 
     def setUp(self):
-        super(BaseSourceDirTestCase, self).setUp()
+        super().setUp()
 
         # directory to store source test files
         self.source_path = os.path.join(self.temp_root_path, "source unittests files")
@@ -262,7 +262,7 @@ class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
     ]
 
     def setUp(self):
-        super(BaseWithSourceFilesTestCase, self).setUp()
+        super().setUp()
         fs_helper = UnittestFileSystemHelper()
         fs_helper.create_test_fs(EXAMPLE_FS_DATA, self.source_path)
 
@@ -300,7 +300,7 @@ class BaseCreatedOneBackupsTestCase(BaseWithSourceFilesTestCase):
     """
 
     def setUp(self):
-        super(BaseCreatedOneBackupsTestCase, self).setUp()
+        super().setUp()
 
         self.first_backup_result = self.invoke_cli("backup", self.source_path)
         self.first_run_path = self.get_newest_backup_path()
@@ -323,7 +323,7 @@ class BaseCreatedTwoBackupsTestCase(BaseCreatedOneBackupsTestCase):
     """
 
     def setUp(self):
-        super(BaseCreatedTwoBackupsTestCase, self).setUp()
+        super().setUp()
 
         self.second_backup_result = self.invoke_cli("backup", self.source_path)
         self.second_run_path = self.get_newest_backup_path()

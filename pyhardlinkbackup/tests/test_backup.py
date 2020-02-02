@@ -210,12 +210,12 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         # pathlib.Path().open() used io.open and not builtins.open !
         with mock.patch("io.open", PatchOpen(open, deny_paths)) as p:
             # Work PatchOpen() ?
-            content = io.open(os.path.join(self.source_path, "root_file_A.txt"), "r").read()
+            content = open(os.path.join(self.source_path, "root_file_A.txt"), "r").read()
             assert_pformat_equal(content, "The root file A content.")
             assert_pformat_equal(p.call_count, 1)
             assert_pformat_equal(p.raise_count, 0)
             try:
-                io.open(deny_paths[0], "r").read()
+                open(deny_paths[0], "r").read()
             except OSError as err:
                 assert_pformat_equal(f"{err}", "unittests raise")
             assert_pformat_equal(p.call_count, 2)
@@ -379,7 +379,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         def patched_open(source, link_name):
             if source.endswith("root_file_B.txt"):
-                raise IOError("unittests raise")
+                raise OSError("unittests raise")
             return origin_os_link(source, link_name)
 
         with mock.patch("os.link", patched_open):

@@ -1,5 +1,3 @@
-
-
 def patch(filepath, debug):
     """
     replace 'pause' from windows batch.

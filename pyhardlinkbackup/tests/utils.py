@@ -133,6 +133,6 @@ class PatchOpen:
         assert isinstance(filepath, str), repr(filepath)
         if filepath in self.deny_paths:
             self.raise_count += 1
-            raise IOError("unittests raise")
+            raise OSError("unittests raise")
 
         return self.origin_open(filepath, mode, *args, **kwargs)
