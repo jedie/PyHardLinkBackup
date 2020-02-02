@@ -28,7 +28,7 @@ readme='README.rst'
 
 [tool.poetry.dependencies]
 python = "^3.6"
-iterfilesystem = "*"  # https://github.com/jedie/IterFilesystem
+iterfilesystem = "^1.4.1"  # https://github.com/jedie/IterFilesystem
 python-creole = "^1.4.2"
 pathlib_revised = "*"  # https://github.com/jedie/pathlib_revised/
 #
