@@ -143,7 +143,7 @@ class BackupIterFilesystem(IterFilesystem):
         file_size = content_info.file_size
         if file_size != dir_path.stat.st_size:
             log.info(
-                f"Fast compare: File size is different: {file_size:d} != {dir_path.stat.st_size:d}")
+                f"Fast compare: File size is different: {file_size} != {dir_path.stat.st_size}")
             return
 
         old_backup_filepath = old_backup_entry.get_backup_path()

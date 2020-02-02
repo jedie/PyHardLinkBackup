@@ -184,7 +184,7 @@ class ContentInfo(models.Model):
     file_size = models.PositiveIntegerField(help_text=_("The file size in Bytes"))
 
     def __str__(self):
-        return f"Hash: {self.hash_hexdigest[:4]}...{self.hash_hexdigest[-4:]} File Size: {self.file_size:d} Bytes"
+        return f"Hash: {self.hash_hexdigest[:4]}...{self.hash_hexdigest[-4:]} File Size: {self.file_size} Bytes"
 
 
 class BackupEntryManager(models.Manager):
