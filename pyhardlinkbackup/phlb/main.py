@@ -9,9 +9,11 @@
 
 import logging
 
+from django.conf import settings
+
 # https://github.com/jedie/pathlib_revised/
 from pathlib_revised import DirEntryPath
-from pathlib_revised.pathlib import pprint_path
+from pathlib_revised.pathlib import Path2, pprint_path
 
 # https://github.com/jedie/IterFilesystem
 from iterfilesystem.humanize import human_filesize, human_time
@@ -274,26 +276,64 @@ class BackupIterFilesystem(IterFilesystem):
         self.summary("\n%s\n" % "\n".join(self.get_summary()))
 
     def done(self):
+        if hasattr(self.stats_helper, 'abort') and self.stats_helper.abort:
+            # TODO: IterFilesystem should always add 'abort' !
+            # KeyboardInterrupt cached in iterfilesystem.main.IterFilesystem.process
+            self.summary(
+                '\n *** Abort backup, because user hits the interrupt key during execution! ***\n'
+            )
+
         self.summary(f'stats={self.stats_helper.pformat()}', verbose=False)
         self.print_summary()
+        self.summary('---END---')
         self.summary_file.close()
+
+
+class LogPathMaker:
+    """
+    Link or copy the log file to backup
+    """
+
+    def __init__(self, path_helper):
+        self.path_helper = path_helper
+
+    def __enter__(self):
+        # make temp file available in destination via link ;)
+        self.temp_log_path = Path2(settings.LOG_FILEPATH)
+        assert self.temp_log_path.is_file(), f"{settings.LOG_FILEPATH} doesn't exists?!?"
+        try:
+            self.temp_log_path.link(self.path_helper.log_filepath)  # call os.link()
+        except OSError as err:
+            # e.g.:
+            # temp is on a other drive than the destination
+            log.error(f"Can't link log file: {err}")
+            self.copy_log = True
+        else:
+            self.copy_log = False
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.copy_log:
+            log.warning(f"copy log file from '{settings.LOG_FILEPATH}' to '{self.path_helper.log_filepath}'")
+            self.temp_log_path.copyfile(self.path_helper.log_filepath)  # call shutil.copyfile()
 
 
 def backup(path, name, wait=False):
     path_helper = PathHelper(path, name)
 
-    backup_worker = BackupIterFilesystem(
-        ScanDirClass=ScandirWalker,
-        scan_dir_kwargs=dict(
-            top_path=path_helper.abs_src_root,
-            skip_dir_patterns=phlb_config.skip_dirs,
-            skip_file_patterns=phlb_config.skip_patterns,
-        ),
-        update_interval_sec=0.5,
-        wait=wait,
+    with LogPathMaker(path_helper):
+        backup_worker = BackupIterFilesystem(
+            ScanDirClass=ScandirWalker,
+            scan_dir_kwargs=dict(
+                top_path=path_helper.abs_src_root,
+                skip_dir_patterns=phlb_config.skip_dirs,
+                skip_file_patterns=phlb_config.skip_patterns,
+            ),
+            update_interval_sec=0.5,
+            wait=wait,
 
-        backup_path=path,
-        backup_name=name
-    )
-    stats_helper = backup_worker.process()
+            backup_path=path,
+            backup_name=name
+        )
+        stats_helper = backup_worker.process()
+
     return stats_helper

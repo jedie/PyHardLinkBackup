@@ -95,8 +95,14 @@ class PathHelper:
         self.abs_dst_root = Path2(phlb_config.backup_path, self.backup_name, self.time_string)
         log.debug(" * abs_dst_root: '%s'", self.abs_dst_root)
 
-        self.log_filepath = Path2(phlb_config.backup_path, self.backup_name, self.time_string + ".log")
-        self.summary_filepath = Path2(phlb_config.backup_path, self.backup_name, self.time_string + " summary.txt")
+        self.log_filepath = Path2(
+            phlb_config.backup_path, self.backup_name, f"{self.time_string}.log"
+        )
+        log.debug('log file: %s', self.log_filepath)
+        self.summary_filepath = Path2(
+            phlb_config.backup_path, self.backup_name, f"{self.time_string} summary.txt"
+        )
+        log.debug('summary file: %s', self.summary_filepath)
 
         # set in set_src_filepath():
         self.abs_src_filepath = None
