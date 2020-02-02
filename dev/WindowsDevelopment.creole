@@ -37,15 +37,15 @@ goto:eof
 
 start cmd with **cmd_git_shell.cmd** and do this:
 {{{
-C:\Users\FooBar\AppData\Roaming\PyHardLinkBackup> mkdir src
-C:\Users\FooBar\AppData\Roaming\PyHardLinkBackup> cd src
-C:\Users\FooBar\AppData\Roaming\PyHardLinkBackup\src> git clone https://github.com/jedie/PyHardLinkBackup.git
-C:\Users\FooBar\AppData\Roaming\PyHardLinkBackup\src> cd PyHardLinkBackup
-C:\Users\FooBar\AppData\Roaming\PyHardLinkBackup\src\PyHardLinkBackup> pip uninstall pyhardlinkbackup
-C:\Users\FooBar\AppData\Roaming\PyHardLinkBackup\src\PyHardLinkBackup> pip install -e .
+C:\Users\FooBar\AppData\Roaming\pyhardlinkbackup> mkdir src
+C:\Users\FooBar\AppData\Roaming\pyhardlinkbackup> cd src
+C:\Users\FooBar\AppData\Roaming\pyhardlinkbackup\src> git clone https://github.com/jedie/PyHardLinkBackup.git
+C:\Users\FooBar\AppData\Roaming\pyhardlinkbackup\src> cd pyhardlinkbackup
+C:\Users\FooBar\AppData\Roaming\pyhardlinkbackup\src\pyhardlinkbackup> pip uninstall pyhardlinkbackup
+C:\Users\FooBar\AppData\Roaming\pyhardlinkbackup\src\pyhardlinkbackup> pip install -e .
 }}}
 
-== git notes 
+== git notes
 git config will be saved to: {{{%USERPROFILE%\.gitconfig}}} (e.g.: {{{C:\Users\FooBar\.gitconfig}}})
 
 |= info      |= path                          |= example
