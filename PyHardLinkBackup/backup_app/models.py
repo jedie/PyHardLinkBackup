@@ -227,10 +227,10 @@ class BackupEntryManager(models.Manager):
 
 
 class BackupEntry(models.Model):
-    backup_run = models.ForeignKey(BackupRun)
-    directory = models.ForeignKey(BackupDir)
-    filename = models.ForeignKey(BackupFilename)
-    content_info = models.ForeignKey(ContentInfo)
+    backup_run = models.ForeignKey(BackupRun, on_delete=models.CASCADE)
+    directory = models.ForeignKey(BackupDir, on_delete=models.CASCADE)
+    filename = models.ForeignKey(BackupFilename, on_delete=models.CASCADE)
+    content_info = models.ForeignKey(ContentInfo, on_delete=models.CASCADE)
     file_mtime_ns = models.PositiveIntegerField(help_text=_(
         "Time of most recent content modification expressed in nanoseconds as an integer."))
     no_link_source = models.BooleanField(default=False, help_text=_(

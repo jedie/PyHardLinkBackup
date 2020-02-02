@@ -83,15 +83,15 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AddField(
-            model_name="backupentry", name="backup_run", field=models.ForeignKey(to="backup_app.BackupRun")
+            model_name="backupentry", name="backup_run", field=models.ForeignKey(to="backup_app.BackupRun", on_delete=models.CASCADE)
         ),
         migrations.AddField(
-            model_name="backupentry", name="content_info", field=models.ForeignKey(to="backup_app.ContentInfo")
+            model_name="backupentry", name="content_info", field=models.ForeignKey(to="backup_app.ContentInfo", on_delete=models.CASCADE)
         ),
         migrations.AddField(
-            model_name="backupentry", name="directory", field=models.ForeignKey(to="backup_app.BackupDir")
+            model_name="backupentry", name="directory", field=models.ForeignKey(to="backup_app.BackupDir", on_delete=models.CASCADE)
         ),
         migrations.AddField(
-            model_name="backupentry", name="filename", field=models.ForeignKey(to="backup_app.BackupFilename")
+            model_name="backupentry", name="filename", field=models.ForeignKey(to="backup_app.BackupFilename", on_delete=models.CASCADE)
         ),
     ]
