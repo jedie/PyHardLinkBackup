@@ -276,12 +276,13 @@ class BackupIterFilesystem(IterFilesystem):
         self.summary("\n%s\n" % "\n".join(self.get_summary()))
 
     def done(self):
-        if hasattr(self.stats_helper, 'abort') and self.stats_helper.abort:
-            # TODO: IterFilesystem should always add 'abort' !
-            # KeyboardInterrupt cached in iterfilesystem.main.IterFilesystem.process
+        if self.stats_helper.abort is True:
+            # KeyboardInterrupt catch in iterfilesystem.main.IterFilesystem.process
             self.summary(
                 '\n *** Abort backup, because user hits the interrupt key during execution! ***\n'
             )
+        elif self.stats_helper.abort is None:
+            self.summary('\nWARNING: Unknown scan abort!\n')
 
         self.summary(f'stats={self.stats_helper.pformat()}', verbose=False)
         self.print_summary()
