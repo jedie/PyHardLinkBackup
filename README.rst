@@ -372,11 +372,23 @@ History
 
 * **dev** - `compare v0.11.0...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.11.0...master>`_ 
 
-    * run tests with pytest and tox
+    * Refactor backup process: Use `https://github.com/jedie/IterFilesystem <https://github.com/jedie/IterFilesystem>`_ for less RAM usage and faster start on big source trees
 
-    * run tests only with python 3.6, 3.7
+    * modernized project/sources:
 
-    * remove support for python 3.5 (``os.scandir`` fallback removed)
+        * Update to Django v2.2.x TLS
+
+        * use poetry
+
+        * add Makefile
+
+        * run tests with pytest and tox
+
+        * run tests only with python 3.8, 3.7, 3.6
+
+        * run tests on github, too
+
+        * remove support for python 3.5 (``os.scandir`` fallback removed)
 
     * TBC
 
@@ -538,4 +550,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-02-02 09:55:16 with "python-creole"``
+``Note: this file is generated from README.creole 2020-02-02 10:47:06 with "python-creole"``

@@ -52,7 +52,7 @@ flynt = "^0.40.1"
 autopep8 = "^1.4.4"
 
 [tool.poetry.scripts]
-phlb = "pyhardlinkbackup.phlb_cli:cli"
+phlb = "pyhardlinkbackup.phlb.cli:cli"
 manage = "pyhardlinkbackup.django_project.manage:cli"
 update_rst_readme = "pyhardlinkbackup.phlb.publish:update_readme"
 publish = "pyhardlinkbackup.phlb.publish:publish"

@@ -14,7 +14,7 @@ from pathlib_revised import Path2
 # https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.backup_app.models import BackupEntry, BackupRun
 from pyhardlinkbackup.phlb.config import phlb_config
-from pyhardlinkbackup.phlb_cli import cli
+from pyhardlinkbackup.phlb.cli import cli
 from pyhardlinkbackup.tests.base import (
     BaseCreatedOneBackupsTestCase,
     BaseCreatedTwoBackupsTestCase,

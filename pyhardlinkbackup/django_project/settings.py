@@ -47,17 +47,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-try:
-    import django_nose
-except ImportError:
-    pass
-else:
-    INSTALLED_APPS += ("django_nose",)
-    TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
-    del (django_nose)
-
-
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

@@ -1,17 +1,35 @@
-#!/usr/bin/env python3
+"""
+    pyhardlinkbackup django manage
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-import os
+    usage e.g.:
+
+        ~/PyHardLinkBackup$ poetry run manage --help
+"""
+
+
 import sys
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pyhardlinkbackup.django_project.settings")
+import django
+
+# https://github.com/jedie/PyHardLinkBackup
+from pyhardlinkbackup import __version__
+from pyhardlinkbackup.phlb.traceback_plus import print_exc_plus
 
 
 def cli():
+    print(f'PyHardLinkBackup v{__version__} - Django v{django.__version__} manage command')
+
     from django.core.management import execute_from_command_line
 
-    execute_from_command_line(sys.argv)
+    try:
+        execute_from_command_line(sys.argv)
+    except SystemExit as err:
+        sys.exit(err.code)
+    except BaseException:
+        print_exc_plus()
+        raise
 
 
 if __name__ == "__main__":
-    # Needed if direct called
-    cli()
+    raise RuntimeError('Do not call this file directly! Use "poetry run manage --help" !')
