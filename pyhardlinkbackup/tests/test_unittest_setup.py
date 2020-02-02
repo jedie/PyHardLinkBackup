@@ -68,7 +68,7 @@ class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
         assert "* Source file sizes: 106 Bytes" in output
         assert "* fast backup: 0 files" in output
         assert "* new content saved: 5 files (106 Bytes 100.0%)" in output
-        assert "* stint space via hardlinks: 0 files (0 Bytes 0.0%)" in output
+        assert "* stint space via hardlinks: 0 files (0 Byte 0.0%)" in output
 
         assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(1)
@@ -103,7 +103,7 @@ class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
         self.assertIn("106 Bytes in 5 files to backup.", self.second_backup_result.output)
         self.assertNotIn("WARNING: Omitted", self.second_backup_result.output)
         self.assertIn(" * fast backup: 5 files", self.second_backup_result.output)
-        self.assertIn(" * new content saved: 0 files (0 Bytes 0.0%)", self.second_backup_result.output)
+        self.assertIn(" * new content saved: 0 files (0 Byte 0.0%)", self.second_backup_result.output)
         self.assertIn(
             "stint space via hardlinks: 5 files (106 Bytes 100.0%)",
             self.second_backup_result.output)

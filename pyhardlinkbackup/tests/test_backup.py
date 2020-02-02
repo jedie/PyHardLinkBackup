@@ -41,7 +41,7 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertIn("Start backup: 2020-01-02-030405-000006", result.output)
 
         self.assertIn(" * Files to backup: 0 files", result.output)
-        self.assertIn(" * Source file sizes: 0 Bytes", result.output)
+        self.assertIn(" * Source file sizes: 0 Byte", result.output)
         self.assertNotIn("omitted files", result.output)
         self.assertIn(" * fast backup: 0 files", result.output)
 
@@ -91,7 +91,7 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertNotIn("omitted files", result.output)
         self.assertIn(" * fast backup: 0 files", result.output)
         self.assertIn(" * new content saved: 2 files (16 Bytes 100.0%)", result.output)
-        self.assertIn(" * stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", result.output)
 
         self.assert_backup_fs_count(1)  # there are tree backups in filesystem
 
@@ -123,10 +123,10 @@ class TestBackup(BaseSourceDirTestCase):
 
         # check normal output
         self.assertIn("* Files to backup: 1 files", result.output)
-        self.assertIn("* Source file sizes: 0 Bytes", result.output)
+        self.assertIn("* Source file sizes: 0 Byte", result.output)
         self.assertIn("* fast backup: 0 files", result.output)
-        self.assertIn("* new content saved: 1 files (0 Bytes 0.0%)", result.output)
-        self.assertIn("* stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("* new content saved: 1 files (0 Byte 0.0%)", result.output)
+        self.assertIn("* stint space via hardlinks: 0 files (0 Byte 0.0%)", result.output)
 
         # Test second run:
         result = self.invoke_cli("backup", self.source_path)
@@ -143,10 +143,10 @@ class TestBackup(BaseSourceDirTestCase):
 
         # check normal output
         self.assertIn("* Files to backup: 1 files", result.output)
-        self.assertIn("* Source file sizes: 0 Bytes", result.output)
+        self.assertIn("* Source file sizes: 0 Byte", result.output)
         self.assertIn("* fast backup: 0 files", result.output)
-        self.assertIn("* new content saved: 0 files (0 Bytes 0.0%)", result.output)
-        self.assertIn("* stint space via hardlinks: 1 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("* new content saved: 0 files (0 Byte 0.0%)", result.output)
+        self.assertIn("* stint space via hardlinks: 1 files (0 Byte 0.0%)", result.output)
 
     def test_extended_path(self):
         """
@@ -169,39 +169,41 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertIn("* Source file sizes: 36 Bytes", result.output)
         self.assertIn("* new content saved: 1 files (36 Bytes 100.0%)", result.output)
         self.assertNotIn("omitted files", result.output)
-        self.assertIn("* stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn("* stint space via hardlinks: 0 files (0 Byte 0.0%)", result.output)
 
 
 class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
     def test_print_update(self):
         first_run_result = self.invoke_cli("backup", self.source_path)
+        print('_' * 100)
         print("FIRST RUN OUTPUT:\n", first_run_result.output)
+        run_log = self.get_last_log_content()
+        print("+++ LOGGING OUTPUT: +++\n", run_log)
 
-        # We should not have in between update info with default settings and duration
-        self.assertNotIn("Update info:", first_run_result.output)
-
+        self.assertIn("'source unittests files' was backuped 0 time(s)", first_run_result.output)
+        self.assertIn("There are 0 backups finished completed.", first_run_result.output)
         self.assertIn(" * new content saved: 5 files (106 Bytes 100.0%)", first_run_result.output)
-        self.assertIn(" * stint space via hardlinks: 0 files (0 Bytes 0.0%)", first_run_result.output)
+        self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", first_run_result.output)
 
         self.simulate_slow_speed(0.1)  # slow down backup
         phlb_config.print_update_interval = 0.1  # Very often status infos
 
         second_run_result = self.invoke_cli("backup", self.source_path)
+        print('_' * 100)
         print("SECOND RUN OUTPUT:\n", second_run_result.output)
+        run_log = self.get_last_log_content()
+        print("+++ LOGGING OUTPUT: +++\n", run_log)
 
-        # Now we should have in between update info
+        self.assertIn("'source unittests files' was backuped 1 time(s)", second_run_result.output)
+        self.assertIn("There are 1 backups finished completed.", second_run_result.output)
         self.assertIn("Slow down speed for tests activated!", second_run_result.output)
         self.assertIn("Slow down speed for tests!", second_run_result.output)
         self.assertIn("Update info:", second_run_result.output)
 
-        self.assertIn(" * new content saved: 0 files (0 Bytes 0.0%)", second_run_result.output)
+        self.assertIn(" * new content saved: 0 files (0 Byte 0.0%)", second_run_result.output)
         self.assertIn(
             "stint space via hardlinks: 5 files (106 Bytes 100.0%)",
             second_run_result.output)
-
-        # run_log = self.get_last_log_content()
-        # print("+++ LAST LOGGING OUTPUT: +++\n", run_log)
-        # self.assertIn("was renamed to", run_log)
 
     def test_no_backupname(self):
         if sys.platform.startswith("win"):
@@ -262,7 +264,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("106 Bytes in 5 files to backup.", result.output)
         self.assertIn("WARNING: 2 omitted files", result.output)
         self.assertIn(" * new content saved: 3 files (64 Bytes 60.4%)", result.output)
-        self.assertIn(" * stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", result.output)
 
         assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(1)
@@ -369,7 +371,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertIn("Backup done:", summary_content)
         self.assertIn("Source file sizes: 106 Bytes", summary_content)
         self.assertIn(" * new content saved: 5 files (106 Bytes 100.0%)", summary_content)
-        self.assertIn(" * stint space via hardlinks: 0 files (0 Bytes 0.0%)", summary_content)
+        self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", summary_content)
 
     def test_log_file(self):
         log_content = self.get_log_content(self.first_run_log)
@@ -470,7 +472,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         # Can't use the fast backup, because all previous backups are not complete
         self.assertIn(" * fast backup: 0 files", result.output)
 
-        self.assertIn(" * new content saved: 0 files (0 Bytes 0.0%)", result.output)
+        self.assertIn(" * new content saved: 0 files (0 Byte 0.0%)", result.output)
         self.assertIn(" * stint space via hardlinks: 5 files (106 Bytes 100.0%)", result.output)
 
 
@@ -485,7 +487,7 @@ class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
 
         print(result.output)
 
-        self.assertIn("110 Bytes in 5 files to backup.", result.output)
+        self.assertIn("110 Byte in 5 files to backup.", result.output)
         self.assertNotIn("omitted files", result.output)
         self.assertIn(" * fast backup: 4 files", result.output)
         self.assertIn(" * new content saved: 1 files (24 Bytes 21.8%)", result.output)
