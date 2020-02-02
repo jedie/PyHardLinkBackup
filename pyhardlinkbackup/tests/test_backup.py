@@ -1,4 +1,4 @@
-import io
+import datetime
 import os
 import pathlib
 import pprint
@@ -6,21 +6,22 @@ import sys
 from unittest import mock
 
 from click.testing import CliRunner
-from django_tools.unittest_utils.assertments import assert_pformat_equal
+from django_tools.unittest_utils.assertments import assert_is_dir, assert_is_file, assert_pformat_equal
 
 # https://github.com/jedie/pathlib_revised/
 from pathlib_revised import Path2
 
 # https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.backup_app.models import BackupEntry, BackupRun
-from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.cli import cli
+from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.tests.base import (
     BaseCreatedOneBackupsTestCase,
     BaseCreatedTwoBackupsTestCase,
     BaseSourceDirTestCase,
     BaseWithSourceFilesTestCase
 )
+from pyhardlinkbackup.tests.mock_datetime import mock_datetime_now
 from pyhardlinkbackup.tests.utils import PatchOpen, UnittestFileSystemHelper
 
 
@@ -30,12 +31,43 @@ class TestBackup(BaseSourceDirTestCase):
     """
 
     def test_no_files(self):
-        result = self.invoke_cli("backup", self.source_path)
+        dt = datetime.datetime(
+            year=2020, month=1, day=2, hour=3, minute=4, second=5, microsecond=6
+        )
+        with mock_datetime_now(dt):
+            result = self.invoke_cli("backup", self.source_path)
+
         print(result.output)
+        self.assertIn("Start backup: 2020-01-02-030405-000006", result.output)
+
         self.assertIn(" * Files to backup: 0 files", result.output)
         self.assertIn(" * Source file sizes: 0 Bytes", result.output)
         self.assertNotIn("omitted files", result.output)
         self.assertIn(" * fast backup: 0 files", result.output)
+
+        self.assertIn("source unittests files/2020-01-02-030405-000006.log", result.output)
+
+        fs_helper = UnittestFileSystemHelper()
+        tree_list = fs_helper.pformat_tree(self.backup_sub_path, with_timestamps=True)
+        pprint.pprint(tree_list, indent=0, width=200)
+
+        # The new backup directory:
+        assert_is_dir(pathlib.Path(self.backup_sub_path, '2020-01-02-030405-000006'))
+
+        assert_is_file(pathlib.Path(
+            self.backup_sub_path, '2020-01-02-030405-000006', 'phlb_config.ini')
+        )
+        assert_is_file(pathlib.Path(self.backup_sub_path, '2020-01-02-030405-000006 summary.txt'))
+
+        log_file_path = pathlib.Path(self.backup_sub_path, '2020-01-02-030405-000006.log')
+        assert_is_file(log_file_path)
+        logs = log_file_path.read_text()
+        print('*' * 100)
+        print(logs)
+        print('*' * 100)
+        assert "Start low level logging" in logs
+
+        self.assert_backup_fs_count(1)
 
     def test_same_size_different_content(self):
         test_file1 = pathlib.Path(self.source_path, "dirA", "file.txt")
@@ -119,7 +151,7 @@ class TestBackup(BaseSourceDirTestCase):
     def test_extended_path(self):
         """
         Backup a very long path
-        Test the \\?\ notation under Windows as a work-a-round for MAX_PATH.
+        Test the \\?\\ notation under Windows as a work-a-round for MAX_PATH.
         see:
         https://github.com/jedie/PyHardLinkBackup/issues/18
         https://bugs.python.org/issue18199
@@ -284,37 +316,45 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
         def patched_open(filename, *args, **kwargs):
             if filename.endswith("dir_A_file_A.txt"):
+                # raised in iterfilesystem.main.IterFilesystem.process
                 raise KeyboardInterrupt
             return origin_open(filename, *args, **kwargs)
 
         with mock.patch("os.utime", patched_open):
             result = self.invoke_cli("backup", self.source_path)
-            print(result.output)
+
+        output = result.output
+        print("_" * 100)
+        print('output:')
+        print(output)
+        print("=" * 100)
+        self.assertIn("*** Abort via keyboard interrupt! ***", output)
+        self.assertIn(
+            "*** Abort backup, because user hits the interrupt key during execution! ***",
+            output
+        )
 
         summary = self.get_last_summary_content()
-
+        print("_" * 100)
+        print('summary:')
+        print(summary)
+        print("=" * 100)
         self.assertIn(
-            "*** Abort via keyboard interrupt! ***",
-            result.output)
-        self.assertIn(
-            "*** Abort via keyboard interrupt! ***",
-            summary)
+            "*** Abort backup, because user hits the interrupt key during execution! ***",
+            summary
+        )
 
-        self.assertNotIn("Traceback", result.output)
+        self.assertNotIn("Traceback", output)
         self.assertNotIn("Traceback", summary)
 
-        # Is the summary with right calculate file count?
-        self.assertIn(" * Files to backup: 5 files", result.output)
-        self.assertIn(" * Files to backup: 5 files", summary)
-        self.assertIn("WARNING: 3 omitted files!", result.output)
-        self.assertIn("WARNING: 3 omitted files!", summary)
-        self.assertIn(" * new content saved: 2 files (38 Bytes 35.8%)", result.output)
-        self.assertIn(" * new content saved: 2 files (38 Bytes 35.8%)", summary)
-        self.assertIn(" * stint space via hardlinks: 0 files (0 Bytes 0.0%)", result.output)
-        self.assertIn(" * stint space via hardlinks: 0 files (0 Bytes 0.0%)", summary)
+        # KeyboardInterrupt handled?
+        self.assertIn("Backup done in", output)
+        self.assertIn("Backup done in", summary)
 
-        self.assertIn("---END---", result.output)
+        # Correctly finished?
+        self.assertIn("---END---", output)
         self.assertIn("---END---", summary)
+        self.assertIn("Backup done.", output)
 
 
 class TestOneBackups(BaseCreatedOneBackupsTestCase):

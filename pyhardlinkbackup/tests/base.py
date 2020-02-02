@@ -110,6 +110,7 @@ class BaseTestCase(BaseTempTestCase, TestCase):
 
     def invoke_cli(self, *args):
         runner = CliRunner()
+        args = [str(arg) for arg in args]  # e.g.: Path() instance to string
         result = runner.invoke(cli, args)
         self.assert_click_exception(result)
         return result
@@ -152,17 +153,17 @@ class BaseSourceDirTestCase(BaseTestCase):
     Tests with empty "source unittests files" directory under /temp/
     """
 
-    maxDiff = 10000
+    maxDiff = None
 
     def setUp(self):
         super().setUp()
 
         # directory to store source test files
-        self.source_path = os.path.join(self.temp_root_path, "source unittests files")
+        self.source_path = Path(self.temp_root_path, "source unittests files")
         os.mkdir(self.source_path)
 
         # path to the backups for self.source_path
-        self.backup_sub_path = os.path.join(self.backup_path, "source unittests files")
+        self.backup_sub_path = Path(self.backup_path, "source unittests files")
 
     def get_newest_backup_path(self):
         return get_newest_directory(self.backup_sub_path)
@@ -202,6 +203,7 @@ class BaseSourceDirTestCase(BaseTestCase):
     def assert_backup_fs_count(self, count):
         files = []
         dirs = []
+
         for item in os.scandir(self.backup_sub_path):
             if item.is_file(follow_symlinks=False):
                 files.append(item)

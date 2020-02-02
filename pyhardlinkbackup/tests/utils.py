@@ -1,6 +1,7 @@
 import datetime
 import os
 import posixpath
+import shutil
 import subprocess
 import sys
 
@@ -100,12 +101,15 @@ class UnittestFileSystemHelper:
         return lines
 
     def print_tree(self, path):
+        tree_bin = shutil.which('tree')
+        assert tree_bin is not None, 'Comandline tool "tree" not installed!'
+
         if sys.platform.startswith("linux"):
             # http://mama.indstate.edu/users/ice/tree/
-            args = ["tree", "--inodes", path]
+            args = [tree_bin, "--inodes", str(path)]
             kwargs = {}
         elif sys.platform.startswith("win"):
-            args = ["tree", path, "/f", "/a"]
+            args = [tree_bin, str(path), "/f", "/a"]
             kwargs = {"shell": True}  # otherwise: File Not Found
         else:
             raise NotImplementedError(f"TODO: {sys.platform}")
