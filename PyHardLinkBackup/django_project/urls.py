@@ -18,4 +18,7 @@ from django.contrib import admin
 
 from PyHardLinkBackup.backup_app import views
 
-urlpatterns = [url(r"^$", views.redirect_to_admin), url(r"^admin/", include(admin.site.urls))]
+urlpatterns = [
+    url(r"^$", views.redirect_to_admin),
+    url(r"^admin/", admin.site.urls)
+]
