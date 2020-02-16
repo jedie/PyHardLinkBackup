@@ -31,7 +31,7 @@ def get_newest_directory(path):
     """
     sub_dirs = [entry for entry in os.scandir(path) if entry.is_dir()]
     sub_dirs.sort(key=lambda x: x.stat().st_mtime_ns)
-    print("Backup sub dirs:\n\t%s" % "\n\t".join([p.path for p in sub_dirs]))
+    print("Backup sub dirs:\n\t%s" % "\n\t".join(p.path for p in sub_dirs))
     sub_dir = sub_dirs[-1]
     return sub_dir.path
 
