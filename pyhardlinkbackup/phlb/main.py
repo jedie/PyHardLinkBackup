@@ -287,6 +287,9 @@ class BackupIterFilesystem(IterFilesystem):
         self.summary('---END---')
         self.summary_file.close()
 
+        self.backup_run.completed = True
+        self.backup_run.save(update_fields=['completed'])
+
 
 class LogPathMaker:
     """

@@ -174,11 +174,15 @@ class TestBackup(BaseSourceDirTestCase):
 
 class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
     def test_print_update(self):
+        assert BackupRun.objects.count() == 0
+
         first_run_result = self.invoke_cli("backup", self.source_path)
         print('_' * 100)
         print("FIRST RUN OUTPUT:\n", first_run_result.output)
         run_log = self.get_last_log_content()
         print("+++ LOGGING OUTPUT: +++\n", run_log)
+
+        assert list(BackupRun.objects.values_list('name', 'completed')) == [('source unittests files', True)]
 
         self.assertIn("'source unittests files' was backuped 0 time(s)", first_run_result.output)
         self.assertIn("There are 0 backups finished completed.", first_run_result.output)
@@ -193,6 +197,10 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         print("SECOND RUN OUTPUT:\n", second_run_result.output)
         run_log = self.get_last_log_content()
         print("+++ LOGGING OUTPUT: +++\n", run_log)
+
+        assert list(BackupRun.objects.values_list('name', 'completed')) == [
+            ('source unittests files', True), ('source unittests files', True)
+        ]
 
         self.assertIn("'source unittests files' was backuped 1 time(s)", second_run_result.output)
         self.assertIn("There are 1 backups finished completed.", second_run_result.output)
