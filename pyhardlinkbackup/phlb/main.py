@@ -32,14 +32,12 @@ log = logging.getLogger(f"phlb.{__name__}")
 
 
 class BackupIterFilesystem(IterFilesystem):
-    def __init__(self, *, backup_path, backup_name, **kwargs):
+    def __init__(self, *, path_helper, **kwargs):
         super().__init__(**kwargs)
 
-        self.backup_path = backup_path
-        self.backup_name = backup_name
+        self.path_helper = path_helper
 
     def start(self):
-        self.path_helper = PathHelper(src_path=self.backup_path, force_name=self.backup_name)
 
         # create backup destination to create summary file in there
         self.path_helper.summary_filepath.parent.makedirs(  # calls os.makedirs()
@@ -319,7 +317,7 @@ class LogPathMaker:
 
 
 def backup(path, name, wait=False):
-    path_helper = PathHelper(path, name)
+    path_helper = PathHelper(src_path=path, force_name=name)
 
     with LogPathMaker(path_helper):
         backup_worker = BackupIterFilesystem(
@@ -332,8 +330,7 @@ def backup(path, name, wait=False):
             update_interval_sec=0.5,
             wait=wait,
 
-            backup_path=path,
-            backup_name=name
+            path_helper=path_helper,
         )
         stats_helper = backup_worker.process()
 
