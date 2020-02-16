@@ -10,7 +10,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 from django.test import TestCase
-from django_tools.unittest_utils.assertments import assert_pformat_equal
+from django_tools.unittest_utils.assertments import assert_pformat_equal, assert_is_file
 
 # https://github.com/jedie/PyHardLinkBackup
 import pyhardlinkbackup
@@ -175,9 +175,8 @@ class BaseSourceDirTestCase(BaseTestCase):
         return pathlib.Path(run_path + ".log")
 
     def get_log_content(self, log_filepath):
-        self.assertTrue(log_filepath.is_file(), f"{log_filepath} doesn't exist")
-        with log_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
-            return f.read()
+        assert_is_file(log_filepath)
+        return log_filepath.read_text()
 
     def get_last_log_content(self):
         newest_log_filepath = self.get_newest_log_filepath()
@@ -190,9 +189,8 @@ class BaseSourceDirTestCase(BaseTestCase):
         return pathlib.Path(run_path + " summary.txt")
 
     def get_summary_content(self, summary_filepath):
-        self.assertTrue(summary_filepath.is_file(), f"{summary_filepath} doesn't exist")
-        with summary_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
-            return f.read()
+        assert_is_file(summary_filepath)
+        return summary_filepath.read_text()
 
     def get_last_summary_content(self):
         newest_summary_filepath = self.get_newest_summary_filepath()
