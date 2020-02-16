@@ -28,8 +28,8 @@ readme='README.rst'
 
 [tool.poetry.dependencies]
 python = "^3.6"
-iterfilesystem = "^1.4.1"  # https://github.com/jedie/IterFilesystem
-python-creole = "^1.4.2"
+iterfilesystem = "*"  # https://github.com/jedie/IterFilesystem
+python-creole = "*"
 pathlib_revised = "*"  # https://github.com/jedie/pathlib_revised/
 #
 # https://www.djangoproject.com/download/#supported-versions
@@ -40,16 +40,16 @@ tqdm = "*"  # https://github.com/tqdm/tqdm
 click = "*"  # https://github.com/mitsuhiko/click
 
 [tool.poetry.dev-dependencies]
-poetry-publish = "^0.2.2"  # https://github.com/jedie/poetry-publish
-tox = "^3.14.3"
-pytest = "^4.6"
-pytest-cov = "^2.8.1"
+poetry-publish = "*"  # https://github.com/jedie/poetry-publish
+tox = "*"
+pytest = "*"
+pytest-cov = "*"
 pytest-django = "*"
 coveralls = "*"
-isort = "^4.3.21"
-flake8 = "^3.7.9"
-flynt = "^0.40.1"
-autopep8 = "^1.4.4"
+isort = "*"
+flake8 = "*"
+flynt = "*"
+autopep8 = "*"
 
 [tool.poetry.scripts]
 phlb = "pyhardlinkbackup.phlb.cli:cli"
