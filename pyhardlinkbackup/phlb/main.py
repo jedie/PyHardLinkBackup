@@ -197,9 +197,6 @@ class BackupIterFilesystem(IterFilesystem):
         if dir_path.is_file:
             # self.summary("Normal file: %s", dir_path)
 
-            # self.file_count += 1
-            # self.total_size += dir_path.stat.st_size
-
             self.path_helper.set_src_filepath(dir_path)
             if self.path_helper.abs_src_filepath is None:
                 self.stats_helper.total_errored_items += 1
@@ -211,6 +208,13 @@ class BackupIterFilesystem(IterFilesystem):
                 worker=self,
                 process_bars=process_bars
             )
+
+            self.update(
+                dir_entry=dir_entry,
+                file_size=dir_entry.stat().st_size,
+                process_bars=process_bars
+            )
+
             old_backup_entry = self.fast_compare(dir_path)
             if old_backup_entry is not None:
                 # We can just link the file from a old backup

@@ -71,18 +71,7 @@ class FileBackup:
                 )
                 process_size = 0
 
-        if big_file:
-            file_size = process_size
-        else:
-            file_size = collect_file_size
-
         self.process_bars.file_bar.update(process_size)
-        self.worker.update(
-            dir_entry=self.dir_path.path_instance,
-            file_size=file_size,
-            process_bars=self.process_bars
-        )
-
         return hash
 
     def fast_deduplication_backup(self, old_backup_entry):
