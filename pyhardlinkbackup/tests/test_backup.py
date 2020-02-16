@@ -122,6 +122,8 @@ class TestBackup(BaseSourceDirTestCase):
         self.assert_mtime_ns(backup_entry.file_mtime_ns, mtime_ns)
 
         # check normal output
+        self.assertIn("Backup done", result.output)
+        self.assertIn("(1 filesystem items)", result.output)
         self.assertIn("* Files to backup: 1 files", result.output)
         self.assertIn("* Source file sizes: 0 Byte", result.output)
         self.assertIn("* fast backup: 0 files", result.output)
@@ -142,9 +144,11 @@ class TestBackup(BaseSourceDirTestCase):
         self.assert_file_mtime_ns(backup_file1, mtime_ns)
 
         # check normal output
+        self.assertIn("Backup done", result.output)
+        self.assertIn("(1 filesystem items)", result.output)
         self.assertIn("* Files to backup: 1 files", result.output)
         self.assertIn("* Source file sizes: 0 Byte", result.output)
-        self.assertIn("* fast backup: 0 files", result.output)
+        self.assertIn("* fast backup: 1 files", result.output)
         self.assertIn("* new content saved: 0 files (0 Byte 0.0%)", result.output)
         self.assertIn("* stint space via hardlinks: 1 files (0 Byte 0.0%)", result.output)
 
@@ -206,7 +210,6 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("There are 1 backups finished completed.", second_run_result.output)
         self.assertIn("Slow down speed for tests activated!", second_run_result.output)
         self.assertIn("Slow down speed for tests!", second_run_result.output)
-        self.assertIn("Update info:", second_run_result.output)
 
         self.assertIn(" * new content saved: 0 files (0 Byte 0.0%)", second_run_result.output)
         self.assertIn(
@@ -252,24 +255,24 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         # pathlib.Path().open() used io.open and not builtins.open !
         with mock.patch("io.open", PatchOpen(open, deny_paths)) as p:
             # Work PatchOpen() ?
-            content = open(os.path.join(self.source_path, "root_file_A.txt"), "r").read()
+            content = pathlib.Path(self.source_path, "root_file_A.txt").read_text()
             assert_pformat_equal(content, "The root file A content.")
-            assert_pformat_equal(p.call_count, 1)
-            assert_pformat_equal(p.raise_count, 0)
+            assert p.call_count == 1
+            assert p.raise_count == 0
             try:
-                open(deny_paths[0], "r").read()
+                pathlib.Path(deny_paths[0]).read_text()
             except OSError as err:
                 assert_pformat_equal(f"{err}", "unittests raise")
-            assert_pformat_equal(p.call_count, 2)
-            assert_pformat_equal(p.raise_count, 1)
+            assert p.call_count == 2
+            assert p.raise_count == 1
 
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
-            assert_pformat_equal(p.raise_count, 3)
+            assert p.raise_count == 3
 
         self.assertIn("unittests raise", result.output)  # Does the test patch worked?
 
-        self.assertIn("106 Bytes in 5 files to backup.", result.output)
+        self.assertIn("Backup done.", result.output)
         self.assertIn("WARNING: 2 omitted files", result.output)
         self.assertIn(" * new content saved: 3 files (64 Bytes 60.4%)", result.output)
         self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", result.output)
@@ -278,8 +281,11 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assert_backup_fs_count(1)
 
         log_content = self.get_last_log_content()
+        print('*' * 100)
         print(log_content)
+        print('*' * 100)
         self.assertIn("Skip file", log_content)
+        self.assertIn("error: unittests raise", log_content)
         self.assertIn(
             "/source unittests files/root_file_B.txt error: unittests raise".replace("/", os.sep), log_content  # noqa
         )

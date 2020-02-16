@@ -24,6 +24,7 @@ from iterfilesystem.main import IterFilesystem
 from pyhardlinkbackup.backup_app.models import BackupEntry, BackupRun
 from pyhardlinkbackup.phlb.backup import FileBackup
 from pyhardlinkbackup.phlb.config import phlb_config
+from pyhardlinkbackup.phlb.exceptions import BackupFileError
 from pyhardlinkbackup.phlb.humanize import dt2naturaltimesince, ns2naturaltimesince, to_percent
 from pyhardlinkbackup.phlb.path_helper import PathHelper
 from pyhardlinkbackup.phlb.summary_file import SummaryFileHelper
@@ -37,16 +38,14 @@ class BackupIterFilesystem(IterFilesystem):
 
         self.path_helper = path_helper
 
-    def start(self):
-
         # create backup destination to create summary file in there
         self.path_helper.summary_filepath.parent.makedirs(  # calls os.makedirs()
             mode=phlb_config.default_new_path_mode, exist_ok=True
         )
-
         self.summary_file = self.path_helper.summary_filepath.open("w")
         self.summary = SummaryFileHelper(self.summary_file)
 
+    def start(self):
         old_backups = BackupRun.objects.filter(name=self.path_helper.backup_name)
         self.summary(f"{self.path_helper.backup_name!r} was backuped {old_backups.count():d} time(s)")
 
@@ -216,11 +215,17 @@ class BackupIterFilesystem(IterFilesystem):
             )
 
             old_backup_entry = self.fast_compare(dir_path)
-            if old_backup_entry is not None:
-                # We can just link the file from a old backup
-                file_backup.fast_deduplication_backup(old_backup_entry)
-            else:
-                file_backup.deduplication_backup()
+            try:
+                if old_backup_entry is not None:
+                    # We can just link the file from a old backup
+                    file_backup.fast_deduplication_backup(old_backup_entry)
+                else:
+                    file_backup.deduplication_backup()
+            except BackupFileError as err:
+                # A error occur while backup the file
+                self.summary(err, flush=True, verbose=True)
+                self.stats_helper.process_error_count += 1
+                return
 
             assert file_backup.fast_backup is not None, dir_path.path
             assert file_backup.file_linked is not None, dir_path.path
@@ -288,11 +293,12 @@ class BackupIterFilesystem(IterFilesystem):
 
         self.summary(f'stats={self.stats_helper.pformat()}', verbose=False)
         self.print_summary()
-        self.summary('---END---')
-        self.summary_file.close()
 
         self.backup_run.completed = True
         self.backup_run.save(update_fields=['completed'])
+
+        self.summary('---END---', flush=True)
+        self.summary_file.close()
 
 
 class LogPathMaker:

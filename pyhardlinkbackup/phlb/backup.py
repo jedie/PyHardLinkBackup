@@ -1,4 +1,4 @@
-#
+
 import hashlib
 import logging
 import time
@@ -7,12 +7,9 @@ import time
 from pyhardlinkbackup.backup_app.models import BackupEntry
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.deduplicate import deduplicate
+from pyhardlinkbackup.phlb.exceptions import BackupFileError
 
 log = logging.getLogger(f"phlb.{__name__}")
-
-
-class BackupFileError(Exception):
-    pass
 
 
 class FileBackup:
@@ -166,7 +163,8 @@ class FileBackup:
             except OSError as err:
                 # FIXME: Better error message
                 raise BackupFileError(
-                    f"Skip file {self.worker.path_helper.abs_src_filepath} error: {err}")
+                    f"Skip file {self.worker.path_helper.abs_src_filepath} error: {err}"
+                )
         except KeyboardInterrupt:
             # Try to remove created files
             try:
