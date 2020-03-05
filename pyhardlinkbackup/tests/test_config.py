@@ -19,7 +19,7 @@ class TestConfig(BaseTestCase):
     def test_user_ini_default(self):
         runner = CliRunner()
         result = self.invoke_cli("config", "--debug")
-        self.assertIn("pyhardlinkbackup", result.output)
+        self.assertIn("PyHardLinkBackup v", result.output)
 
         # check if unittest temp PyHardLinkBackup.ini is used:
         self.assertIn(self.ini_path, result.output)
@@ -36,7 +36,7 @@ class TestConfig(BaseTestCase):
             phlb_config._load(force=True)
             result = self.invoke_cli("config", "--debug")
             self.assertIn(USER_INI_PATH, result.output)
-            self.assertIn("PyHardLinkBackup.sqlite3", result.output)
+            self.assertIn("PyHardLinkBackups.sqlite3", result.output)
 
     def test_default(self):
         os.remove(self.ini_path)  # remove unittests .ini
@@ -50,7 +50,7 @@ class TestConfig(BaseTestCase):
         self.assertTrue(os.path.isfile(USER_INI_PATH))
 
         # check the defaults:
-        self.assertIn("PyHardLinkBackup.sqlite3", result.output)
+        self.assertIn("PyHardLinkBackups.sqlite3", result.output)
 
     def test_overwrite(self):
         """
@@ -65,7 +65,7 @@ class TestConfig(BaseTestCase):
             phlb_config._load(force=True)
 
             result = self.invoke_cli("config", "--debug")
-            self.assertIn("pyhardlinkbackup", result.output)
+            self.assertIn("PyHardLinkBackup v", result.output)
 
             ini_path = os.path.join(os.getcwd(), "PyHardLinkBackup.ini")
             self.assertIn(ini_path, result.output)

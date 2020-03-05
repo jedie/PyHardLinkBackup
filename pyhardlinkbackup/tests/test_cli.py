@@ -11,8 +11,8 @@ class TestCli(unittest.TestCase):
     def test_help(self):
         runner = CliRunner()
         result = runner.invoke(cli, ["--help"])
-        # print(result.output)
-        self.assertIn("pyhardlinkbackup", result.output)
+        print(result.output)
+        self.assertIn("PyHardLinkBackup", result.output)
         self.assertIn("backup", result.output)
         self.assertIn("config", result.output)
         self.assertIn("helper", result.output)

@@ -151,7 +151,7 @@ Verifying an existing backup
 
     $ cd pyhardlinkbackup/
     ~/PyHardLinkBackup $ source bin/activate
-
+    
     (PyHardLinkBackup) ~/PyHardLinkBackup $ phlb verify --fast ~/PyHardLinkBackups/documents/2016-01-07-102310
 
 With **--fast** the files' contents will not be checked.
@@ -214,7 +214,7 @@ Use the follow settings in your ``PyHardLinkBackup.ini``
 
     # Directory names that will be recursively excluded from backups (comma separated list!)
     SKIP_DIRS= __pycache__, temp
-
+    
     # glob-style patterns to exclude files/folders from backups (used with Path.match(), Comma separated list!)
     SKIP_PATTERNS= *.pyc, *.tmp, *.cache
 
@@ -286,13 +286,13 @@ Using the CLI
     ~/PyHardLinkBackup $ source bin/activate
     (PyHardLinkBackup) ~/PyHardLinkBackup $ phlb --help
     Usage: phlb [OPTIONS] COMMAND [ARGS]...
-
+    
       pyhardlinkbackup
-
+    
     Options:
       --version  Show the version and exit.
       --help     Show this message and exit.
-
+    
     Commands:
       add     Scan all existing backup and add missing ones...
       backup  Start a Backup run
@@ -374,15 +374,15 @@ See also: `https://github.com/restic/others#list-of-backup-software <https://git
 History
 -------
 
-* **dev** - `compare v0.12.1...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.1...master>`_
+* **dev** - `compare v0.12.1...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.1...master>`_ 
 
     * TBC
 
-* 05.03.2020 - v0.12.1 - `compare v0.12.0...v0.12.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.0...v0.12.1>`_
+* 05.03.2020 - v0.12.1 - `compare v0.12.0...v0.12.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.0...v0.12.1>`_ 
 
     * revert lowercase ``PyHardLinkBackup`` for environment destination and default backup directory.
 
-* 05.03.2020 - v0.12.0 - `compare v0.11.0...v0.12.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.11.0...v0.12.0>`_
+* 05.03.2020 - v0.12.0 - `compare v0.11.0...v0.12.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.11.0...v0.12.0>`_ 
 
     * Refactor backup process: Use `https://github.com/jedie/IterFilesystem <https://github.com/jedie/IterFilesystem>`_ for less RAM usage and faster start on big source trees
 
@@ -404,45 +404,45 @@ History
 
     * **NOTE:** Windows support is not tested, yet! (Help wanted)
 
-* 03.03.2019 - v0.11.0 - `compare v0.10.1...v0.11.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.10.1...v0.11.0>`_
+* 03.03.2019 - v0.11.0 - `compare v0.10.1...v0.11.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.10.1...v0.11.0>`_ 
 
     * Update boot files
 
     * Use django v1.11.x
 
-* 09.09.2016 - v0.10.1 - `compare v0.10.0...v0.10.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.10.0...v0.10.1>`_
+* 09.09.2016 - v0.10.1 - `compare v0.10.0...v0.10.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.10.0...v0.10.1>`_ 
 
     * Bugfix `Catch scan dir errors #24 <https://github.com/jedie/PyHardLinkBackup/issues/24>`_
 
-* 26.04.2016 - v0.10.0 - `compare v0.9.1...v0.10.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.9.1...v0.10.0>`_
+* 26.04.2016 - v0.10.0 - `compare v0.9.1...v0.10.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.9.1...v0.10.0>`_ 
 
     * move under Windows the install location from ``%APPDATA%\PyHardLinkBackup`` to ``%ProgramFiles%\PyHardLinkBackup``
 
     * to 'migrate': Just delete ``%APPDATA%\PyHardLinkBackup`` and install via **boot_pyhardlinkbackup.cmd**
 
-* 26.04.2016 - v0.9.1 - `compare v0.9.0...v0.9.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.9.0...v0.9.1>`_
+* 26.04.2016 - v0.9.1 - `compare v0.9.0...v0.9.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.9.0...v0.9.1>`_ 
 
     * run migrate database in boot process
 
     * Add missing migrate scripts
 
-* 10.02.2016 - v0.9.0 - `compare v0.8.0...v0.9.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.8.0...v0.9.0>`_
+* 10.02.2016 - v0.9.0 - `compare v0.8.0...v0.9.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.8.0...v0.9.0>`_ 
 
     * Work-a-round for Windows MAX_PATH limit: Use ``\\?\`` path prefix internally.
 
     * move **Path2()** to external lib: `https://github.com/jedie/pathlib_revised <https://github.com/jedie/pathlib_revised>`_
 
-* 04.02.2016 - v0.8.0 - `compare v0.7.0...v0.8.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.7.0...v0.8.0>`_
+* 04.02.2016 - v0.8.0 - `compare v0.7.0...v0.8.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.7.0...v0.8.0>`_ 
 
     * New: add all missing backups to database: ``phlb add`` (s.above)
 
-* 03.02.2016 - v0.7.0 - `compare v0.6.4...v0.7.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.4...v0.7.0>`_
+* 03.02.2016 - v0.7.0 - `compare v0.6.4...v0.7.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.4...v0.7.0>`_ 
 
     * New: verify a existing backup
 
     * **IMPORTANT:** run database migration is needed!
 
-* 01.02.2016 - v0.6.4 - `compare v0.6.2...v0.6.4 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.3...v0.6.4>`_
+* 01.02.2016 - v0.6.4 - `compare v0.6.2...v0.6.4 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.3...v0.6.4>`_ 
 
     * Windows: Bugfix temp rename error, because of the Windows API limitation, see: `#13 <https://github.com/jedie/PyHardLinkBackup/issues/13#issuecomment-176241894>`_
 
@@ -450,25 +450,25 @@ History
 
     * Display local variables on low level errors
 
-* 29.01.2016 - v0.6.3 - `compare v0.6.2...v0.6.3 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.2...v0.6.3>`_
+* 29.01.2016 - v0.6.3 - `compare v0.6.2...v0.6.3 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.2...v0.6.3>`_ 
 
     * Less verbose and better information about SKIP_DIRS/SKIP_PATTERNS hits
 
-* 28.01.2016 - v0.6.2 - `compare v0.6.1...v0.6.2 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.1...v0.6.2>`_
+* 28.01.2016 - v0.6.2 - `compare v0.6.1...v0.6.2 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.1...v0.6.2>`_ 
 
     * Handle unexpected errors and continue backup with the next file
 
     * Better handle interrupt key during execution
 
-* 28.01.2016 - v0.6.1 - `compare v0.6.0...v0.6.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.0...v0.6.1>`_
+* 28.01.2016 - v0.6.1 - `compare v0.6.0...v0.6.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.6.0...v0.6.1>`_ 
 
     * Bugfix #13 by using a better temp rename routine
 
-* 28.01.2016 - v0.6.0 - `compare v0.5.1...v0.6.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.5.1...v0.6.0>`_
+* 28.01.2016 - v0.6.0 - `compare v0.5.1...v0.6.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.5.1...v0.6.0>`_ 
 
     * New: faster backup by compare mtime/size only if old backup files exists
 
-* 27.01.2016 - v0.5.1 - `compare v0.5.0...v0.5.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.5.0...v0.5.1>`_
+* 27.01.2016 - v0.5.1 - `compare v0.5.0...v0.5.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.5.0...v0.5.1>`_ 
 
     * **IMPORTANT:** run database migration is needed!
 
@@ -480,7 +480,7 @@ History
 
     * Add more information into summary file
 
-* 27.01.2016 - v0.5.0 - `compare v0.4.2...v0.5.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.4.2...v0.5.0>`_
+* 27.01.2016 - v0.5.0 - `compare v0.4.2...v0.5.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.4.2...v0.5.0>`_ 
 
     * refactory source tree scan. Split in two passed.
 
@@ -494,7 +494,7 @@ History
 
         * Display error message if backup name can be found (e.g.: backup a root folder)
 
-* 22.01.2016 - v0.4.2 - `compare v0.4.1...v0.4.2 <https://github.com/jedie/PyHardLinkBackup/compare/v0.4.1...v0.4.2>`_
+* 22.01.2016 - v0.4.2 - `compare v0.4.1...v0.4.2 <https://github.com/jedie/PyHardLinkBackup/compare/v0.4.1...v0.4.2>`_ 
 
     * work-a-round for junction under windows, see also: `https://www.python-forum.de/viewtopic.php?f=1&t=37725&p=290429#p290428 <https://www.python-forum.de/viewtopic.php?f=1&t=37725&p=290429#p290428>`_ (de)
 
@@ -502,11 +502,11 @@ History
 
     * print some more status information in between.
 
-* 22.01.2016 - v0.4.1 - `compare v0.4.0...v0.4.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.4.0...v0.4.1>`_
+* 22.01.2016 - v0.4.1 - `compare v0.4.0...v0.4.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.4.0...v0.4.1>`_ 
 
     * Skip files that can't be read/write. (and try to backup the remaining files)
 
-* 21.01.2016 - v0.4.0 - `compare v0.3.1...v0.4.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.3.1...v0.4.0>`_
+* 21.01.2016 - v0.4.0 - `compare v0.3.1...v0.4.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.3.1...v0.4.0>`_ 
 
     * Search for *PyHardLinkBackup.ini* file in every parent directory from the current working dir
 
@@ -514,29 +514,29 @@ History
 
     * save summary and log file for every backup run
 
-* 15.01.2016 - v0.3.1 - `compare v0.3.0...v0.3.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.3.0...v0.3.1>`_
+* 15.01.2016 - v0.3.1 - `compare v0.3.0...v0.3.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.3.0...v0.3.1>`_ 
 
     * fix unittest run under windows
 
-* 15.01.2016 - v0.3.0 - `compare v0.2.0...v0.3.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.2.0...v0.3.0>`_
+* 15.01.2016 - v0.3.0 - `compare v0.2.0...v0.3.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.2.0...v0.3.0>`_ 
 
     * **database migration needed**
 
     * Add 'no_link_source' to database (e.g. Skip source, if 1024 links created under windows)
 
-* 14.01.2016 - v0.2.0 - `compare v0.1.8...v0.2.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.1.8...v0.2.0>`_
+* 14.01.2016 - v0.2.0 - `compare v0.1.8...v0.2.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.1.8...v0.2.0>`_ 
 
     * good unittests coverage that covers the backup process
 
-* 08.01.2016 - v0.1.8 - `compare v0.1.0alpha0...v0.1.8 <https://github.com/jedie/PyHardLinkBackup/compare/v0.1.0alpha0...v0.1.8>`_
+* 08.01.2016 - v0.1.8 - `compare v0.1.0alpha0...v0.1.8 <https://github.com/jedie/PyHardLinkBackup/compare/v0.1.0alpha0...v0.1.8>`_ 
 
     * install and runable under Windows
 
-* 06.01.2016 - v0.1.0alpha0 - `d42a5c5 <https://github.com/jedie/PyHardLinkBackup/commit/d42a5c59c0dcdf8d2f8bb2a3a3dc2c51862fed17>`_
+* 06.01.2016 - v0.1.0alpha0 - `d42a5c5 <https://github.com/jedie/PyHardLinkBackup/commit/d42a5c59c0dcdf8d2f8bb2a3a3dc2c51862fed17>`_ 
 
     * first Release on PyPi
 
-* 29.12.2015 - `commit 2ce43 <https://github.com/jedie/PyHardLinkBackup/commit/2ce43d326fafbde5a3526194cf957f00efe0f198>`_
+* 29.12.2015 - `commit 2ce43 <https://github.com/jedie/PyHardLinkBackup/commit/2ce43d326fafbde5a3526194cf957f00efe0f198>`_ 
 
     * commit 'Proof of concept'
 
@@ -562,4 +562,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-03-05 22:30:44 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-05 22:34:42 with "python-creole"``
