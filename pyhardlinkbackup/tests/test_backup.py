@@ -6,8 +6,12 @@ import sys
 from unittest import mock
 
 from click.testing import CliRunner
-from django_tools.unittest_utils.assertments import assert_is_dir, assert_is_file, assert_pformat_equal, \
+from django_tools.unittest_utils.assertments import (
+    assert_is_dir,
+    assert_is_file,
+    assert_pformat_equal,
     assert_startswith
+)
 
 # https://github.com/jedie/pathlib_revised/
 from pathlib_revised import Path2
@@ -24,6 +28,7 @@ from pyhardlinkbackup.tests.base import (
 )
 from pyhardlinkbackup.tests.mock_datetime import mock_datetime_now
 from pyhardlinkbackup.tests.utils import PatchOpen, UnittestFileSystemHelper
+
 
 class TestBackup(BaseSourceDirTestCase):
     """

@@ -109,7 +109,7 @@ class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
             self.second_backup_result.output)
 
         self.assertNotIn("WARNING: Omitted", self.second_backup_result.output)
-        
+
         assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)
 
