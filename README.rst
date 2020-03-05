@@ -66,7 +66,7 @@ This will create deduplication backups like this:
 
 ::
 
-    ~/PyHardLinkBackups
+    ~/pyhardlinkbackups
       └── documents
           ├── 2016-01-07-085247
           │   ├── phlb_config.ini
@@ -173,7 +173,7 @@ A verify run does:
 Configuration
 -------------
 
-phlb will use a configuration file named: **pyhardlinkbackup.ini**
+phlb will use a configuration file named: **PyHardLinkBackup.ini**
 
 Search order is:
 
@@ -183,13 +183,13 @@ Search order is:
 
 E.g. if the current working directoy is **/foo/bar/my_files/** then the search path will be:
 
-* ``/foo/bar/my_files/pyhardlinkbackup.ini``
+* ``/foo/bar/my_files/PyHardLinkBackup.ini``
 
-* ``/foo/bar/pyhardlinkbackup.ini``
+* ``/foo/bar/PyHardLinkBackup.ini``
 
-* ``/foo/pyhardlinkbackup.ini``
+* ``/foo/PyHardLinkBackup.ini``
 
-* ``/pyhardlinkbackup.ini``
+* ``/PyHardLinkBackup.ini``
 
 * ``~/PyHardLinkBackup.ini`` *The user home directory under Windows/Linux*
 
@@ -208,7 +208,7 @@ Excluding files/folders from backup:
 ====================================
 
 There are two ways to exclude files/folders from your backup.
-Use the follow settings in your ``pyhardlinkbackup.ini``
+Use the follow settings in your ``PyHardLinkBackup.ini``
 
 ::
 
@@ -374,9 +374,13 @@ See also: `https://github.com/restic/others#list-of-backup-software <https://git
 History
 -------
 
-* **dev** - `compare v0.12.0...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.0...master>`_
+* **dev** - `compare v0.12.1...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.1...master>`_
 
     * TBC
+
+* 05.03.2020 - v0.12.1 - `compare v0.12.0...v0.12.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.0...v0.12.1>`_
+
+    * revert lowercase ``PyHardLinkBackup`` for environment destination and default backup directory.
 
 * 05.03.2020 - v0.12.0 - `compare v0.11.0...v0.12.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.11.0...v0.12.0>`_
 
@@ -504,7 +508,7 @@ History
 
 * 21.01.2016 - v0.4.0 - `compare v0.3.1...v0.4.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.3.1...v0.4.0>`_
 
-    * Search for *pyhardlinkbackup.ini* file in every parent directory from the current working dir
+    * Search for *PyHardLinkBackup.ini* file in every parent directory from the current working dir
 
     * increase default chunk size to 20MB
 
@@ -558,4 +562,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-03-05 21:55:43 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-05 22:30:44 with "python-creole"``

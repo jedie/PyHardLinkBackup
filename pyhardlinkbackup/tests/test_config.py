@@ -8,7 +8,7 @@ from django_tools.unittest_utils.assertments import assert_pformat_equal
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.tests.base import BaseTestCase
 
-USER_INI_PATH = os.path.join(os.path.expanduser("~"), "pyhardlinkbackup.ini")
+USER_INI_PATH = os.path.join(os.path.expanduser("~"), "PyHardLinkBackup.ini")
 
 
 class TestConfig(BaseTestCase):
@@ -21,7 +21,7 @@ class TestConfig(BaseTestCase):
         result = self.invoke_cli("config", "--debug")
         self.assertIn("pyhardlinkbackup", result.output)
 
-        # check if unittest temp pyhardlinkbackup.ini is used:
+        # check if unittest temp PyHardLinkBackup.ini is used:
         self.assertIn(self.ini_path, result.output)
 
         # check the defaults:
@@ -58,7 +58,7 @@ class TestConfig(BaseTestCase):
         """
         runner = CliRunner()
         with runner.isolated_filesystem():
-            with open("pyhardlinkbackup.ini", "w") as ini:
+            with open("PyHardLinkBackup.ini", "w") as ini:
                 ini.write("[foo]\n")
                 ini.write("hash_name=md5\n")
 
@@ -67,7 +67,7 @@ class TestConfig(BaseTestCase):
             result = self.invoke_cli("config", "--debug")
             self.assertIn("pyhardlinkbackup", result.output)
 
-            ini_path = os.path.join(os.getcwd(), "pyhardlinkbackup.ini")
+            ini_path = os.path.join(os.getcwd(), "PyHardLinkBackup.ini")
             self.assertIn(ini_path, result.output)
 
             self.assertIn("'hash_name': 'md5',", result.output)
