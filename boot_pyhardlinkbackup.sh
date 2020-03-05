@@ -37,7 +37,7 @@ fi
     cd ${DESTINATION}/bin/
     ls -la
     pip3 install --upgrade pip
-    pip3 install "pyhardlinkbackup>=0.12.0"
+    pip3 install "pyhardlinkbackup>=0.12.1"
     phlb helper ${DESTINATION}
     manage migrate
 )
