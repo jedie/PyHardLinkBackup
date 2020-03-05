@@ -17,6 +17,7 @@ Requirement: Python 3.6 or newer.
 
 Please: try, fork and contribute! ;)
 
+| {{https://github.com/jedie/pyhardlinkbackup/workflows/test/badge.svg?branch=master|Build Status on github}} | [[https://github.com/jedie/pyhardlinkbackup/actions|github.com/jedie/pyhardlinkbackup/actions]] |
 | {{https://travis-ci.org/jedie/pyhardlinkbackup.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/pyhardlinkbackup/|travis-ci.org/jedie/pyhardlinkbackup]] |
 | {{https://ci.appveyor.com/api/projects/status/py5sl38ql3xciafc?svg=true|Build Status on appveyor.com}} | [[https://ci.appveyor.com/project/jedie/pyhardlinkbackup/history|ci.appveyor.com/project/jedie/pyhardlinkbackup]] |
 | {{https://coveralls.io/repos/jedie/pyhardlinkbackup/badge.svg|Coverage Status on coveralls.io}} | [[https://coveralls.io/r/jedie/pyhardlinkbackup|coveralls.io/r/jedie/pyhardlinkbackup]] |
@@ -295,6 +296,7 @@ See also: https://github.com/restic/others#list-of-backup-software
 *** run tests only with python 3.8, 3.7, 3.6
 *** run tests on github, too
 *** remove support for python 3.5 ({{{os.scandir}}} fallback removed)
+** **NOTE:** Windows support is not tested, yet! (Help wanted)
 ** TBC
 * 03.03.2019 - v0.11.0 - [[https://github.com/jedie/PyHardLinkBackup/compare/v0.10.1...v0.11.0|compare v0.10.1...v0.11.0]]
 ** Update boot files
