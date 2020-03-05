@@ -1,4 +1,4 @@
-#
+
 import hashlib
 import logging
 import time
@@ -7,12 +7,9 @@ import time
 from pyhardlinkbackup.backup_app.models import BackupEntry
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.deduplicate import deduplicate
+from pyhardlinkbackup.phlb.exceptions import BackupFileError
 
 log = logging.getLogger(f"phlb.{__name__}")
-
-
-class BackupFileError(Exception):
-    pass
 
 
 class FileBackup:
@@ -71,18 +68,7 @@ class FileBackup:
                 )
                 process_size = 0
 
-        if big_file:
-            file_size = process_size
-        else:
-            file_size = collect_file_size
-
         self.process_bars.file_bar.update(process_size)
-        self.worker.update(
-            dir_entry=self.dir_path.path_instance,
-            file_size=file_size,
-            process_bars=self.process_bars
-        )
-
         return hash
 
     def fast_deduplication_backup(self, old_backup_entry):
@@ -177,7 +163,8 @@ class FileBackup:
             except OSError as err:
                 # FIXME: Better error message
                 raise BackupFileError(
-                    f"Skip file {self.worker.path_helper.abs_src_filepath} error: {err}")
+                    f"Skip file {self.worker.path_helper.abs_src_filepath} error: {err}"
+                )
         except KeyboardInterrupt:
             # Try to remove created files
             try:

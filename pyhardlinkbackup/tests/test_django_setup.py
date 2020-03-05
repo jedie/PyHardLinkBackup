@@ -11,7 +11,6 @@ ROOT_PATH = Path(pyhardlinkbackup.__file__).parent.parent
 
 def get_manage_py_path():
     manage_path = shutil.which('manage')
-    assert 'virtualenvs/pyhardlinkbackup' in manage_path
     return manage_path
 
 

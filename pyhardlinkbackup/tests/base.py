@@ -9,8 +9,9 @@ import unittest
 from pathlib import Path
 
 from click.testing import CliRunner
+from django.conf import settings
 from django.test import TestCase
-from django_tools.unittest_utils.assertments import assert_pformat_equal
+from django_tools.unittest_utils.assertments import assert_is_file, assert_pformat_equal
 
 # https://github.com/jedie/PyHardLinkBackup
 import pyhardlinkbackup
@@ -31,7 +32,7 @@ def get_newest_directory(path):
     """
     sub_dirs = [entry for entry in os.scandir(path) if entry.is_dir()]
     sub_dirs.sort(key=lambda x: x.stat().st_mtime_ns)
-    print("Backup sub dirs:\n\t%s" % "\n\t".join([p.path for p in sub_dirs]))
+    print("Backup sub dirs:\n\t%s" % "\n\t".join(p.path for p in sub_dirs))
     sub_dir = sub_dirs[-1]
     return sub_dir.path
 
@@ -77,6 +78,9 @@ class BaseTestCase(BaseTempTestCase, TestCase):
 
     def setUp(self):
         super().setUp()
+        with Path(settings.LOG_FILEPATH).open("w") as f:
+            f.write('Truncate log file in setUp()\n')
+
         self.backup_path = os.path.join(self.temp_root_path, "pyhardlinkbackups")
         self.ini_path = os.path.join(self.temp_root_path, "pyhardlinkbackup.ini")
 
@@ -175,28 +179,13 @@ class BaseSourceDirTestCase(BaseTestCase):
         return pathlib.Path(run_path + ".log")
 
     def get_log_content(self, log_filepath):
-        self.assertTrue(log_filepath.is_file(), f"{log_filepath} doesn't exist")
-        with log_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
-            return f.read()
+        assert_is_file(log_filepath)
+        return log_filepath.read_text()
 
     def get_last_log_content(self):
         newest_log_filepath = self.get_newest_log_filepath()
+        print(newest_log_filepath)
         return self.get_log_content(newest_log_filepath)
-
-    # --------------------------------------------------------------------------
-
-    def get_newest_summary_filepath(self):
-        run_path = self.get_newest_backup_path()
-        return pathlib.Path(run_path + " summary.txt")
-
-    def get_summary_content(self, summary_filepath):
-        self.assertTrue(summary_filepath.is_file(), f"{summary_filepath} doesn't exist")
-        with summary_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
-            return f.read()
-
-    def get_last_summary_content(self):
-        newest_summary_filepath = self.get_newest_summary_filepath()
-        return self.get_summary_content(newest_summary_filepath)
 
     # --------------------------------------------------------------------------
 
@@ -210,19 +199,12 @@ class BaseSourceDirTestCase(BaseTestCase):
             if item.is_dir(follow_symlinks=False):
                 dirs.append(item)
 
-        assert_pformat_equal(
-            len(dirs), count,
+        assert len(dirs) == count, \
             f"dir count: {len(dirs):d} != {count:d} - items: {repr(dirs)}"
-        )
 
-        # .log and summary files for every backup run
-        file_count = count * 2
-        assert_pformat_equal(
-            len(files), file_count,
-            "files count: %i != %i - items:\n%s" % (
-                len(files), file_count, "\n".join([repr(f) for f in files])
-            )
-        )
+        # One .log file per backup run:
+        assert len(files) == count, \
+            'files count: %i != %i - items:\n%s' % (len(files), count, "\n".join(repr(f) for f in files))
 
 
 class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):

@@ -108,9 +108,9 @@ USE_L10N = True
 STATIC_URL = "/static/"
 
 
-fd, LOG_FILEPATH = tempfile.mkstemp(prefix="pyhardlinkbackup_", suffix=".log")
+_file_object, LOG_FILEPATH = tempfile.mkstemp(prefix="pyhardlinkbackup_", suffix=".log")
 print(f"temp log file: {LOG_FILEPATH}")
-with open(fd, "w") as f:
+with open(_file_object, "w") as f:
     f.write("\n\n")
     f.write("_" * 79)
     f.write("\n")
@@ -118,28 +118,52 @@ with open(fd, "w") as f:
     f.write("\n")
 
 # CRITICAL 	50
-# ERROR 	    40
+# ERROR 	40
 # WARNING 	30
 # INFO 	    20
-# DEBUG 	    10
+# DEBUG 	10
 # NOTSET 	0
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    # "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "level": _phlb_config.logging_console_level
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
         },
-        "file": {
-            "class": "logging.FileHandler",
-            "filename": LOG_FILEPATH,
-            "level": _phlb_config.logging_file_level
+        'simple': {
+            'format': '{message}',
+            'style': '{',
         },
     },
-    "loggers": {
-        "django": {"handlers": ["file"], "level": "INFO", "propagate": False},
-        "phlb": {"handlers": ["file", "console"], "propagate": False},
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': LOG_FILEPATH,
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': False
+        },
+        'django': {
+            'handlers': ['file'],
+            'level': 'WARNING',
+            'propagate': False
+        },
+        'phlb': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False
+        },
     },
 }
