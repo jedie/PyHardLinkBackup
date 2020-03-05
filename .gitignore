@@ -6,6 +6,8 @@
 !.travis.yml
 
 coverage.xml
+coverage_html
+
 *.egg-info
 *.py[co]
 *~
