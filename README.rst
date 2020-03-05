@@ -29,6 +29,8 @@ Requirement: Python 3.6 or newer.
 Please: try, fork and contribute! ;)
 
 +--------------------------------------+------------------------------------------------------------+
+| |Build Status on github|             | `github.com/jedie/pyhardlinkbackup/actions`_               |
++--------------------------------------+------------------------------------------------------------+
 | |Build Status on travis-ci.org|      | `travis-ci.org/jedie/pyhardlinkbackup`_                    |
 +--------------------------------------+------------------------------------------------------------+
 | |Build Status on appveyor.com|       | `ci.appveyor.com/project/jedie/pyhardlinkbackup`_          |
@@ -38,6 +40,8 @@ Please: try, fork and contribute! ;)
 | |Requirements Status on requires.io| | `requires.io/github/jedie/pyhardlinkbackup/requirements/`_ |
 +--------------------------------------+------------------------------------------------------------+
 
+.. |Build Status on github| image:: https://github.com/jedie/pyhardlinkbackup/workflows/test/badge.svg?branch=master
+.. _github.com/jedie/pyhardlinkbackup/actions: https://github.com/jedie/pyhardlinkbackup/actions
 .. |Build Status on travis-ci.org| image:: https://travis-ci.org/jedie/pyhardlinkbackup.svg
 .. _travis-ci.org/jedie/pyhardlinkbackup: https://travis-ci.org/jedie/pyhardlinkbackup/
 .. |Build Status on appveyor.com| image:: https://ci.appveyor.com/api/projects/status/py5sl38ql3xciafc?svg=true
@@ -370,7 +374,11 @@ See also: `https://github.com/restic/others#list-of-backup-software <https://git
 History
 -------
 
-* **dev** - `compare v0.11.0...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.11.0...master>`_ 
+* **dev** - `compare v0.12.0...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.0...master>`_ 
+
+    * TBC
+
+* 05.03.2020 - v0.12.0 - `compare v0.11.0...v0.12.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.11.0...v0.12.0>`_ 
 
     * Refactor backup process: Use `https://github.com/jedie/IterFilesystem <https://github.com/jedie/IterFilesystem>`_ for less RAM usage and faster start on big source trees
 
@@ -390,7 +398,7 @@ History
 
         * remove support for python 3.5 (``os.scandir`` fallback removed)
 
-    * TBC
+    * **NOTE:** Windows support is not tested, yet! (Help wanted)
 
 * 03.03.2019 - v0.11.0 - `compare v0.10.1...v0.11.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.10.1...v0.11.0>`_ 
 
@@ -550,4 +558,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-02-02 10:47:06 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-05 21:55:43 with "python-creole"``
