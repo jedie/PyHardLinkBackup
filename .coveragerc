@@ -7,6 +7,8 @@ omit =
     */adjust_options.py
     */tests/*
     */site-packages/*
+    */migrations/*
+    dev/*
 
 [report]
 # Regexes for lines to exclude from consideration
