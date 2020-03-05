@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ENV_PATH=~/pyhardlinkbackup
+ENV_PATH=~/PyHardLinkBackup
 CURRENT_DIR=$(pwd)
 
 set -e

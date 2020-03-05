@@ -112,8 +112,8 @@ def verify_backup(backup_path, fast):
 
 if __name__ == "__main__":
     backup_path = os.path.expanduser(
-        # "~/pyhardlinkbackups/pyhardlinkbackup"
-        "~/pyhardlinkbackups/pyhardlinkbackup/2016-01-29-160915"
+        # "~/PyHardLinkBackups/pyhardlinkbackup"
+        "~/PyHardLinkBackups/pyhardlinkbackup/2016-01-29-160915"
     )
     verify_backup(
         backup_path,

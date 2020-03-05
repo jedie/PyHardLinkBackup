@@ -15,7 +15,7 @@ from pathlib_revised import Path2
 
 log = logging.getLogger(f"phlb.{__name__}")
 
-CONFIG_FILENAME = "pyhardlinkbackup.ini"
+CONFIG_FILENAME = "PyHardLinkBackup.ini"
 DEAFULT_CONFIG_FILENAME = "config_defaults.ini"
 
 

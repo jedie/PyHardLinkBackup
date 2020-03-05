@@ -82,7 +82,7 @@ class BaseTestCase(BaseTempTestCase, TestCase):
             f.write('Truncate log file in setUp()\n')
 
         self.backup_path = os.path.join(self.temp_root_path, "pyhardlinkbackups")
-        self.ini_path = os.path.join(self.temp_root_path, "pyhardlinkbackup.ini")
+        self.ini_path = os.path.join(self.temp_root_path, "PyHardLinkBackup.ini")
 
         # set_phlb_logger(logging.DEBUG)
 

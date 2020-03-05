@@ -26,9 +26,9 @@ PHLB_BASE_DIR = os.path.abspath(os.path.dirname(pyhardlinkbackup.__file__))
 @click.version_option(version=pyhardlinkbackup.__version__)
 @click.pass_context
 def cli(ctx):
-    """pyhardlinkbackup"""
+    """PyHardLinkBackup"""
     click.secho(
-        f"\npyhardlinkbackup v{pyhardlinkbackup.__version__}\n",
+        f"\nPyHardLinkBackup v{pyhardlinkbackup.__version__}\n",
         bg="blue",
         fg="white",
         bold=True)

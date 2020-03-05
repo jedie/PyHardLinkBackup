@@ -46,7 +46,7 @@ if errorlevel 1 (
     exit /b
 )
 
-set BASE_PATH=%ProgramFiles%\pyhardlinkbackup
+set BASE_PATH=%ProgramFiles%\PyHardLinkBackup
 echo on
 mkdir "%BASE_PATH%"
 @echo off
