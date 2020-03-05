@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DESTINATION=~/PyHardLinkBackup-dev
+DESTINATION=~/PyHardLinkBackup
 
 (
     set -e

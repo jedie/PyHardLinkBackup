@@ -36,7 +36,7 @@ class TestConfig(BaseTestCase):
             phlb_config._load(force=True)
             result = self.invoke_cli("config", "--debug")
             self.assertIn(USER_INI_PATH, result.output)
-            self.assertIn("pyhardlinkbackups.sqlite3", result.output)
+            self.assertIn("PyHardLinkBackup.sqlite3", result.output)
 
     def test_default(self):
         os.remove(self.ini_path)  # remove unittests .ini
@@ -50,7 +50,7 @@ class TestConfig(BaseTestCase):
         self.assertTrue(os.path.isfile(USER_INI_PATH))
 
         # check the defaults:
-        self.assertIn("pyhardlinkbackups.sqlite3", result.output)
+        self.assertIn("PyHardLinkBackup.sqlite3", result.output)
 
     def test_overwrite(self):
         """
