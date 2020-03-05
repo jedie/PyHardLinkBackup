@@ -2,7 +2,7 @@
     Python HardLink Backup
     ~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2016-2019 by Jens Diemer
+    :copyleft: 2016-2020 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -11,7 +11,6 @@ import hashlib
 import logging
 import os
 
-import django
 from click._compat import strip_ansi
 
 # https://github.com/jedie/pathlib_revised/
@@ -185,20 +184,12 @@ def add_backup_run(backup_run_path):
     print(f"*** backup run {backup_name} - {date_part} added:")
     total_size = result.get_total_size()
     print(
-        " * new content saved: %i files (%s %.1f%%)"
-        % (
-            result.total_new_file_count,
-            human_filesize(result.total_new_bytes),
-            to_percent(result.total_new_bytes, total_size),
-        )
+        f" * new content saved: {result.total_new_file_count:d} files"
+        f" ({human_filesize(result.total_new_bytes)} {to_percent(result.total_new_bytes, total_size):.1f}%)"
     )
     print(
-        " * stint space via hardlinks: %i files (%s %.1f%%)"
-        % (
-            result.total_stined_file_count,
-            human_filesize(result.total_stined_bytes),
-            to_percent(result.total_stined_bytes, total_size),
-        )
+        f" * stint space via hardlinks: {result.total_stined_file_count:d} files"
+        f" ({human_filesize(result.total_stined_bytes)} {to_percent(result.total_stined_bytes, total_size):.1f}%)"
     )
 
 

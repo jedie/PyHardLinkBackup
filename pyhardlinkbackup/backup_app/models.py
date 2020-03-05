@@ -127,11 +127,10 @@ class BackupRun(models.Model):
             complete = "Completed Backup"
         else:
             complete = "*Unfinished* Backup"
-        return "{} {!r} from: {} stored: {!r}".format(
-            complete,
-            self.name,
-            dt2naturaltimesince(self.backup_datetime),
-            self.path_part().path,
+        return (
+            f"{complete} {self.name!r}"
+            f" from: {dt2naturaltimesince(self.backup_datetime)}"
+            f" stored: {self.path_part().path!r}"
         )
 
     class Meta:
