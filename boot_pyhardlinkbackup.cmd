@@ -74,7 +74,7 @@ echo on
 set PIP_EXE=%SCRIPT_PATH%\pip.exe
 call:test_exist "%PIP_EXE%" "pip not found here:"
 echo on
-"%PIP_EXE%" install pyhardlinkbackup
+"%PIP_EXE%" install "pyhardlinkbackup>=0.12.1"
 @echo off
 
 set PHLB_EXE=%SCRIPT_PATH%\phlb.exe
