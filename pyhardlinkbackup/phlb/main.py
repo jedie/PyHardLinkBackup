@@ -2,7 +2,7 @@
     Python HardLink Backup
     ~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2015-2019 by Jens Diemer
+    :copyleft: 2015-2020 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -27,41 +27,36 @@ from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.exceptions import BackupFileError
 from pyhardlinkbackup.phlb.humanize import dt2naturaltimesince, ns2naturaltimesince, to_percent
 from pyhardlinkbackup.phlb.path_helper import PathHelper
-from pyhardlinkbackup.phlb.summary_file import SummaryFileHelper
+from pyhardlinkbackup.phlb.traceback_plus import exc_plus
 
 log = logging.getLogger(f"phlb.{__name__}")
 
 
 class BackupIterFilesystem(IterFilesystem):
     def __init__(self, *, path_helper, **kwargs):
+        phlb_config.log_config(level=logging.DEBUG)
+
         super().__init__(**kwargs)
 
         self.path_helper = path_helper
 
-        # create backup destination to create summary file in there
-        self.path_helper.summary_filepath.parent.makedirs(  # calls os.makedirs()
-            mode=phlb_config.default_new_path_mode, exist_ok=True
-        )
-        self.summary_file = self.path_helper.summary_filepath.open("w")
-        self.summary = SummaryFileHelper(self.summary_file)
-
     def start(self):
         old_backups = BackupRun.objects.filter(name=self.path_helper.backup_name)
-        self.summary(f"{self.path_helper.backup_name!r} was backuped {old_backups.count():d} time(s)")
+        log.info(f"{self.path_helper.backup_name!r} was backuped {old_backups.count():d} time(s)")
 
         old_backups = old_backups.filter(completed=True)
         completed_count = old_backups.count()
-        self.summary(f"There are {completed_count:d} backups finished completed.")
+        log.info(f"There are {completed_count:d} backups finished completed.")
 
         self.latest_backup = None
         self.latest_mtime_ns = None
         try:
             self.latest_backup = old_backups.latest()
         except BackupRun.DoesNotExist:
-            self.summary(f"No old backup found with name {self.path_helper.backup_name!r}")
+            log.info(f"No old backup found with name {self.path_helper.backup_name!r}")
         else:
             latest_backup_datetime = self.latest_backup.backup_datetime
-            self.summary("Latest backup from:", dt2naturaltimesince(latest_backup_datetime))
+            log.info("Latest backup from: %s", dt2naturaltimesince(latest_backup_datetime))
 
             backup_entries = BackupEntry.objects.filter(backup_run=self.latest_backup)
             try:
@@ -70,12 +65,12 @@ class BackupIterFilesystem(IterFilesystem):
                 log.warning("Latest backup run contains no files?!?")
             else:
                 self.latest_mtime_ns = latest_entry.file_mtime_ns
-                self.summary(
-                    "Latest backup entry modified time: %s" %
-                    ns2naturaltimesince(
-                        self.latest_mtime_ns))
+                log.info(
+                    "Latest backup entry modified time: %s",
+                    ns2naturaltimesince(self.latest_mtime_ns)
+                )
 
-        self.summary(f"Backup to: '{self.path_helper.abs_dst_root}'")
+        log.info(f"Backup to: '{self.path_helper.abs_dst_root}'")
         self.path_helper.abs_dst_root.makedirs(  # call os.makedirs()
             mode=phlb_config.default_new_path_mode, exist_ok=True
         )
@@ -87,10 +82,10 @@ class BackupIterFilesystem(IterFilesystem):
             name=self.path_helper.backup_name,
             backup_datetime=self.path_helper.backup_datetime,
             completed=False)
-        log.debug(f" * backup_run: {self.backup_run}")
+        log.debug(" * backup_run: %s", self.backup_run)
 
-        self.summary(f"Start backup: {self.path_helper.time_string}")
-        self.summary(f"Source path: {self.path_helper.abs_src_root}")
+        log.info(f"Start backup: {self.path_helper.time_string}")
+        log.info(f"Source path: {self.path_helper.abs_src_root}")
 
         # init own attributes in Statistics() instance:
         self.stats_helper.total_file_link_count = 0
@@ -176,25 +171,25 @@ class BackupIterFilesystem(IterFilesystem):
         dir_path = DirEntryPath(dir_entry)
 
         if dir_path.is_symlink:
-            # self.summary("TODO Symlink: %s" % dir_path)
+            # log.info("TODO Symlink: %s" % dir_path)
             return
 
         if dir_path.resolve_error is not None:
-            self.summary(f"TODO resolve error: {dir_path.resolve_error}")
+            log.info(f"TODO resolve error: {dir_path.resolve_error}")
             pprint_path(dir_path)
             return
 
         if dir_path.different_path:
-            self.summary("TODO different path:")
+            log.info("TODO different path:")
             pprint_path(dir_path)
             return
 
         if dir_path.is_dir:
-            # self.summary("TODO dir: %s" % dir_path)
+            # log.info("TODO dir: %s" % dir_path)
             return
 
         if dir_path.is_file:
-            # self.summary("Normal file: %s", dir_path)
+            # log.info("Normal file: %s", dir_path)
 
             self.path_helper.set_src_filepath(dir_path)
             if self.path_helper.abs_src_filepath is None:
@@ -223,7 +218,7 @@ class BackupIterFilesystem(IterFilesystem):
                     file_backup.deduplication_backup()
             except BackupFileError as err:
                 # A error occur while backup the file
-                self.summary(err, flush=True, verbose=True)
+                log.error(err.args[0])
                 self.stats_helper.process_error_count += 1
                 return
 
@@ -242,7 +237,7 @@ class BackupIterFilesystem(IterFilesystem):
             if file_backup.fast_backup:
                 self.stats_helper.total_fast_backup += 1
         else:
-            self.summary("TODO:" % dir_path)
+            log.info("TODO: %s", dir_path)
             pprint_path(dir_path)
 
     def get_summary(self):
@@ -279,26 +274,22 @@ class BackupIterFilesystem(IterFilesystem):
         ]
         return summary
 
-    def print_summary(self):
-        self.summary("\n%s\n" % "\n".join(self.get_summary()))
-
     def done(self):
         if self.stats_helper.abort is True:
             # KeyboardInterrupt catch in iterfilesystem.main.IterFilesystem.process
-            self.summary(
+            log.info(
                 '\n *** Abort backup, because user hits the interrupt key during execution! ***\n'
             )
         elif self.stats_helper.abort is None:
-            self.summary('\nWARNING: Unknown scan abort!\n')
-
-        self.summary(f'stats={self.stats_helper.pformat()}', verbose=False)
-        self.print_summary()
+            log.info('\nWARNING: Unknown scan abort!\n')
 
         self.backup_run.completed = True
         self.backup_run.save(update_fields=['completed'])
 
-        self.summary('---END---', flush=True)
-        self.summary_file.close()
+        log.debug(f'stats={self.stats_helper.pformat()}')
+
+        log.info("\n%s\n" % "\n".join(self.get_summary()))
+        log.info('---END---')
 
 
 class LogPathMaker:
@@ -313,6 +304,14 @@ class LogPathMaker:
         # make temp file available in destination via link ;)
         self.temp_log_path = Path2(settings.LOG_FILEPATH)
         assert self.temp_log_path.is_file(), f"{settings.LOG_FILEPATH} doesn't exists?!?"
+
+        self.path_helper.log_filepath.parent.makedirs(  # calls os.makedirs()
+            mode=phlb_config.default_new_path_mode, exist_ok=True
+        )
+
+        assert self.path_helper.log_filepath.exists() is False, \
+            f'Already exists: {self.path_helper.log_filepath}'
+
         try:
             self.temp_log_path.link(self.path_helper.log_filepath)  # call os.link()
         except OSError as err:
@@ -324,6 +323,7 @@ class LogPathMaker:
             self.copy_log = False
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        log.info('Log file saved here: %s', self.path_helper.log_filepath)
         if self.copy_log:
             log.warning(f"copy log file from '{settings.LOG_FILEPATH}' to '{self.path_helper.log_filepath}'")
             self.temp_log_path.copyfile(self.path_helper.log_filepath)  # call shutil.copyfile()
@@ -331,20 +331,33 @@ class LogPathMaker:
 
 def backup(path, name, wait=False):
     path_helper = PathHelper(src_path=path, force_name=name)
+    stats_helper = None
 
     with LogPathMaker(path_helper):
-        backup_worker = BackupIterFilesystem(
-            ScanDirClass=ScandirWalker,
-            scan_dir_kwargs=dict(
-                top_path=path_helper.abs_src_root,
-                skip_dir_patterns=phlb_config.skip_dirs,
-                skip_file_patterns=phlb_config.skip_patterns,
-            ),
-            update_interval_sec=0.5,
-            wait=wait,
+        try:
+            backup_worker = BackupIterFilesystem(
+                ScanDirClass=ScandirWalker,
+                scan_dir_kwargs=dict(
+                    top_path=path_helper.abs_src_root,
+                    skip_dir_patterns=phlb_config.skip_dirs,
+                    skip_file_patterns=phlb_config.skip_patterns,
+                ),
+                update_interval_sec=0.5,
+                wait=wait,
 
-            path_helper=path_helper,
-        )
-        stats_helper = backup_worker.process()
+                path_helper=path_helper,
+            )
+            stats_helper = backup_worker.process()
+        except KeyboardInterrupt:
+            log.warning('Abort backup, because user hits the interrupt key during execution!')
+        except BaseException:
+            log.error("_" * 79)
+            log.error("ERROR: Backup aborted with a unexpected error:")
+            for line in exc_plus():
+                log.error(line)
+            log.error("-" * 79)
+            log.error("Please report this Bug here:")
+            log.error("https://github.com/jedie/PyHardLinkBackup/issues/new")
+            log.error("-" * 79)
 
     return stats_helper

@@ -134,7 +134,7 @@ class PatchOpen:
 
     def __call__(self, filepath, mode, *args, **kwargs):
         self.call_count += 1
-        assert isinstance(filepath, str), repr(filepath)
+
         if filepath in self.deny_paths:
             self.raise_count += 1
             raise OSError("unittests raise")

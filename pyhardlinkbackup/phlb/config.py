@@ -124,7 +124,7 @@ def edit_ini(ini_filepath=None):
         webbrowser.open(ini_filepath)
 
 
-class pyhardlinkbackupConfig:
+class PyhardlinkbackupConfig:
     ini_filepath = None
     _config = None
 
@@ -233,8 +233,12 @@ class pyhardlinkbackupConfig:
         print(f"Debug config '{self.ini_filepath}':")
         pprint.pprint(self._config)
 
+    def log_config(self, level=logging.INFO):
+        log.log(level, 'Current config:')
+        log.log(level, pprint.pformat(self._config))
 
-phlb_config = pyhardlinkbackupConfig(INI_CONVERTER_DICT)
+
+phlb_config = PyhardlinkbackupConfig(INI_CONVERTER_DICT)
 
 
 if __name__ == "__main__":
@@ -243,7 +247,7 @@ if __name__ == "__main__":
     sys.stdout = sys.stderr  # work-a-round for PyCharm to sync output
     logging.basicConfig(level=logging.DEBUG)
 
-    phlb_config = pyhardlinkbackupConfig(INI_CONVERTER_DICT)
+    phlb_config = PyhardlinkbackupConfig(INI_CONVERTER_DICT)
 
     print(f"INI filepath: '{phlb_config.ini_filepath}'")
     pprint.pprint(phlb_config)

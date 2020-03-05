@@ -40,7 +40,7 @@ class TestBaseBackup(BaseWithSourceFilesTestCase):
         self.assertListEqual(
             tree_list,
             [
-                self.source_path,
+                str(self.source_path),
                 "root_file_A.txt                F 19730710:001151 - The root file A content.",
                 "root_file_B.txt                F 19730710:001152 - The root file B content.",
                 "sub dir A                      D 19730710:001155",
@@ -100,14 +100,16 @@ class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
         self.assert_click_exception(self.second_backup_result)
         print(self.second_backup_result.output)
 
-        self.assertIn("106 Bytes in 5 files to backup.", self.second_backup_result.output)
-        self.assertNotIn("WARNING: Omitted", self.second_backup_result.output)
+        self.assertIn(" * Files to backup: 5 files", self.second_backup_result.output)
+        self.assertIn(" * Source file sizes: 106 Bytes", self.second_backup_result.output)
         self.assertIn(" * fast backup: 5 files", self.second_backup_result.output)
         self.assertIn(" * new content saved: 0 files (0 Byte 0.0%)", self.second_backup_result.output)
         self.assertIn(
             "stint space via hardlinks: 5 files (106 Bytes 100.0%)",
             self.second_backup_result.output)
 
+        self.assertNotIn("WARNING: Omitted", self.second_backup_result.output)
+        
         assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
         self.assert_backup_fs_count(2)
 

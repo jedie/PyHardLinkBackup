@@ -6,7 +6,8 @@ import sys
 from unittest import mock
 
 from click.testing import CliRunner
-from django_tools.unittest_utils.assertments import assert_is_dir, assert_is_file, assert_pformat_equal
+from django_tools.unittest_utils.assertments import assert_is_dir, assert_is_file, assert_pformat_equal, \
+    assert_startswith
 
 # https://github.com/jedie/pathlib_revised/
 from pathlib_revised import Path2
@@ -23,7 +24,6 @@ from pyhardlinkbackup.tests.base import (
 )
 from pyhardlinkbackup.tests.mock_datetime import mock_datetime_now
 from pyhardlinkbackup.tests.utils import PatchOpen, UnittestFileSystemHelper
-
 
 class TestBackup(BaseSourceDirTestCase):
     """
@@ -57,7 +57,6 @@ class TestBackup(BaseSourceDirTestCase):
         assert_is_file(pathlib.Path(
             self.backup_sub_path, '2020-01-02-030405-000006', 'phlb_config.ini')
         )
-        assert_is_file(pathlib.Path(self.backup_sub_path, '2020-01-02-030405-000006 summary.txt'))
 
         log_file_path = pathlib.Path(self.backup_sub_path, '2020-01-02-030405-000006.log')
         assert_is_file(log_file_path)
@@ -65,7 +64,7 @@ class TestBackup(BaseSourceDirTestCase):
         print('*' * 100)
         print(logs)
         print('*' * 100)
-        assert "Start low level logging" in logs
+        assert_startswith(logs, 'Truncate log file in setUp()')
 
         self.assert_backup_fs_count(1)
 
@@ -307,25 +306,22 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
 
-        summary = self.get_last_summary_content()
+        log_content = self.get_last_log_content()
 
         self.assertIn("Backup aborted with a unexpected error", result.output)
-        self.assertIn("Backup aborted with a unexpected error", summary)
+        self.assertIn("Backup aborted with a unexpected error", log_content)
 
         self.assertIn("Traceback (most recent call last):", result.output)
-        self.assertIn("Traceback (most recent call last):", summary)
+        self.assertIn("Traceback (most recent call last):", log_content)
 
         self.assertIn("TabError: test raise", result.output)
-        self.assertIn("TabError: test raise", summary)
+        self.assertIn("TabError: test raise", log_content)
 
-        self.assertIn(" * Files to backup: 5 files", result.output)
-        self.assertIn(" * Files to backup: 5 files", summary)
+        self.assertIn("Please report this Bug here", result.output)
+        self.assertIn("Please report this Bug here", log_content)
 
-        self.assertIn("WARNING: 2 omitted files!", result.output)
-        self.assertIn("WARNING: 2 omitted files!", summary)
-
-        self.assertIn("---END---", result.output)
-        self.assertIn("---END---", summary)
+        self.assertIn("No old backup found with name 'source unittests files'", result.output)
+        self.assertIn("No old backup found with name 'source unittests files'", log_content)
 
     def test_keyboard_interrupt(self):
         origin_open = os.utime
@@ -350,49 +346,44 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
             output
         )
 
-        summary = self.get_last_summary_content()
+        log_content = self.get_last_log_content()
         print("_" * 100)
-        print('summary:')
-        print(summary)
+        print('log content:')
+        print(log_content)
         print("=" * 100)
         self.assertIn(
             "*** Abort backup, because user hits the interrupt key during execution! ***",
-            summary
+            log_content
         )
 
         self.assertNotIn("Traceback", output)
-        self.assertNotIn("Traceback", summary)
+        self.assertNotIn("Traceback", log_content)
 
         # KeyboardInterrupt handled?
         self.assertIn("Backup done in", output)
-        self.assertIn("Backup done in", summary)
+        self.assertIn("Backup done in", log_content)
 
         # Correctly finished?
         self.assertIn("---END---", output)
-        self.assertIn("---END---", summary)
+        self.assertIn("---END---", log_content)
         self.assertIn("Backup done.", output)
 
 
 class TestOneBackups(BaseCreatedOneBackupsTestCase):
-    def test_summary(self):
-        summary_filepath = pathlib.Path(self.first_run_path + " summary.txt")
-        self.assertTrue(summary_filepath.is_file(), f"{summary_filepath} doesn't exist")
-
-        with summary_filepath.open("r") as f:  # Path().read_text() is new in Py 2.5
-            summary_content = f.read()
-        print(summary_content)
-
-        self.assertIn("Backup done:", summary_content)
-        self.assertIn("Source file sizes: 106 Bytes", summary_content)
-        self.assertIn(" * new content saved: 5 files (106 Bytes 100.0%)", summary_content)
-        self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", summary_content)
-
     def test_log_file(self):
         log_content = self.get_log_content(self.first_run_log)
-
         print(log_content)
-        self.assertIn("Backup", log_content)
-        self.assertIn("Start low level logging", log_content)
+        self.assertIn("'source unittests files' was backuped 0", log_content)
+        self.assertIn(' * Files to backup: 5 files', log_content)
+        self.assertIn(' * Source file sizes: 106 Bytes', log_content)
+        self.assertIn(' * new content saved: 5 files (106 Bytes 100.0%)', log_content)
+        self.assertIn(' * stint space via hardlinks: 0 files (0 Byte 0.0%)', log_content)
+        self.assertIn('---END---', log_content)
+        self.assertIn('Log file saved here:', log_content)
+        self.assertIn('/pyhardlinkbackups/source unittests files/', log_content)
+
+        assert_startswith(log_content, 'Truncate log file in setUp()')
+        assert log_content.count('---END---') == 1
 
     def test_not_existing_old_backup_files(self):
         paths = (
@@ -412,7 +403,8 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         print("*" * 100)
         self.assertIn("Old backup file not found", log_content)
 
-        self.assertIn("106 Bytes in 5 files to backup.", result.output)
+        self.assertIn(" * Files to backup: 5 files", result.output)
+        self.assertIn(" * Source file sizes: 106 Bytes", result.output)
 
         # No skipped files, because they are used from source
         self.assertNotIn("omitted files", result.output)
@@ -433,20 +425,23 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         origin_os_link = os.link
 
-        def patched_open(source, link_name):
+        def patched_os_link(source, link_name):
             if source.endswith("root_file_B.txt"):
                 raise OSError("unittests raise")
             return origin_os_link(source, link_name)
 
-        with mock.patch("os.link", patched_open):
+        with mock.patch("os.link", patched_os_link):
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
 
         self.assertIn("Can't link", result.output)
         self.assertIn("root_file_B.txt': unittests raise", result.output)
 
-        self.assertIn("106 Bytes in 5 files to backup.", result.output)
         self.assertNotIn("omitted files", result.output)
+        self.assertIn(" * 0 directories skipped", result.output)
+        self.assertIn(" * 0 files skipped", result.output)
+        self.assertIn(" * Files to backup: 5 files", result.output)
+        self.assertIn(" * Source file sizes: 106 Bytes", result.output)
         self.assertIn(" * fast backup: 4 files", result.output)
         self.assertIn(" * new content saved: 1 files (24 Bytes 22.6%)", result.output)
         self.assertIn(" * stint space via hardlinks: 4 files (82 Bytes 77.4%)", result.output)
@@ -480,7 +475,8 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         backup_path = self.get_newest_backup_path()
         self.assert_backuped_files(backup_path, backup_run_pk=2)
 
-        self.assertIn("106 Bytes in 5 files to backup.", result.output)
+        self.assertIn(" * Files to backup: 5 files", result.output)
+        self.assertIn(" * Source file sizes: 106 Bytes", result.output)
         self.assertNotIn("omitted files", result.output)
 
         # Can't use the fast backup, because all previous backups are not complete
@@ -501,11 +497,13 @@ class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
 
         print(result.output)
 
-        self.assertIn("110 Byte in 5 files to backup.", result.output)
-        self.assertNotIn("omitted files", result.output)
+        self.assertIn(" * Files to backup: 5 files", result.output)
+        self.assertIn(" * Source file sizes: 110 Bytes", result.output)
         self.assertIn(" * fast backup: 4 files", result.output)
         self.assertIn(" * new content saved: 1 files (24 Bytes 21.8%)", result.output)
         self.assertIn(" * stint space via hardlinks: 4 files (86 Bytes 78.2%)", result.output)
+
+        self.assertNotIn("omitted files", result.output)
 
         self.assert_backup_fs_count(3)  # there are tree backups in filesystem
         backup_path = self.get_newest_backup_path()

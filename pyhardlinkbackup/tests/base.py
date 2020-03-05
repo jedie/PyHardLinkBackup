@@ -9,8 +9,9 @@ import unittest
 from pathlib import Path
 
 from click.testing import CliRunner
+from django.conf import settings
 from django.test import TestCase
-from django_tools.unittest_utils.assertments import assert_pformat_equal, assert_is_file
+from django_tools.unittest_utils.assertments import assert_is_file, assert_pformat_equal
 
 # https://github.com/jedie/PyHardLinkBackup
 import pyhardlinkbackup
@@ -77,6 +78,9 @@ class BaseTestCase(BaseTempTestCase, TestCase):
 
     def setUp(self):
         super().setUp()
+        with Path(settings.LOG_FILEPATH).open("w") as f:
+            f.write('Truncate log file in setUp()\n')
+
         self.backup_path = os.path.join(self.temp_root_path, "pyhardlinkbackups")
         self.ini_path = os.path.join(self.temp_root_path, "pyhardlinkbackup.ini")
 
@@ -180,21 +184,8 @@ class BaseSourceDirTestCase(BaseTestCase):
 
     def get_last_log_content(self):
         newest_log_filepath = self.get_newest_log_filepath()
+        print(newest_log_filepath)
         return self.get_log_content(newest_log_filepath)
-
-    # --------------------------------------------------------------------------
-
-    def get_newest_summary_filepath(self):
-        run_path = self.get_newest_backup_path()
-        return pathlib.Path(run_path + " summary.txt")
-
-    def get_summary_content(self, summary_filepath):
-        assert_is_file(summary_filepath)
-        return summary_filepath.read_text()
-
-    def get_last_summary_content(self):
-        newest_summary_filepath = self.get_newest_summary_filepath()
-        return self.get_summary_content(newest_summary_filepath)
 
     # --------------------------------------------------------------------------
 
@@ -208,19 +199,12 @@ class BaseSourceDirTestCase(BaseTestCase):
             if item.is_dir(follow_symlinks=False):
                 dirs.append(item)
 
-        assert_pformat_equal(
-            len(dirs), count,
+        assert len(dirs) == count, \
             f"dir count: {len(dirs):d} != {count:d} - items: {repr(dirs)}"
-        )
 
-        # .log and summary files for every backup run
-        file_count = count * 2
-        assert_pformat_equal(
-            len(files), file_count,
-            "files count: %i != %i - items:\n%s" % (
-                len(files), file_count, "\n".join([repr(f) for f in files])
-            )
-        )
+        # One .log file per backup run:
+        assert len(files) == count, \
+            'files count: %i != %i - items:\n%s' % (len(files), count, "\n".join(repr(f) for f in files))
 
 
 class BaseWithSourceFilesTestCase(BaseSourceDirTestCase):
