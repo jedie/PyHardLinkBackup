@@ -114,7 +114,7 @@ class BackupIterFilesystem(IterFilesystem):
         if mtime_ns > self.latest_mtime_ns:
             # The current source file is newer than
             # the latest file from last completed backup
-            log.info("Fast compare: source file is newer than latest backuped file.")
+            log.debug("Fast compare: source file is newer than latest backuped file.")
             return
 
         # Look into database and compare mtime and size
@@ -134,8 +134,7 @@ class BackupIterFilesystem(IterFilesystem):
 
         file_size = content_info.file_size
         if file_size != dir_path.stat.st_size:
-            log.info(
-                f"Fast compare: File size is different: {file_size} != {dir_path.stat.st_size}")
+            log.debug("Fast compare: File size is different: %s != %s", file_size, dir_path.stat.st_size)
             return
 
         old_backup_filepath = old_backup_entry.get_backup_path()

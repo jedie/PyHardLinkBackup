@@ -22,9 +22,9 @@ def deduplicate(backup_entry, hash_hexdigest):
     assert backup_entry.is_file(), f"Is not a file: {backup_entry.path}"
 
     old_backups = BackupEntry.objects.filter(content_info__hash_hexdigest=hash_hexdigest)
-    # log.debug("There are %i old backup entries for the hash", old_backups.count())
+    log.debug("There are %i old backup entries for the hash", old_backups.count())
     old_backups = old_backups.exclude(no_link_source=True)
-    # log.debug("%i old backup entries with 'no_link_source=False'", old_backups.count())
+    log.debug("%i old backup entries with 'no_link_source=False'", old_backups.count())
     for old_backup in old_backups:
         log.debug("+++ old: '%s'", old_backup)
 
@@ -57,16 +57,16 @@ def deduplicate(backup_entry, hash_hexdigest):
             suffix=".tmp",
             tmp_max=10,
         )
-        log.debug(f"{backup_entry} was renamed to {temp_filepath}")
+        log.debug("%s was renamed to %s", backup_entry, temp_filepath)
         try:
             abs_old_backup_path.link(backup_entry)  # call os.link()
         except OSError as err:
             temp_filepath.rename(backup_entry)
             log.error(f"Can't link '{abs_old_backup_path}' to '{backup_entry}': {err}")
-            log.info("Mark %r with 'no link source'.", old_backup)
+            log.debug("Mark %r with 'no link source'.", old_backup)
             old_backup.no_link_source = True
             old_backup.save()
         else:
             temp_filepath.unlink()  # FIXME
-            log.info(f"Replaced with a hardlink to: '{abs_old_backup_path}'")
+            log.debug('Replaced with a hardlink to: %s', abs_old_backup_path)
             return old_backup
