@@ -4,6 +4,7 @@ import hashlib
 import logging
 import os
 import pprint
+import sys
 import traceback
 import webbrowser
 
