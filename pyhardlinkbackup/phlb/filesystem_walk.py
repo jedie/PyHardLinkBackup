@@ -3,7 +3,7 @@ import logging
 # https://github.com/jedie/pathlib_revised/
 from pathlib_revised import Path2
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 
 def scandir_limited(top, limit, deep=0):

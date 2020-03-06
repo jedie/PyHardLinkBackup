@@ -37,7 +37,7 @@ except ImportError as err:
     raise ImportError(f"Please install 'tqdm': {err}")
 
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 
 def calculate_hash(f, callback):

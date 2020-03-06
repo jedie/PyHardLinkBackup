@@ -13,7 +13,7 @@ from pyhardlinkbackup.phlb import BACKUP_RUN_CONFIG_FILENAME, INTERNAL_FILES
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.humanize import dt2naturaltimesince
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 
 def setup_sqlite(sender, connection, **kwargs):

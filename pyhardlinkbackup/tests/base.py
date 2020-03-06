@@ -21,7 +21,7 @@ from pyhardlinkbackup.phlb.cli import cli
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.tests.utils import UnittestFileSystemHelper
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 BASE_PATH = Path(pyhardlinkbackup.__file__).parent
 
