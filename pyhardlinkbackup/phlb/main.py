@@ -8,6 +8,7 @@
 
 
 import logging
+import pprint
 
 from django.conf import settings
 
@@ -21,6 +22,7 @@ from iterfilesystem.iter_scandir import ScandirWalker
 from iterfilesystem.main import IterFilesystem
 
 # https://github.com/jedie/PyHardLinkBackup
+import pyhardlinkbackup
 from pyhardlinkbackup.backup_app.models import BackupEntry, BackupRun
 from pyhardlinkbackup.phlb.backup import FileBackup
 from pyhardlinkbackup.phlb.config import phlb_config
@@ -29,7 +31,7 @@ from pyhardlinkbackup.phlb.humanize import dt2naturaltimesince, ns2naturaltimesi
 from pyhardlinkbackup.phlb.path_helper import PathHelper
 from pyhardlinkbackup.phlb.traceback_plus import exc_plus
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 
 class BackupIterFilesystem(IterFilesystem):
@@ -330,17 +332,23 @@ class LogPathMaker:
 
 def backup(path, name, wait=False):
     path_helper = PathHelper(src_path=path, force_name=name)
-    stats_helper = None
 
+    # add some informations into log files:
+    log.debug(f"PyHardLinkBackup v{pyhardlinkbackup.__version__}")
+
+    scan_dir_kwargs = dict(
+        top_path=path_helper.abs_src_root,
+        skip_dir_patterns=phlb_config.skip_dirs,
+        skip_file_patterns=phlb_config.skip_patterns,
+    )
+    log.debug('Scandir settings: %s', pprint.pformat(scan_dir_kwargs))
+
+    stats_helper = None
     with LogPathMaker(path_helper):
         try:
             backup_worker = BackupIterFilesystem(
                 ScanDirClass=ScandirWalker,
-                scan_dir_kwargs=dict(
-                    top_path=path_helper.abs_src_root,
-                    skip_dir_patterns=phlb_config.skip_dirs,
-                    skip_file_patterns=phlb_config.skip_patterns,
-                ),
+                scan_dir_kwargs=scan_dir_kwargs,
                 update_interval_sec=0.5,
                 wait=wait,
 

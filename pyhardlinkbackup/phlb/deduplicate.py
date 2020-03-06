@@ -8,7 +8,7 @@ from pyhardlinkbackup.backup_app.models import BackupEntry
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.path_helper import rename2temp
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 
 def deduplicate(backup_entry, hash_hexdigest):

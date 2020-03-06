@@ -4,6 +4,7 @@ import hashlib
 import logging
 import os
 import pprint
+import sys
 import traceback
 import webbrowser
 
@@ -13,7 +14,7 @@ import click
 # https://github.com/jedie/pathlib_revised/
 from pathlib_revised import Path2
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 CONFIG_FILENAME = "PyHardLinkBackup.ini"
 DEAFULT_CONFIG_FILENAME = "config_defaults.ini"
@@ -234,31 +235,7 @@ class PyhardlinkbackupConfig:
         pprint.pprint(self._config)
 
     def log_config(self, level=logging.INFO):
-        log.log(level, 'Current config:')
-        log.log(level, pprint.pformat(self._config))
+        log.log(level, 'Current config: %s', pprint.pformat(self._config))
 
 
 phlb_config = PyhardlinkbackupConfig(INI_CONVERTER_DICT)
-
-
-if __name__ == "__main__":
-    import sys
-
-    sys.stdout = sys.stderr  # work-a-round for PyCharm to sync output
-    logging.basicConfig(level=logging.DEBUG)
-
-    phlb_config = PyhardlinkbackupConfig(INI_CONVERTER_DICT)
-
-    print(f"INI filepath: '{phlb_config.ini_filepath}'")
-    pprint.pprint(phlb_config)
-
-    print()
-    for k in phlb_config._config.keys():
-        print(k, getattr(phlb_config, k))
-
-    try:
-        phlb_config.doesntexist
-    except AttributeError:
-        print("OK")
-    else:
-        print("ERROR!")

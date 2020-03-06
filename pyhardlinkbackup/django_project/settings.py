@@ -128,7 +128,7 @@ LOGGING = {
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {message}',
+            'format': '{asctime} {levelname} {name} {message}',
             'style': '{',
         },
         'simple': {
@@ -160,7 +160,17 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': False
         },
-        'phlb': {
+        'pyhardlinkbackup': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+        'pyhardlinkbackup.phlb.path_helper': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False
+        },
+        'pyhardlinkbackup.backup_app.models': {
             'handlers': ['file', 'console'],
             'level': 'INFO',
             'propagate': False

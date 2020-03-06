@@ -9,7 +9,7 @@ from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.deduplicate import deduplicate
 from pyhardlinkbackup.phlb.exceptions import BackupFileError
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 
 class FileBackup:

@@ -10,7 +10,7 @@ from pathlib_revised import Path2
 # https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.phlb.config import phlb_config
 
-log = logging.getLogger(f"phlb.{__name__}")
+log = logging.getLogger(__name__)
 
 
 def get_tempname(path, prefix="", suffix=""):
