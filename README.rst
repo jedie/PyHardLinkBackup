@@ -376,6 +376,8 @@ History
 
 * **dev** - `compare v0.12.1...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.1...master>`_ 
 
+    * `Fix too verbose output by decrease debug level <https://github.com/jedie/PyHardLinkBackup/pull/41>`_
+
     * TBC
 
 * 05.03.2020 - v0.12.1 - `compare v0.12.0...v0.12.1 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.0...v0.12.1>`_ 
@@ -562,4 +564,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-03-05 22:34:42 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-06 08:41:47 with "python-creole"``
