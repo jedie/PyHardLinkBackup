@@ -204,12 +204,6 @@ class BackupIterFilesystem(IterFilesystem):
                 process_bars=process_bars
             )
 
-            self.update(
-                dir_entry=dir_entry,
-                file_size=dir_entry.stat().st_size,
-                process_bars=process_bars
-            )
-
             old_backup_entry = self.fast_compare(dir_path)
             try:
                 if old_backup_entry is not None:
