@@ -49,11 +49,12 @@ class FileBackup:
     def _deduplication_backup(self, *, in_file, out_file):
 
         file_size = self.dir_path.stat.st_size
-        small_file = file_size < self.chunk_size
+        big_file = file_size > self.chunk_size
+        if big_file:
+            self.process_bars.file_bar.reset(total=file_size)
 
         hash = hashlib.new(phlb_config.hash_name)
         process_size = 0
-        big_file = False
 
         while True:
             start_time = default_timer()
@@ -85,7 +86,7 @@ class FileBackup:
             chunk_size = len(data)
             process_size += chunk_size
 
-            if not small_file and chunk_size == self.chunk_size:
+            if big_file and chunk_size == self.chunk_size:
                 # Display "current file processbar", but only for big files
 
                 # Calculate the chunk size, so we update the current file bar
@@ -101,11 +102,6 @@ class FileBackup:
                     chunk_size = self.MAX_CHUNK_SIZE
 
                 self.chunk_size = chunk_size
-
-                if not big_file:
-                    # init current file bar
-                    self.process_bars.file_bar.reset(total=file_size)
-                    big_file = True
 
                 # print the bar:
                 self.process_bars.file_bar.desc = (
@@ -124,18 +120,13 @@ class FileBackup:
 
         if big_file:
             self.process_bars.file_bar.update(process_size)
-            self.worker.update(
-                dir_entry=self.dir_path.path_instance,
-                file_size=process_size,
-                process_bars=self.process_bars
-            )
-        else:
-            # Always update the global statistics / process bars:
-            self.worker.update(
-                dir_entry=self.dir_path.path_instance,
-                file_size=file_size,
-                process_bars=self.process_bars
-            )
+
+        # Always update the global statistics / process bars:
+        self.worker.update(
+            dir_entry=self.dir_path.path_instance,
+            file_size=file_size,
+            process_bars=self.process_bars
+        )
         return hash
 
     def fast_deduplication_backup(self, old_backup_entry):
