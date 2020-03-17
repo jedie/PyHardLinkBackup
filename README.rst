@@ -376,6 +376,8 @@ History
 
 * **dev** - `compare v0.12.3...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.3...master>`_ 
 
+    * Dynamic chunk size
+
     * TBC
 
 * 17.03.2020 - v0.12.3 - `compare v0.12.2...v0.12.3 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.2...v0.12.3>`_ 
@@ -578,4 +580,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-03-17 09:38:29 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-17 13:12:04 with "python-creole"``
