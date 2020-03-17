@@ -39,13 +39,15 @@ except ImportError as err:
 
 log = logging.getLogger(__name__)
 
+CHUNK_SIZE = 10 * 1024 * 1024  # TODO: calculate dynamic!
+
 
 def calculate_hash(f, callback):
     # TODO: merge code!
     hash = hashlib.new(phlb_config.hash_name)
     f.seek(0)
     while True:
-        data = f.read(phlb_config.chunk_size)
+        data = f.read(CHUNK_SIZE)
         if not data:
             break
 

@@ -67,7 +67,7 @@ INI_CONVERTER_DICT = {
     "logging_file_level": logging_level,
     "default_new_path_mode": int8,
     "hash_name": hashname,
-    "chunk_size": int,
+    "min_chunk_size": int,
 }
 
 

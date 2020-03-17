@@ -21,7 +21,7 @@ class FileBackup:
     """
     backup one file
     """
-    MIN_CHUNK_SIZE = 10 * 1024 * 1024
+    MIN_CHUNK_SIZE = phlb_config.min_chunk_size
     MAX_CHUNK_SIZE = int(psutil.virtual_memory().available * 0.9)
 
     # TODO: remove with Mock solution:
