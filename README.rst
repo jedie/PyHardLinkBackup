@@ -580,4 +580,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-03-17 13:12:04 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-17 17:28:40 with "python-creole"``
