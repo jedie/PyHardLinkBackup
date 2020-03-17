@@ -21,7 +21,7 @@ class FileBackup:
     """
     backup one file
     """
-    MIN_CHUNK_SIZE = 10 * 1024 * 1024
+    MIN_CHUNK_SIZE = phlb_config.min_chunk_size
     MAX_CHUNK_SIZE = int(psutil.virtual_memory().available * 0.9)
 
     # TODO: remove with Mock solution:
@@ -49,11 +49,12 @@ class FileBackup:
     def _deduplication_backup(self, *, in_file, out_file):
 
         file_size = self.dir_path.stat.st_size
-        small_file = file_size < self.chunk_size
+        big_file = file_size > self.chunk_size
+        if big_file:
+            self.process_bars.file_bar.reset(total=file_size)
 
         hash = hashlib.new(phlb_config.hash_name)
         process_size = 0
-        big_file = False
 
         while True:
             start_time = default_timer()
@@ -85,7 +86,7 @@ class FileBackup:
             chunk_size = len(data)
             process_size += chunk_size
 
-            if not small_file and chunk_size == self.chunk_size:
+            if big_file and chunk_size == self.chunk_size:
                 # Display "current file processbar", but only for big files
 
                 # Calculate the chunk size, so we update the current file bar
@@ -101,11 +102,6 @@ class FileBackup:
                     chunk_size = self.MAX_CHUNK_SIZE
 
                 self.chunk_size = chunk_size
-
-                if not big_file:
-                    # init current file bar
-                    self.process_bars.file_bar.reset(total=file_size)
-                    big_file = True
 
                 # print the bar:
                 self.process_bars.file_bar.desc = (
@@ -124,18 +120,13 @@ class FileBackup:
 
         if big_file:
             self.process_bars.file_bar.update(process_size)
-            self.worker.update(
-                dir_entry=self.dir_path.path_instance,
-                file_size=process_size,
-                process_bars=self.process_bars
-            )
-        else:
-            # Always update the global statistics / process bars:
-            self.worker.update(
-                dir_entry=self.dir_path.path_instance,
-                file_size=file_size,
-                process_bars=self.process_bars
-            )
+
+        # Always update the global statistics / process bars:
+        self.worker.update(
+            dir_entry=self.dir_path.path_instance,
+            file_size=file_size,
+            process_bars=self.process_bars
+        )
         return hash
 
     def fast_deduplication_backup(self, old_backup_entry):
@@ -222,23 +213,46 @@ class FileBackup:
             )
 
         try:
+            in_file = None
+            hash_file = None
+            out_file = None
             try:
-                with self.worker.path_helper.abs_src_filepath.open("rb") as in_file:
-                    with self.worker.path_helper.abs_dst_hash_filepath.open("w") as hash_file:
-                        with self.worker.path_helper.abs_dst_filepath.open("wb") as out_file:
+                try:
+                    in_file = self.worker.path_helper.abs_src_filepath.open("rb")
+                except OSError as err:
+                    raise OSError(f'Cannot open source file: {err}')
 
-                            hash = self._deduplication_backup(
-                                in_file=in_file,
-                                out_file=out_file
-                            )
+                try:
+                    hash_file = self.worker.path_helper.abs_dst_hash_filepath.open("w")
+                except OSError as err:
+                    raise OSError(f'Cannot open hash file: {err}')
 
-                        hash_hexdigest = hash.hexdigest()
-                        hash_file.write(hash_hexdigest)
+                try:
+                    out_file = self.worker.path_helper.abs_dst_filepath.open("wb")
+                except OSError as err:
+                    raise OSError(f'Cannot open destination file: {err}')
+
+                hash = self._deduplication_backup(
+                    in_file=in_file,
+                    out_file=out_file
+                )
+                hash_hexdigest = hash.hexdigest()
+                hash_file.write(hash_hexdigest)
             except OSError as err:
-                # FIXME: Better error message
+                log.error(str(err))
                 raise BackupFileError(
                     f"Skip file {self.worker.path_helper.abs_src_filepath} error: {err}"
                 )
+            finally:
+                if in_file is not None:
+                    in_file.close()
+
+                if hash_file is not None:
+                    hash_file.close()
+
+                if out_file is not None:
+                    out_file.close()
+
         except KeyboardInterrupt:
             # Try to remove created files
             try:

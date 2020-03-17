@@ -244,10 +244,9 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
         self.assertIn("/pyhardlinkbackups/ForcedName/".replace("/", os.sep), result.output)
 
-    def test_skip_patterns(self):
+    def test_error_open_source_file(self):
         """
-        Test if not open able source files, will be skipped
-        and the backup will save the other files.
+        Test if backup continue if source file can't be created.
         """
         deny_paths = (
             os.path.join(self.source_path, "root_file_B.txt"),
@@ -289,14 +288,133 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         print(log_content)
         print('*' * 100)
         self.assertIn("Skip file", log_content)
-        self.assertIn("error: unittests raise", log_content)
+        self.assertIn("Cannot open source file: unittests raise", log_content)
         self.assertIn(
-            "/source unittests files/root_file_B.txt error: unittests raise".replace("/", os.sep), log_content  # noqa
+            (
+                "/source unittests files/root_file_B.txt error:"
+                " Cannot open source file: unittests raise"
+            ).replace("/", os.sep),
+            log_content
         )
         self.assertIn(
-            "/source unittests files/sub dir B/sub_file.txt error: unittests raise".replace("/", os.sep), log_content  # noqa
+            (
+                "/source unittests files/sub dir B/sub_file.txt error:"
+                " Cannot open source file: unittests raise"
+            ).replace("/", os.sep),
+            log_content
         )
-        self.assertIn("unittests raise", log_content)
+
+    def test_error_open_hash_file(self):
+        """
+        Test if backup continue if hash file can't be created.
+        """
+        base_path = os.path.join(self.backup_path, "source unittests files", "2020-01-02-030405-000006")
+
+        deny_paths = (
+            os.path.join(base_path, "root_file_B.txt.sha512"),
+            os.path.join(base_path, "sub dir B", "sub_file.txt.sha512"),
+        )
+        print("Deny path:")
+        print("\n".join(deny_paths))
+
+        # pathlib.Path().open() used io.open and not builtins.open !
+        with mock.patch("io.open", PatchOpen(open, deny_paths)) as p:
+            dt = datetime.datetime(
+                year=2020, month=1, day=2, hour=3, minute=4, second=5, microsecond=6
+            )
+            with mock_datetime_now(dt):
+                result = self.invoke_cli("backup", self.source_path)
+
+            print(result.output)
+            log_content = self.get_last_log_content()
+            print('*' * 100)
+            print(log_content)
+            print('*' * 100)
+
+            assert p.raise_count == 2
+
+        self.assertIn("unittests raise", result.output)  # Does the test patch worked?
+
+        self.assertIn("Backup done.", result.output)
+        self.assertIn("WARNING: 2 omitted files", result.output)
+        self.assertIn(" * new content saved: 3 files (64 Bytes 100.0%)", result.output)
+        self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", result.output)
+
+        assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
+        self.assert_backup_fs_count(1)
+
+        self.assertIn("Skip file", log_content)
+        self.assertIn("Cannot open hash file: unittests raise", log_content)
+        self.assertIn(
+            (
+                "/source unittests files/root_file_B.txt error:"
+                " Cannot open hash file: unittests raise"
+            ).replace("/", os.sep),
+            log_content
+        )
+        self.assertIn(
+            (
+                "/source unittests files/sub dir B/sub_file.txt error:"
+                " Cannot open hash file: unittests raise"
+            ).replace("/", os.sep),
+            log_content
+        )
+
+    def test_error_open_destination_file(self):
+        """
+        Test if backup continue if destination file can't be created.
+        """
+        base_path = os.path.join(self.backup_path, "source unittests files", "2020-01-02-030405-000006")
+
+        deny_paths = (
+            os.path.join(base_path, "root_file_B.txt"),
+            os.path.join(base_path, "sub dir B", "sub_file.txt"),
+        )
+        print("Deny path:")
+        print("\n".join(deny_paths))
+
+        # pathlib.Path().open() used io.open and not builtins.open !
+        with mock.patch("io.open", PatchOpen(open, deny_paths)) as p:
+            dt = datetime.datetime(
+                year=2020, month=1, day=2, hour=3, minute=4, second=5, microsecond=6
+            )
+            with mock_datetime_now(dt):
+                result = self.invoke_cli("backup", self.source_path)
+
+            print(result.output)
+            log_content = self.get_last_log_content()
+            print('*' * 100)
+            print(log_content)
+            print('*' * 100)
+
+            assert p.raise_count == 2
+
+        self.assertIn("unittests raise", result.output)  # Does the test patch worked?
+
+        self.assertIn("Backup done.", result.output)
+        self.assertIn("WARNING: 2 omitted files", result.output)
+        self.assertIn(" * new content saved: 3 files (64 Bytes 100.0%)", result.output)
+        self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", result.output)
+
+        assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
+        self.assert_backup_fs_count(1)
+
+        self.assertIn("Skip file", log_content)
+        self.assertIn("Cannot open destination file: unittests raise", log_content)
+        self.assertIn(
+            (
+                "/source unittests files/root_file_B.txt error:"
+                " Cannot open destination file: unittests raise"
+            ).replace("/", os.sep),
+            log_content
+        )
+        self.assertIn(
+            (
+                "/source unittests files/sub dir B/sub_file.txt error:"
+                " Cannot open destination file: unittests raise"
+            ).replace("/", os.sep),
+            log_content
+        )
 
     def test_unexpected_error(self):
         origin_open = os.utime

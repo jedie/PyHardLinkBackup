@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}PyHardLinkBackup | {{ title }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        PyHardLinkBackup {{ version_string }}
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

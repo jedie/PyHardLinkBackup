@@ -22,8 +22,17 @@ class AlwaysLoggedInAsSuperUser:
     Disable it by deactivate the default user.
     """
 
-    def process_request(self, request):
-        if request.user.is_authenticated():
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        self._auto_login(request)
+        response = self.get_response(request)
+
+        return response
+
+    def _auto_login(self, request):
+        if request.user.is_authenticated:
             return
 
         if not phlb_config.enable_auto_login:

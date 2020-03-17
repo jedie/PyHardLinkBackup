@@ -378,11 +378,19 @@ History
 
     * Dynamic chunk size
 
+    * replace ``CHUNK_SIZE`` in ``PyHardLinkBackup.ini`` with ``MIN_CHUNK_SIZE``
+
+    * Fix misleading error msg for dst OSError, bad exception handling `#23 <https://github.com/jedie/PyHardLinkBackup/issues/23>`_
+
+    * Fix "run django server doesn't work" `#39 <https://github.com/jedie/PyHardLinkBackup/issues/39>`_
+
+    * Fix "add" command
+
     * TBC
 
 * 17.03.2020 - v0.12.3 - `compare v0.12.2...v0.12.3 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.2...v0.12.3>`_ 
 
-    * Fix #44 - wroing file size in process bar
+    * Fix `#44 <https://github.com/jedie/PyHardLinkBackup/issues/44>`_ - wroing file size in process bar
 
     * use ``pytest-randomly``
 
@@ -580,4 +588,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-03-17 13:12:04 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-17 19:18:40 with "python-creole"``

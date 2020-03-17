@@ -13,12 +13,14 @@ from pathlib_revised import Path2
 from pyhardlinkbackup.backup_app.models import BackupEntry, BackupRun
 from pyhardlinkbackup.phlb.config import phlb_config
 
+CHUNK_SIZE = 10 * 1024 * 1024  # TODO: calculate dynamic!
+
 
 def calc_hash(entry_path, process_bar=None):
     with entry_path.open("rb") as f:
         hash = hashlib.new(phlb_config.hash_name)
         while True:
-            data = f.read(phlb_config.chunk_size)
+            data = f.read(CHUNK_SIZE)
             if not data:
                 break
 
@@ -86,7 +88,8 @@ def verify_backup(backup_path, fast):
             # Skip verify the file content
             continue
 
-        process_bar_size = phlb_config.chunk_size * 3
+        # TODO: decide if process bar is used in another way!
+        process_bar_size = CHUNK_SIZE * 3
         if file_stat.st_size > process_bar_size:
             with tqdm(total=file_stat.st_size, unit="B", unit_scale=True) as process_bar:
                 hash_hexdigest = calc_hash(entry_path, process_bar)

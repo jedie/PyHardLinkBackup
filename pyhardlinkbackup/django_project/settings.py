@@ -51,7 +51,6 @@ MIDDLEWARE = (
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.auth.middleware.SessionAuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     # WARNING:
     # This will 'disable' the authentication, because
@@ -65,7 +64,9 @@ MIDDLEWARE = (
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        'DIRS': [
+            os.path.join(BASE_DIR, "django_project", "templates"),
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -73,6 +74,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "pyhardlinkbackup.backup_app.context_processors.phlb_version_string",
             ]
         },
     }
@@ -86,7 +88,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": _phlb_config.database_name,
-        "TEST_NAME": ":memory:"}}
+        "TEST_NAME": ":memory:"
+    }
+}
 print(f"Use Database file: '{DATABASES['default']['NAME']}'")
 
 # Internationalization
