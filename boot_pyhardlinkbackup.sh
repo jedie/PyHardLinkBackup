@@ -26,8 +26,9 @@ else
         source ${DESTINATION}/bin/activate
         set -x
         cd ${DESTINATION}/bin
-        wget https://bootstrap.pypa.io/get-pip.py
+        wget --timestamp https://bootstrap.pypa.io/get-pip.py
         ${DESTINATION}/bin/python get-pip.py
+        rm get-pip.py
     )
 fi
 (
