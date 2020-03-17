@@ -22,10 +22,11 @@ from iterfilesystem.iter_scandir import ScandirWalker
 from iterfilesystem.statistic_helper import StatisticHelper
 
 # https://github.com/jedie/PyHardLinkBackup
-from pyhardlinkbackup.backup_app.models import BackupEntry, BackupRun
+from pyhardlinkbackup.backup_app.models import BackupEntry, BackupRun, build_config_path
 from pyhardlinkbackup.phlb import BACKUP_RUN_CONFIG_FILENAME
 from pyhardlinkbackup.phlb.config import phlb_config
 from pyhardlinkbackup.phlb.deduplicate import deduplicate
+from pyhardlinkbackup.phlb.exceptions import BackupPathMismatch
 from pyhardlinkbackup.phlb.filesystem_walk import scandir_limited
 from pyhardlinkbackup.phlb.humanize import to_percent
 from pyhardlinkbackup.phlb.traceback_plus import exc_plus
@@ -187,7 +188,7 @@ def add_backup_run(backup_run_path):
     print(f"*** backup run {backup_name} - {date_part} added:")
     total_size = result.get_total_size()
     print(
-        f" * new content saved: {result.total_new_file_count:d} files"
+        f" * saved content: {result.total_new_file_count:d} files"
         f" ({human_filesize(result.total_new_bytes)} {to_percent(result.total_new_bytes, total_size):.1f}%)"
     )
     print(
@@ -203,6 +204,12 @@ def add_backup_name(backup_name_path):
         print(f" * {backup_run_path.stem}")
         try:
             backup_run = BackupRun.objects.get_from_config_file(backup_run_path)
+        except BackupPathMismatch:
+            # Backup file path from "phlb_config.ini" doesn't match with database entry
+            config_path = build_config_path(backup_run_path)
+            print(f'remove {config_path}')
+            config_path.unlink()  # delete phlb_config.ini
+            add_backup_run(backup_run_path)
         except (FileNotFoundError, BackupRun.DoesNotExist) as err:
             print(f"Error: {err}")
             # no phlb_config.ini

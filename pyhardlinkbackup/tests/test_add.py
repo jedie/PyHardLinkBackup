@@ -33,10 +33,16 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         result = runner.invoke(cli, args=["add"])
         print(result.output)
 
-        assert_msg = str(result.exception)
-        self.assertIn("Backup path mismatch", assert_msg)
+        self.assertIn("Backup path mismatch", result.output)
         self.assertIn(str(pathlib.Path("2015-12-29-000015-000000",
-                                       BACKUP_RUN_CONFIG_FILENAME)), assert_msg)
+                                       BACKUP_RUN_CONFIG_FILENAME)), result.output)
+
+        self.assertIn(" * saved content: 0 files (0 Byte 0.0%)", result.output)
+        self.assertIn(" * stint space via hardlinks: 5 files (106 Bytes 100.0%)", result.output)
+
+        self.assert_database_backup_entries(count=10)
+
+        assert result.exception is None
 
     def test_add(self):
         self.assert_first_backup()
@@ -48,7 +54,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         result = self.invoke_cli("add")
         print(result.output)
 
-        self.assertIn(" * new content saved: 0 files (0 Byte 0.0%)", result.output)
+        self.assertIn(" * saved content: 0 files (0 Byte 0.0%)", result.output)
         self.assertIn(" * stint space via hardlinks: 5 files (106 Bytes 100.0%)", result.output)
 
         self.assert_database_backup_entries(count=10)
@@ -65,3 +71,5 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assertNotIn("new content saved", result.output)
 
         self.assert_database_backup_entries(count=10)
+
+        assert result.exception is None

@@ -11,6 +11,7 @@ from pathlib_revised import Path2
 # https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.phlb import BACKUP_RUN_CONFIG_FILENAME, INTERNAL_FILES
 from pyhardlinkbackup.phlb.config import phlb_config
+from pyhardlinkbackup.phlb.exceptions import BackupPathMismatch
 from pyhardlinkbackup.phlb.humanize import dt2naturaltimesince
 
 log = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ class BackupRunManager(models.Manager):
                 "Used config file: %s"
             ) % (backup_run.path_part(), backup_path, config_path)
             log.error(msg)
-            raise AssertionError(msg)
+            raise BackupPathMismatch(msg)
 
         return backup_run
 
