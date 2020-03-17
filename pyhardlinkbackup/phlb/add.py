@@ -137,6 +137,8 @@ def add_dir_entries(backup_run, filtered_dir_entries, result):
     # hash will be calculated.
     with tqdm(total=total_size, unit="B", unit_scale=True) as process_bar:
         for dir_entry in path_iterator:
+            if dir_entry.is_dir:
+                continue
             try:
                 add_dir_entry(backup_run, dir_entry, process_bar, result)
             except Exception as err:
