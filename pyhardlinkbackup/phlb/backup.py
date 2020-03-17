@@ -1,7 +1,12 @@
-
 import hashlib
 import logging
 import time
+from timeit import default_timer
+
+import psutil
+
+# https://github.com/jedie/IterFilesystem
+from iterfilesystem.humanize import human_filesize
 
 # https://github.com/jedie/PyHardLinkBackup
 from pyhardlinkbackup.backup_app.models import BackupEntry
@@ -16,6 +21,8 @@ class FileBackup:
     """
     backup one file
     """
+    MIN_CHUNK_SIZE = 10 * 1024 * 1024
+    MAX_CHUNK_SIZE = int(psutil.virtual_memory().available * 0.9)
 
     # TODO: remove with Mock solution:
     _SIMULATE_SLOW_SPEED = False  # for unittests only!
@@ -32,22 +39,39 @@ class FileBackup:
         self.fast_backup = None  # Was a fast backup used?
         self.file_linked = None  # Was a hardlink used?
 
+        log.debug('min chunk size: %i Bytes', self.MIN_CHUNK_SIZE)
+        log.debug('max chunk size: %i Bytes', self.MAX_CHUNK_SIZE)
+        self.chunk_size = self.MIN_CHUNK_SIZE
+
         if self._SIMULATE_SLOW_SPEED:
             log.error("Slow down speed for tests activated!")
 
     def _deduplication_backup(self, *, in_file, out_file):
 
         file_size = self.dir_path.stat.st_size
-        big_file = file_size > 10 * 1024 * 1024  # FIXME: Calc dynamic
-
-        if big_file:
-            self.process_bars.file_bar.desc = f'Backup "{self.dir_path.path_instance.name}"'
-            self.process_bars.file_bar.reset(total=file_size)
+        small_file = file_size < self.chunk_size
 
         hash = hashlib.new(phlb_config.hash_name)
         process_size = 0
+        big_file = False
+
         while True:
-            data = in_file.read(phlb_config.chunk_size)
+            start_time = default_timer()
+            try:
+                data = in_file.read(self.chunk_size)
+            except MemoryError:
+                # Lower the chunk size to avoid memory errors
+                while self.chunk_size > self.MIN_CHUNK_SIZE:
+                    self.chunk_size = int(self.chunk_size * 0.25)
+                    try:
+                        data = in_file.read(self.chunk_size)
+                    except MemoryError:
+                        continue
+                    else:
+                        self.MAX_CHUNK_SIZE = self.chunk_size
+                        log.warning('set max block size to: %i Bytes.', self.MAX_CHUNK_SIZE)
+                        break
+
             if not data:
                 break
 
@@ -58,10 +82,40 @@ class FileBackup:
             out_file.write(data)
             hash.update(data)
 
-            process_size += len(data)
-            if big_file and self.worker.update_file_interval:
+            chunk_size = len(data)
+            process_size += chunk_size
+
+            if not small_file and chunk_size == self.chunk_size:
+                # Display "current file processbar", but only for big files
+
+                # Calculate the chunk size, so we update the current file bar
+                # in self.update_interval_sec intervals
+                duration = default_timer() - start_time
+                throughput = chunk_size / duration
+                new_chunk_size = throughput * self.worker.update_interval_sec
+
+                chunk_size = int((new_chunk_size + chunk_size) / 2)
+                if chunk_size < self.MIN_CHUNK_SIZE:
+                    chunk_size = self.MIN_CHUNK_SIZE
+                if chunk_size > self.MAX_CHUNK_SIZE:
+                    chunk_size = self.MAX_CHUNK_SIZE
+
+                self.chunk_size = chunk_size
+
+                if not big_file:
+                    # init current file bar
+                    self.process_bars.file_bar.reset(total=file_size)
+                    big_file = True
+
+                # print the bar:
+                self.process_bars.file_bar.desc = (
+                    f'{self.dir_path.path_instance.name}'
+                    f' | {human_filesize(self.chunk_size)} chunks'
+                    f' | {duration:.1f} sec.'
+                )
                 self.process_bars.file_bar.update(process_size)
-                self.worker.update(
+
+                self.worker.update(  # Update statistics and global bars
                     dir_entry=self.dir_path.path_instance,
                     file_size=process_size,
                     process_bars=self.process_bars
