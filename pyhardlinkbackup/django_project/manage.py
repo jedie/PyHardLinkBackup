@@ -32,4 +32,6 @@ def cli():
 
 
 if __name__ == "__main__":
-    raise RuntimeError('Do not call this file directly! Use "poetry run manage --help" !')
+    import warnings
+    warnings.warn('Do not call this file directly! Use "poetry run manage --help" !')
+    cli()

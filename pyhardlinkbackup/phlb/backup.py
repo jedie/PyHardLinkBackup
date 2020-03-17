@@ -37,12 +37,12 @@ class FileBackup:
 
     def _deduplication_backup(self, *, in_file, out_file):
 
-        collect_file_size = self.dir_path.stat.st_size
-        big_file = collect_file_size > 10 * 1024 * 1024  # FIXME: Calc dynamic
+        file_size = self.dir_path.stat.st_size
+        big_file = file_size > 10 * 1024 * 1024  # FIXME: Calc dynamic
 
         if big_file:
             self.process_bars.file_bar.desc = f'Backup "{self.dir_path.path_instance.name}"'
-            self.process_bars.file_bar.reset(total=collect_file_size)
+            self.process_bars.file_bar.reset(total=file_size)
 
         hash = hashlib.new(phlb_config.hash_name)
         process_size = 0
@@ -68,7 +68,20 @@ class FileBackup:
                 )
                 process_size = 0
 
-        self.process_bars.file_bar.update(process_size)
+        if big_file:
+            self.process_bars.file_bar.update(process_size)
+            self.worker.update(
+                dir_entry=self.dir_path.path_instance,
+                file_size=process_size,
+                process_bars=self.process_bars
+            )
+        else:
+            # Always update the global statistics / process bars:
+            self.worker.update(
+                dir_entry=self.dir_path.path_instance,
+                file_size=file_size,
+                process_bars=self.process_bars
+            )
         return hash
 
     def fast_deduplication_backup(self, old_backup_entry):
@@ -108,6 +121,13 @@ class FileBackup:
 
             hash_hexdigest = old_backup_entry.content_info.hash_hexdigest
             hash_file.write(hash_hexdigest)
+
+            # Always update the global statistics / process bars:
+            self.worker.update(
+                dir_entry=self.dir_path.path_instance,
+                file_size=self.dir_path.stat.st_size,
+                process_bars=self.process_bars
+            )
 
         BackupEntry.objects.create(
             backup_run=self.worker.backup_run,

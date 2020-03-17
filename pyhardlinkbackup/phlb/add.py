@@ -156,7 +156,6 @@ def add_backup_entries(backup_run, result):
             f"*.{phlb_config.hash_name}",  # skip all existing hash files
             BACKUP_RUN_CONFIG_FILENAME,  # skip phlb_config.ini
         ),
-        verbose=True
     )
     filtered_dir_entries = [DirEntryPath(dir_entry) for dir_entry in scandir_walk]
     add_dir_entries(backup_run, filtered_dir_entries, result)

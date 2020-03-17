@@ -278,7 +278,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
         self.assertIn("Backup done.", result.output)
         self.assertIn("WARNING: 2 omitted files", result.output)
-        self.assertIn(" * new content saved: 3 files (64 Bytes 60.4%)", result.output)
+        self.assertIn(" * new content saved: 3 files (64 Bytes 100.0%)", result.output)
         self.assertIn(" * stint space via hardlinks: 0 files (0 Byte 0.0%)", result.output)
 
         assert_pformat_equal(os.listdir(self.backup_path), ["source unittests files"])
@@ -345,7 +345,6 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         print('output:')
         print(output)
         print("=" * 100)
-        self.assertIn("*** Abort via keyboard interrupt! ***", output)
         self.assertIn(
             "*** Abort backup, because user hits the interrupt key during execution! ***",
             output

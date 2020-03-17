@@ -156,4 +156,6 @@ cli.add_command(add)
 
 
 if __name__ == "__main__":
-    raise RuntimeError('Do not call this file directly! Use: "poetry run phlb --help" !')
+    import warnings
+    warnings.warn('Do not call this file directly! Use: "poetry run phlb --help" !')
+    cli()

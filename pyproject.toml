@@ -43,6 +43,7 @@ click = "*"  # https://github.com/mitsuhiko/click
 poetry-publish = "*"  # https://github.com/jedie/poetry-publish
 tox = "*"
 pytest = "*"
+pytest-randomly = "*"
 pytest-cov = "*"
 pytest-django = "*"
 coveralls = "*"
