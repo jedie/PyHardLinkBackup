@@ -249,7 +249,7 @@ class BackupIterFilesystem(IterFilesystem):
             ),
             f' * {stats.walker_dir_skip_count} directories skipped.',
             f' * {stats.walker_file_skip_count} files skipped.',
-            f' * Files to backup: {stats.process_files} files',
+            f' * Files to backup: {stats.walker_file_count} files',
         ]
 
         if stats.process_error_count:
