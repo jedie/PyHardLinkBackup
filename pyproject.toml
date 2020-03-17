@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "pyhardlinkbackup"
-version = "0.12.2"
+version = "0.12.3"
 description = "HardLink/Deduplication Backups with Python"
 authors = ["JensDiemer <git@jensdiemer.de>"]
 keywords=['Backup', 'Hardlink', 'Windows', 'Linux']
 classifiers = [
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
-    "Development Status :: 4 - Beta",
-    #  "Development Status :: 5 - Production/Stable",
+    # "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License (GPL)",
