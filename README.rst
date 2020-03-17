@@ -374,9 +374,17 @@ See also: `https://github.com/restic/others#list-of-backup-software <https://git
 History
 -------
 
-* **dev** - `compare v0.12.2...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.2...master>`_ 
+* **dev** - `compare v0.12.3...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.3...master>`_ 
 
     * TBC
+
+* 17.03.2020 - v0.12.3 - `compare v0.12.2...v0.12.3 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.2...v0.12.3>`_ 
+
+    * Fix #44 - wroing file size in process bar
+
+    * use ``pytest-randomly``
+
+    * update requirements
 
 * 06.03.2020 - v0.12.2 - `compare v0.12.1...v0.12.2 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.1...v0.12.2>`_ 
 
@@ -570,4 +578,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-03-06 09:14:46 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-17 09:38:29 with "python-creole"``
