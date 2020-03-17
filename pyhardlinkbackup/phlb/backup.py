@@ -213,23 +213,46 @@ class FileBackup:
             )
 
         try:
+            in_file = None
+            hash_file = None
+            out_file = None
             try:
-                with self.worker.path_helper.abs_src_filepath.open("rb") as in_file:
-                    with self.worker.path_helper.abs_dst_hash_filepath.open("w") as hash_file:
-                        with self.worker.path_helper.abs_dst_filepath.open("wb") as out_file:
+                try:
+                    in_file = self.worker.path_helper.abs_src_filepath.open("rb")
+                except OSError as err:
+                    raise OSError(f'Cannot open source file: {err}')
 
-                            hash = self._deduplication_backup(
-                                in_file=in_file,
-                                out_file=out_file
-                            )
+                try:
+                    hash_file = self.worker.path_helper.abs_dst_hash_filepath.open("w")
+                except OSError as err:
+                    raise OSError(f'Cannot open hash file: {err}')
 
-                        hash_hexdigest = hash.hexdigest()
-                        hash_file.write(hash_hexdigest)
+                try:
+                    out_file = self.worker.path_helper.abs_dst_filepath.open("wb")
+                except OSError as err:
+                    raise OSError(f'Cannot open destination file: {err}')
+
+                hash = self._deduplication_backup(
+                    in_file=in_file,
+                    out_file=out_file
+                )
+                hash_hexdigest = hash.hexdigest()
+                hash_file.write(hash_hexdigest)
             except OSError as err:
-                # FIXME: Better error message
+                log.error(str(err))
                 raise BackupFileError(
                     f"Skip file {self.worker.path_helper.abs_src_filepath} error: {err}"
                 )
+            finally:
+                if in_file is not None:
+                    in_file.close()
+
+                if hash_file is not None:
+                    hash_file.close()
+
+                if out_file is not None:
+                    out_file.close()
+
         except KeyboardInterrupt:
             # Try to remove created files
             try:
