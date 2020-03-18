@@ -374,7 +374,11 @@ See also: `https://github.com/restic/others#list-of-backup-software <https://git
 History
 -------
 
-* **dev** - `compare v0.12.3...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.3...master>`_ 
+* **dev** - `compare v0.13.0...master <https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...master>`_ 
+
+    * TBC
+
+* 18.03.2020 - v0.13.0 - `compare v0.12.3...v0.13.0 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.3...v0.13.0>`_ 
 
     * Dynamic chunk size
 
@@ -386,7 +390,7 @@ History
 
     * Fix "add" command
 
-    * TBC
+    * Deactivate PyPy tests on Travis CI
 
 * 17.03.2020 - v0.12.3 - `compare v0.12.2...v0.12.3 <https://github.com/jedie/PyHardLinkBackup/compare/v0.12.2...v0.12.3>`_ 
 
@@ -588,4 +592,4 @@ Donating
 
 ------------
 
-``Note: this file is generated from README.creole 2020-03-17 19:18:40 with "python-creole"``
+``Note: this file is generated from README.creole 2020-03-18 10:02:44 with "python-creole"``

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyhardlinkbackup"
-version = "0.12.4.rc1"
+version = "0.13.0"
 description = "HardLink/Deduplication Backups with Python"
 authors = ["JensDiemer <git@jensdiemer.de>"]
 keywords=['Backup', 'Hardlink', 'Windows', 'Linux']
