@@ -1,0 +1,7 @@
+# pre-commit plugin configuration
+# See https://pre-commit.com for more information
+repos:
+  - repo: https://github.com/jedie/cli-base-utilities
+    rev: v0.26.0
+    hooks:
+      - id: update-readme-history
