@@ -12,16 +12,17 @@ class FileSizeDatabase:
         1234567890 results in: {base_dst}/.phlb/size-lookup/12/34/1234567890
 
     Notes:
-      * no padding is made, so the min size is 1000 bytes!
       * We don't "cache" anything in Memory, to avoid high memory consumption for large datasets.
     """
 
-    def __init__(self, backup_root: Path):
-        self.base_path = backup_root / '.phlb' / 'size-lookup'
+    MIN_SIZE = 1000  # no padding is made, so the min size is 1000 bytes!
+
+    def __init__(self, phlb_conf_dir: Path):
+        self.base_path = phlb_conf_dir / 'size-lookup'
         self.base_path.mkdir(parents=False, exist_ok=True)
 
     def _get_size_path(self, size: int) -> Path:
-        assert size >= 1000, 'Size must be at least 1000 bytes'
+        assert size >= self.MIN_SIZE, f'Size must be at least {self.MIN_SIZE} bytes'
         size_str = str(size)
         first_dir_name = size_str[:2]
         second_dir_name = size_str[2:4]

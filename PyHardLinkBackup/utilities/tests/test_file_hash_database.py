@@ -11,16 +11,17 @@ class TemporaryFileHashDatabase(tempfile.TemporaryDirectory):
         temp_dir = super().__enter__()
         backup_root = Path(temp_dir)
 
-        base_phlb_path = backup_root / '.phlb'
-        base_phlb_path.mkdir()
+        phlb_conf_dir = backup_root / '.phlb'
+        phlb_conf_dir.mkdir()
 
-        hash_db = FileHashDatabase(backup_root=backup_root)
+        hash_db = FileHashDatabase(backup_root=backup_root, phlb_conf_dir=phlb_conf_dir)
         return hash_db
 
 
 def get_hash_db_filenames(hash_db: FileHashDatabase) -> list[str]:
     return sorted(
-        str(Path(entry.path).relative_to(hash_db.base_path)) for entry in iter_scandir_files(hash_db.base_path)
+        str(Path(entry.path).relative_to(hash_db.base_path))
+        for entry in iter_scandir_files(hash_db.base_path, excludes=set())
     )
 
 
@@ -33,8 +34,8 @@ class FileHashDatabaseTestCase(TestCase):
             self.assertEqual(test_path, hash_db.base_path / '12' / '34' / '12345678abcdef')
 
             self.assertIs(hash_db.get('12345678abcdef'), None)
-            hash_db['12345678abcdef'] = 'rel/path/to/file-A'
-            self.assertEqual(hash_db.get('12345678abcdef'), 'rel/path/to/file-A')
+            hash_db['12345678abcdef'] = hash_db.backup_root / 'rel/path/to/file-A'
+            self.assertEqual(hash_db.get('12345678abcdef'), hash_db.backup_root / 'rel/path/to/file-A')
 
             self.assertEqual(
                 get_hash_db_filenames(hash_db),
@@ -44,11 +45,14 @@ class FileHashDatabaseTestCase(TestCase):
             ########################################################################################
             # Another instance using the same directory:
 
-            another_hash_db = FileHashDatabase(backup_root=hash_db.base_path.parent.parent)
-            self.assertEqual(another_hash_db.get('12345678abcdef'), 'rel/path/to/file-A')
+            another_hash_db = FileHashDatabase(
+                backup_root=hash_db.backup_root,
+                phlb_conf_dir=hash_db.base_path.parent,
+            )
+            self.assertEqual(another_hash_db.get('12345678abcdef'), hash_db.backup_root / 'rel/path/to/file-A')
             self.assertIs(another_hash_db.get('12abcd345678abcdef'), None)
-            another_hash_db['12abcd345678abcdef'] = 'rel/path/to/file-B'
-            self.assertEqual(another_hash_db.get('12abcd345678abcdef'), 'rel/path/to/file-B')
+            another_hash_db['12abcd345678abcdef'] = hash_db.backup_root / 'rel/path/to/file-B'
+            self.assertEqual(another_hash_db.get('12abcd345678abcdef'), hash_db.backup_root / 'rel/path/to/file-B')
             self.assertEqual(
                 get_hash_db_filenames(another_hash_db),
                 [

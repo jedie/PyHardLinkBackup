@@ -68,7 +68,33 @@ e.g.: hash like `abcdef123...` stored in: `{destination}/.phlb/hash-lookup/ab/cd
 The file contains only the relative path to the first hardlink of this file content.
 
 
-## CLI
+## CLI - backup command
+
+The main command is `backup`:
+
+[comment]: <> (✂✂✂ auto generated backup help start ✂✂✂)
+```
+usage: ./cli.py backup [-h] source destination [--excludes STR|{[STR [STR ...]]}] [-v]
+
+Backup the source directory to the destination directory using hard links for deduplication.
+
+╭─ positional arguments ───────────────────────────────────────────────────────────────────────────────────────────────╮
+│ source       Source directory to back up. (required)                                                                 │
+│ destination  Destination directory for the backup. (required)                                                        │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ -h, --help   show this help message and exit                                                                         │
+│ --excludes STR|{[STR [STR ...]]}                                                                                     │
+│              List of directory or file names to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox    │
+│              .nox)                                                                                                   │
+│ -v, --verbosity                                                                                                      │
+│              Verbosity level; e.g.: -v, -vv, -vvv, etc. (repeatable)                                                 │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+[comment]: <> (✂✂✂ auto generated backup help end ✂✂✂)
+
+
+## CLI - main app help
 
 [comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
 ```
@@ -150,6 +176,7 @@ v1 is a complete rewrite of PyHardLinkBackup.
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v1.0.0rc0](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0rc0)
+  * 2026-01-12 - First working iteration with rich progess bar
   * 2026-01-08 - Rewrite everything
 * [v0.13.0](https://github.com/jedie/PyHardLinkBackup/compare/v0.12.3...v0.13.0)
   * 2020-03-18 - release v0.13.0
