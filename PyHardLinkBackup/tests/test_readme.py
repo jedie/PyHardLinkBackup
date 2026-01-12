@@ -37,6 +37,18 @@ class ReadmeTestCase(BaseTestCase):
         )
         assert_cli_help_in_readme(text_block=stdout, marker='main help')
 
+    def test_backup_help(self):
+        with NoColorEnvRich():
+            stdout = invoke(cli_bin=PACKAGE_ROOT / 'cli.py', args=['backup', '--help'], strip_line_prefix='usage: ')
+        self.assert_in_content(
+            got=stdout,
+            parts=(
+                'usage: ./cli.py backup [-h] ',
+                'Backup the source directory to the destination',
+            ),
+        )
+        assert_cli_help_in_readme(text_block=stdout, marker='backup help')
+
     def test_dev_help(self):
         with NoColorEnvRich():
             stdout = invoke(cli_bin=PACKAGE_ROOT / 'dev-cli.py', args=['--help'], strip_line_prefix='usage: ')

@@ -12,21 +12,22 @@ class TemporaryFileSizeDatabase(tempfile.TemporaryDirectory):
         temp_dir = super().__enter__()
         backup_root = Path(temp_dir)
 
-        base_phlb_path = backup_root / '.phlb'
-        base_phlb_path.mkdir()
+        phlb_conf_dir = backup_root / '.phlb'
+        phlb_conf_dir.mkdir()
 
-        size_db = FileSizeDatabase(backup_root=backup_root)
+        size_db = FileSizeDatabase(phlb_conf_dir=phlb_conf_dir)
         return size_db
 
 
 def get_size_db_filenames(size_db: FileSizeDatabase) -> Iterable[str]:
     return sorted(
-        str(Path(entry.path).relative_to(size_db.base_path)) for entry in iter_scandir_files(size_db.base_path)
+        str(Path(entry.path).relative_to(size_db.base_path))
+        for entry in iter_scandir_files(size_db.base_path, excludes=set())
     )
 
 
 def get_sizes(size_db: FileSizeDatabase) -> Iterable[int]:
-    return sorted(int(entry.name) for entry in iter_scandir_files(size_db.base_path))
+    return sorted(int(entry.name) for entry in iter_scandir_files(size_db.base_path, excludes=set()))
 
 
 class FileSizeDatabaseTestCase(TestCase):
@@ -63,7 +64,7 @@ class FileSizeDatabaseTestCase(TestCase):
             ########################################################################################
             # Another instance using the same directory:
 
-            another_size_db = FileSizeDatabase(backup_root=size_db.base_path.parent.parent)
+            another_size_db = FileSizeDatabase(phlb_conf_dir=size_db.base_path.parent)
             self.assertEqual(get_sizes(another_size_db), [1234, 567890])
             self.assertEqual(
                 get_size_db_filenames(another_size_db),

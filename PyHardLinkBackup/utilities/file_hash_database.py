@@ -19,8 +19,10 @@ class FileHashDatabase:
       * The "relative path" that will be stored is not validated, so it can be any string.
       * We don't "cache" anything in Memory, to avoid high memory consumption for large datasets.
     """
-    def __init__(self, backup_root: Path):
-        self.base_path = backup_root / '.phlb' / 'hash-lookup'
+
+    def __init__(self, backup_root: Path, phlb_conf_dir: Path):
+        self.backup_root = backup_root
+        self.base_path = phlb_conf_dir / 'hash-lookup'
         self.base_path.mkdir(parents=False, exist_ok=True)
 
     def _get_hash_path(self, hash: str) -> Path:
@@ -29,14 +31,17 @@ class FileHashDatabase:
         hash_path = self.base_path / first_dir_name / second_dir_name / hash
         return hash_path
 
-    def get(self, hash: str) -> str | None:
+    def get(self, hash: str) -> Path | None:
         hash_path = self._get_hash_path(hash)
         try:
-            return hash_path.read_text()
+            rel_file_path = hash_path.read_text()
         except FileNotFoundError:
             return None
+        else:
+            abs_file_path = self.backup_root / rel_file_path
+            return abs_file_path
 
-    def __setitem__(self, hash: str, relative_path: str):
+    def __setitem__(self, hash: str, abs_file_path: Path):
         hash_path = self._get_hash_path(hash)
         hash_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -45,4 +50,4 @@ class FileHashDatabase:
         if hash_path.exists():
             raise HashAlreadyExistsError(f'Hash {hash} already exists in the database!')
 
-        hash_path.write_text(relative_path)
+        hash_path.write_text(str(abs_file_path.relative_to(self.backup_root)))
