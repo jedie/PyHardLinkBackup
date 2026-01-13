@@ -8,7 +8,71 @@
 
 HardLink/Deduplication Backups with Python
 
-**WIP:** v1.0.0 is a complete rewrite of PyHardLinkBackup. The new version is not usable, yet!
+**WIP:** v1.0.0 is a complete rewrite of PyHardLinkBackup.
+
+## installation
+
+You can use [pipx](https://pipx.pypa.io/stable/installation/) to install and use PyHardLinkBackup, e.g.:
+
+```bash
+sudo apt install pipx
+
+pipx install PyHardLinkBackup
+```
+
+After this you can call the CLI via `phlb` command.
+The main command is `phlb backup <source> <destination>`:
+
+[comment]: <> (✂✂✂ auto generated backup help start ✂✂✂)
+```
+usage: phlb backup [-h] source destination [--excludes [STR [STR ...]]] [-v]
+
+Backup the source directory to the destination directory using hard links for deduplication.
+
+╭─ positional arguments ───────────────────────────────────────────────────────────────────────────────────────────────╮
+│ source       Source directory to back up. (required)                                                                 │
+│ destination  Destination directory for the backup. (required)                                                        │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ -h, --help   show this help message and exit                                                                         │
+│ --excludes [STR [STR ...]]                                                                                           │
+│              List of directory or file names to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox    │
+│              .nox)                                                                                                   │
+│ -v, --verbosity                                                                                                      │
+│              Verbosity level; e.g.: -v, -vv, -vvv, etc. (repeatable)                                                 │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+[comment]: <> (✂✂✂ auto generated backup help end ✂✂✂)
+
+
+
+complete help for main CLI app:
+
+[comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
+```
+usage: phlb [-h] {backup,version}
+
+
+
+╭─ options ─────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ -h, --help   show this help message and exit                                                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ subcommands ─────────────────────────────────────────────────────────────────────────────────────────────╮
+│ (required)                                                                                                │
+│   • backup   Backup the source directory to the destination directory using hard links for deduplication. │
+│   • version  Print version and exit                                                                       │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+[comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
+
+
+### update
+
+If you use pipx, just call:
+```bash
+pipx upgrade PyHardLinkBackup
+```
+see: https://pipx.pypa.io/stable/docs/#pipx-upgrade
 
 
 ## concept
@@ -68,70 +132,18 @@ e.g.: hash like `abcdef123...` stored in: `{destination}/.phlb/hash-lookup/ab/cd
 The file contains only the relative path to the first hardlink of this file content.
 
 
-## CLI - backup command
+## start development
 
-The main command is `backup`:
-
-[comment]: <> (✂✂✂ auto generated backup help start ✂✂✂)
+```bash
+~$ git clone https://github.com/jedie/PyHardLinkBackup.git
+~$ cd PyHardLinkBackup
+~/PyHardLinkBackup$ ./cli.py --help
+~/PyHardLinkBackup$ ./dev-cli.py --help
 ```
-usage: ./cli.py backup [-h] source destination [--excludes STR|{[STR [STR ...]]}] [-v]
-
-Backup the source directory to the destination directory using hard links for deduplication.
-
-╭─ positional arguments ───────────────────────────────────────────────────────────────────────────────────────────────╮
-│ source       Source directory to back up. (required)                                                                 │
-│ destination  Destination directory for the backup. (required)                                                        │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ -h, --help   show this help message and exit                                                                         │
-│ --excludes STR|{[STR [STR ...]]}                                                                                     │
-│              List of directory or file names to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox    │
-│              .nox)                                                                                                   │
-│ -v, --verbosity                                                                                                      │
-│              Verbosity level; e.g.: -v, -vv, -vvv, etc. (repeatable)                                                 │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-```
-[comment]: <> (✂✂✂ auto generated backup help end ✂✂✂)
-
-
-## CLI - main app help
-
-[comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
-```
-usage: ./cli.py [-h] {backup,benchmark-hashes,version}
-
-
-
-╭─ options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ -h, --help            show this help message and exit                                                                │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ subcommands ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ (required)                                                                                                           │
-│   • backup            Backup the source directory to the destination directory using hard links for deduplication.   │
-│   • benchmark-hashes  Benchmark different file hashing algorithms on the given path Example output:                  │
-│                                                                                                                      │
-│                       Total files hashed: 220, total size: 1187.7 MiB                                                │
-│                                                                                                                      │
-│                       Results: Total file content read time: 1.7817s                                                 │
-│                                                                                                                      │
-│                       sha1       | Total: 0.6827s | 0.4x hash/read sha256     | Total: 0.7189s | 0.4x hash/read      │
-│                       sha224     | Total: 0.7375s | 0.4x hash/read sha384     | Total: 1.6552s | 0.9x hash/read      │
-│                       blake2b    | Total: 1.6708s | 0.9x hash/read md5        | Total: 1.6870s | 0.9x hash/read      │
-│                       sha512     | Total: 1.7269s | 1.0x hash/read shake_128  | Total: 1.9834s | 1.1x hash/read      │
-│                       sha3_224   | Total: 2.3006s | 1.3x hash/read sha3_256   | Total: 2.3856s | 1.3x hash/read      │
-│                       shake_256  | Total: 2.4375s | 1.4x hash/read blake2s    | Total: 2.5219s | 1.4x hash/read      │
-│                       sha3_384   | Total: 3.2596s | 1.8x hash/read sha3_512   | Total: 4.5328s | 2.5x hash/read      │
-│   • version           Print version and exit                                                                         │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-```
-[comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
-
-
-## dev CLI
 
 [comment]: <> (✂✂✂ auto generated dev help start ✂✂✂)
 ```
-usage: ./dev-cli.py [-h] {coverage,install,lint,mypy,nox,pip-audit,publish,shell-completion,test,update,update-readme-history,update-test-snapshot-files,version}
+usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,install,lint,mypy,nox,pip-audit,publish,shell-completion,test,update,update-readme-history,update-test-snapshot-files,version}
 
 
 
@@ -140,6 +152,8 @@ usage: ./dev-cli.py [-h] {coverage,install,lint,mypy,nox,pip-audit,publish,shell
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ subcommands ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ (required)                                                                                                           │
+│   • benchmark-hashes                                                                                                 │
+│                Benchmark different file hashing algorithms on the given path.                                        │
 │   • coverage   Run tests and show coverage report.                                                                   │
 │   • install    Install requirements and 'PyHardLinkBackup' via pip as editable.                                      │
 │   • lint       Check/fix code style by run: "ruff check --fix"                                                       │
@@ -176,6 +190,8 @@ v1 is a complete rewrite of PyHardLinkBackup.
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v1.0.0rc1](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0rc1)
+  * 2026-01-13 - Update README
+  * 2026-01-13 - Fix benchmark moved to dev CLI ;)
   * 2026-01-13 - Remove tyro warning
   * 2026-01-13 - Move "benchmark_hashes" from app to dev cli (It's more for testing)
   * 2026-01-13 - Rename [project.scripts] hooks
