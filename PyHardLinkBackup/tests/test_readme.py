@@ -26,6 +26,7 @@ class ReadmeTestCase(BaseTestCase):
     def test_main_help(self):
         with NoColorEnvRich():
             stdout = invoke(cli_bin=PACKAGE_ROOT / 'cli.py', args=['--help'], strip_line_prefix='usage: ')
+
         self.assert_in_content(
             got=stdout,
             parts=(
@@ -35,6 +36,10 @@ class ReadmeTestCase(BaseTestCase):
                 constants.CLI_EPILOG,
             ),
         )
+
+        # Installed via pipx is called 'phlb', not 'cli.py':
+        stdout = stdout.replace('./cli.py', 'phlb')
+
         assert_cli_help_in_readme(text_block=stdout, marker='main help')
 
     def test_backup_help(self):
@@ -47,6 +52,10 @@ class ReadmeTestCase(BaseTestCase):
                 'Backup the source directory to the destination',
             ),
         )
+
+        # Installed via pipx is called 'phlb', not 'cli.py':
+        stdout = stdout.replace('./cli.py', 'phlb')
+
         assert_cli_help_in_readme(text_block=stdout, marker='backup help')
 
     def test_dev_help(self):

@@ -32,7 +32,7 @@ def backup(
     ],
     /,
     excludes: Annotated[
-        tuple[str],
+        tuple,
         tyro.conf.arg(
             help='List of directory or file names to exclude from backup.',
         ),

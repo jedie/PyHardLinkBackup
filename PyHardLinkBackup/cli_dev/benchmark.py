@@ -9,7 +9,7 @@ from cli_base.cli_tools.verbosity import setup_logging
 from cli_base.tyro_commands import TyroVerbosityArgType
 from rich import print  # noqa
 
-from PyHardLinkBackup.cli_app import app
+from PyHardLinkBackup.cli_dev import app
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
 
 
@@ -26,30 +26,29 @@ def benchmark_hashes(
     verbosity: TyroVerbosityArgType = 1,
 ) -> None:
     """
-    Benchmark different file hashing algorithms on the given path
-
-    Example output:
-
-    Total files hashed: 220, total size: 1187.7 MiB
-
-    Results:
-    Total file content read time: 1.7817s
-
-    sha1       | Total: 0.6827s | 0.4x hash/read
-    sha256     | Total: 0.7189s | 0.4x hash/read
-    sha224     | Total: 0.7375s | 0.4x hash/read
-    sha384     | Total: 1.6552s | 0.9x hash/read
-    blake2b    | Total: 1.6708s | 0.9x hash/read
-    md5        | Total: 1.6870s | 0.9x hash/read
-    sha512     | Total: 1.7269s | 1.0x hash/read
-    shake_128  | Total: 1.9834s | 1.1x hash/read
-    sha3_224   | Total: 2.3006s | 1.3x hash/read
-    sha3_256   | Total: 2.3856s | 1.3x hash/read
-    shake_256  | Total: 2.4375s | 1.4x hash/read
-    blake2s    | Total: 2.5219s | 1.4x hash/read
-    sha3_384   | Total: 3.2596s | 1.8x hash/read
-    sha3_512   | Total: 4.5328s | 2.5x hash/read
+    Benchmark different file hashing algorithms on the given path.
     """
+    # Example output:
+    #
+    # Total files hashed: 220, total size: 1187.7 MiB
+    #
+    # Results:
+    # Total file content read time: 1.7817s
+    #
+    # sha1       | Total: 0.6827s | 0.4x hash/read
+    # sha256     | Total: 0.7189s | 0.4x hash/read
+    # sha224     | Total: 0.7375s | 0.4x hash/read
+    # sha384     | Total: 1.6552s | 0.9x hash/read
+    # blake2b    | Total: 1.6708s | 0.9x hash/read
+    # md5        | Total: 1.6870s | 0.9x hash/read
+    # sha512     | Total: 1.7269s | 1.0x hash/read
+    # shake_128  | Total: 1.9834s | 1.1x hash/read
+    # sha3_224   | Total: 2.3006s | 1.3x hash/read
+    # sha3_256   | Total: 2.3856s | 1.3x hash/read
+    # shake_256  | Total: 2.4375s | 1.4x hash/read
+    # blake2s    | Total: 2.5219s | 1.4x hash/read
+    # sha3_384   | Total: 3.2596s | 1.8x hash/read
+    # sha3_512   | Total: 4.5328s | 2.5x hash/read
     setup_logging(verbosity=verbosity)
     assert_is_dir(base_path)
     print(f'Benchmarking file hashes under: {base_path}')
