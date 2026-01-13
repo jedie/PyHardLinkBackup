@@ -61,7 +61,7 @@ class TestHashFile(unittest.TestCase):
             (subdir / 'file3.txt').write_bytes(b'content3')
 
             # Add a symlink to file1.txt
-            (temp_path / 'link_to_file1.txt').symlink_to(temp_path / 'file1.txt')
+            (temp_path / 'symlink_to_file1.txt').symlink_to(temp_path / 'file1.txt')
 
             # Add a hardlink to file2.txt
             os.link(temp_path / 'file2.txt', temp_path / 'hardlink_to_file2.txt')
@@ -69,6 +69,9 @@ class TestHashFile(unittest.TestCase):
             exclude_subdir = temp_path / '__pycache__'
             exclude_subdir.mkdir()
             (exclude_subdir / 'BAM.txt').write_bytes(b'foobar')
+
+            broken_symlink_path = temp_path / 'broken_symlink'
+            broken_symlink_path.symlink_to(temp_path / 'not/existing/file.txt')
 
             with self.assertLogs(level='DEBUG') as logs:
                 files = list(iter_scandir_files(temp_path, excludes={'__pycache__'}))
@@ -78,11 +81,12 @@ class TestHashFile(unittest.TestCase):
         self.assertEqual(
             file_names,
             [
+                'broken_symlink',
                 'file1.txt',
                 'file2.txt',
                 'hardlink_to_file2.txt',
-                'link_to_file1.txt',
                 'subdir/file3.txt',
+                'symlink_to_file1.txt',
             ],
         )
         logs = ''.join(logs.output)

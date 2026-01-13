@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import os
+import shutil
 import time
 from pathlib import Path
 from typing import Iterable
@@ -36,6 +37,10 @@ def copy_and_hash(src: Path, dst: Path) -> str:
         while chunk := source_file.read(CHUNK_SIZE):
             dst_file.write(chunk)
             hasher.update(chunk)
+
+    # Keep original file metadata (permission bits, last access time, last modification time, and flags)
+    shutil.copystat(src, dst)
+
     file_hash = hasher.hexdigest()
     logger.info('%s backup to %s with %s hash: %s', src, dst, HASH_ALGO, file_hash)
     return file_hash
@@ -55,14 +60,16 @@ def iter_scandir_files(path: Path, excludes: set[str]) -> Iterable[os.DirEntry]:
     Recursively yield all files+symlinks in the given directory.
     """
     logger.debug('Scanning directory %s', path)
-    for entry in os.scandir(path):
-        if entry.is_file(follow_symlinks=True):
-            yield entry
-        elif entry.is_dir(follow_symlinks=True):
-            if entry.name in excludes:
-                logger.debug('Excluding directory %s', entry.path)
-                continue
-            yield from iter_scandir_files(Path(entry.path), excludes=excludes)
+    with os.scandir(path) as scandir_iterator:
+        for entry in scandir_iterator:
+            if entry.is_dir(follow_symlinks=True):
+                if entry.name in excludes:
+                    logger.debug('Excluding directory %s', entry.path)
+                    continue
+                yield from iter_scandir_files(Path(entry.path), excludes=excludes)
+            else:
+                # It's a file or symlink or broken symlink
+                yield entry
 
 
 def humanized_fs_scan(path: Path, excludes: set[str]) -> tuple[int, int]:
@@ -91,7 +98,11 @@ def humanized_fs_scan(path: Path, excludes: set[str]) -> tuple[int, int]:
     with progress:
         for entry in iter_scandir_files(path, excludes=excludes):
             file_count += 1
-            total_size += entry.stat().st_size
+            try:
+                total_size += entry.stat().st_size
+            except FileNotFoundError:
+                # e.g.: broken symlink
+                continue
 
             now = time.time()
             if now >= next_update:

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 
@@ -6,8 +7,8 @@ class HashAlreadyExistsError(ValueError):
 
 
 class FileHashDatabase:
-    """
-    A simple database to store file content hash <-> relative path mappings.
+    """DocWrite: README.md ## FileHashDatabase
+    A simple "database" to store file content hash <-> relative path mappings.
     Uses a directory structure to avoid too many files in a single directory.
     Path structure:
             {base_dst}/.phlb/hash-lookup/{XX}/{YY}/{hash}
@@ -39,6 +40,10 @@ class FileHashDatabase:
             return None
         else:
             abs_file_path = self.backup_root / rel_file_path
+            if not abs_file_path.is_file():
+                logging.warning('Hash database entry found, but file does not exist: %s', abs_file_path)
+                hash_path.unlink()
+                return None
             return abs_file_path
 
     def __setitem__(self, hash: str, abs_file_path: Path):
