@@ -190,6 +190,7 @@ v1 is a complete rewrite of PyHardLinkBackup.
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v1.0.0rc1](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0rc1)
+  * 2026-01-13 - Change "./cli.py" to "phlb" (because it's the name installed via pipx)
   * 2026-01-13 - Update README
   * 2026-01-13 - Fix benchmark moved to dev CLI ;)
   * 2026-01-13 - Remove tyro warning
