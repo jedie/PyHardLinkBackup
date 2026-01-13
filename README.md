@@ -176,6 +176,7 @@ v1 is a complete rewrite of PyHardLinkBackup.
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v1.0.0rc1](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0rc1)
+  * 2026-01-13 - Remove tyro warning
   * 2026-01-13 - Move "benchmark_hashes" from app to dev cli (It's more for testing)
   * 2026-01-13 - Rename [project.scripts] hooks
   * 2026-01-13 - Add DocWrite, handle broken symlinks, keep file meta, handle missing hardlink sources
