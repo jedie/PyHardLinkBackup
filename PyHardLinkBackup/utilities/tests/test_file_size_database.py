@@ -85,6 +85,18 @@ class FileSizeDatabaseTestCase(TestCase):
             ########################################################################################
             # Min size is 1000 bytes:
 
+            """DocWrite: README.md ## FileSizeDatabase - minimum file size
+            The minimum file size that can be stored in the FileSizeDatabase is 1000 bytes.
+            This is because no padding is made for sizes below 1000 bytes, which would
+            break the directory structure.
+            """
+            self.assertEqual(FileSizeDatabase.MIN_SIZE, 1000)
+            """DocWrite: README.md ## FileSizeDatabase - minimum file size
+            The idea is, that it's more efficient to backup small files directly, instead of
+            checking for duplicates via hardlinks. Therefore, small files below this size
+            are not tracked in the FileSizeDatabase.
+            """
+
             with self.assertRaises(AssertionError):
                 size_db._get_size_path(999)
             with self.assertRaises(AssertionError):

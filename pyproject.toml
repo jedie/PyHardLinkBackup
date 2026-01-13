@@ -17,6 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "tabulate",  # https://github.com/astanin/python-tabulate
     "freezegun",  # https://github.com/spulec/freezegun
     "manageprojects",  # https://github.com/jedie/manageprojects
     "urllib3", # for bx_py_utils.test_utils.deny_requests.deny_any_real_request() in tests
@@ -41,6 +42,14 @@ Source = "https://github.com/jedie/PyHardLinkBackup"
 [project.scripts]
 PyHardLinkBackup_app = "PyHardLinkBackup.__main__:main"
 PyHardLinkBackup_dev = "PyHardLinkBackup.cli_dev:main"
+
+
+[tool.bx_py_utils.doc_write]
+docstring_prefix = 'DocWrite:'
+macro_prefix = 'DocWriteMacro:'
+output_base_path = './docs/'
+search_paths = ['./PyHardLinkBackup/']
+delete_obsolete_files = true
 
 
 [build-system]

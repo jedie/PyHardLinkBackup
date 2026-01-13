@@ -1,5 +1,4 @@
-"""
-    PyHardLinkBackup
+"""DocWrite: README.md # PyHardLinkBackup
     HardLink/Deduplication Backups with Python
 """
 

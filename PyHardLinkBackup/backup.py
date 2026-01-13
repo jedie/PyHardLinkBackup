@@ -84,7 +84,22 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
         next_update = 0
         for entry in iter_scandir_files(src_root, excludes=excludes):
             backup_count += 1
-            size = entry.stat().st_size
+            src_path = Path(entry.path)
+
+            dst_path = backup_dir / src_path.relative_to(src_root)
+            dst_dir_path = dst_path.parent
+            if not dst_dir_path.exists():
+                dst_dir_path.mkdir(parents=True, exist_ok=False)
+
+            try:
+                size = entry.stat().st_size
+            except FileNotFoundError:
+                # e.g.: Handle broken symlink
+                target = os.readlink(src_path)
+                dst_path.symlink_to(target)
+                symlink_files += 1
+                continue
+
             backup_size += size
 
             now = time.monotonic()
@@ -92,14 +107,8 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
                 progress.update(backup_count=backup_count, backup_size=backup_size)
                 next_update = now + 0.5
 
-            src_path = Path(entry.path)
-            dst_path = backup_dir / src_path.relative_to(src_root)
-
-            dst_path.parent.mkdir(parents=True, exist_ok=True)
-
             if entry.is_symlink():
                 logger.debug('Copy symlink: %s to %s', src_path, dst_path)
-                # Copy symlinks as-is
                 target = os.readlink(src_path)
                 dst_path.symlink_to(target)
                 symlink_files += 1
@@ -152,10 +161,12 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
                         hardlinked_size += size
                     else:
                         logger.info('Copy unique file: %s to %s', src_path, dst_path)
-                        shutil.copy2(src_path, dst_path)
                         hash_db[file_hash] = dst_path
                         copied_files += 1
                         copied_size += size
+
+                # Keep original file metadata (permission bits, time stamps, and flags)
+                shutil.copy2(src_path, dst_path)
             else:
                 # A file with this size not backuped before -> Can't be duplicate -> copy and hash
                 file_hash = copy_and_hash(src_path, dst_path)
@@ -164,6 +175,7 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
                 copied_files += 1
                 copied_size += size
 
+        # Finalize progress indicator values:
         progress.update(backup_count=backup_count, backup_size=backup_size)
 
     print(f'\nBackup complete: {backup_dir} (total size {human_filesize(backup_size)})\n')
