@@ -40,6 +40,22 @@ class BackupResult:
     copied_small_size: int
 
 
+def store_hash(file_path: Path, file_hash: str):
+    """DocWrite: README.md ## SHA256SUMS
+    A `SHA256SUMS` file is stored in each backup directory containing the SHA256 hashes of all files in that directory.
+    It's the same format as e.g.: `sha256sum * > SHA256SUMS` command produces.
+    So it's possible to verify the integrity of the backup files later.
+    e.g.:
+    ```bash
+    cd .../your/backup/foobar/20240101_120000/
+    sha256sum -c SHA256SUMS
+    ```
+    """
+    hash_file_path = file_path.parent / 'SHA256SUMS'
+    with hash_file_path.open('a') as f:
+        f.write(f'{file_hash}  {file_path.name}\n')
+
+
 def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> BackupResult:
     src_root = src_root.resolve()
     if not src_root.is_dir():
@@ -102,6 +118,12 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
 
             backup_size += size
 
+            if entry.name == 'SHA256SUMS':
+                # Skip existing SHA256SUMS files in source tree,
+                # because we create our own SHA256SUMS files.
+                logger.debug('Skip existing SHA256SUMS file: %s', src_path)
+                continue
+
             now = time.monotonic()
             if now >= next_update:
                 progress.update(backup_count=backup_count, backup_size=backup_size)
@@ -123,10 +145,12 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
                 # Small file -> always copy without deduplication
                 logger.info('Copy small file: %s to %s', src_path, dst_path)
                 shutil.copy2(src_path, dst_path)
+                file_hash = copy_and_hash(src_path, dst_path)
                 copied_files += 1
                 copied_size += size
                 copied_small_files += 1
                 copied_small_size += size
+                store_hash(dst_path, file_hash)
                 continue
 
             if size in size_db:
@@ -174,6 +198,8 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
                 hash_db[file_hash] = dst_path
                 copied_files += 1
                 copied_size += size
+
+            store_hash(dst_path, file_hash)
 
         # Finalize progress indicator values:
         progress.update(backup_count=backup_count, backup_size=backup_size)

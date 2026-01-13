@@ -6,6 +6,7 @@ from unittest import TestCase
 
 from bx_py_utils.path import assert_is_dir
 from bx_py_utils.test_utils.assertion import assert_text_equal
+from bx_py_utils.test_utils.log_utils import NoLogs
 
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase, HashAlreadyExistsError
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
@@ -45,7 +46,8 @@ def get_hash_db_info(backup_root: Path) -> str:
 
 def assert_hash_db_info(backup_root: Path, expected: str):
     expected = textwrap.dedent(expected).strip()
-    actual = get_hash_db_info(backup_root)
+    with NoLogs(logger_name='PyHardLinkBackup'):
+        actual = get_hash_db_info(backup_root)
     assert_text_equal(
         actual,
         expected,

@@ -50,6 +50,17 @@ The idea is, that it's more efficient to backup small files directly, instead of
 checking for duplicates via hardlinks. Therefore, small files below this size
 are not tracked in the FileSizeDatabase.
 
+## SHA256SUMS
+
+A `SHA256SUMS` file is stored in each backup directory containing the SHA256 hashes of all files in that directory.
+It's the same format as e.g.: `sha256sum * > SHA256SUMS` command produces.
+So it's possible to verify the integrity of the backup files later.
+e.g.:
+```bash
+cd .../your/backup/foobar/20240101_120000/
+sha256sum -c SHA256SUMS
+```
+
 ## backup implementation - Symlinks
 
 Symlinks are copied as symlinks in the backup.

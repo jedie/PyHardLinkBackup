@@ -1,13 +1,18 @@
 import datetime
+import logging
 import os
 import tempfile
 import textwrap
 import zlib
+from collections.abc import Iterable
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import patch
 
+from bx_py_utils.path import assert_is_file
 from bx_py_utils.test_utils.assertion import assert_text_equal
 from bx_py_utils.test_utils.datetime import parse_dt
+from bx_py_utils.test_utils.log_utils import NoLogs
 from freezegun import freeze_time
 from tabulate import tabulate
 
@@ -16,6 +21,27 @@ from PyHardLinkBackup.constants import CHUNK_SIZE
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
+
+
+class SortedIterScandirFiles:
+    """
+    Important for stable tests: os.scandir() does not guarantee any order of the returned entries.
+    This class wraps iter_scandir_files() and yields the entries sorted by name.
+    """
+
+    def __init__(self, path: Path, excludes: set):
+        self.path = path
+        self.excludes = excludes
+
+    def __enter__(self):
+        return self
+
+    def __iter__(self) -> Iterable[os.DirEntry]:
+        scandir_iterator = iter_scandir_files(self.path, self.excludes)
+        yield from sorted(scandir_iterator, key=lambda e: e.name)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
 
 def set_file_times(path: Path, dt: datetime.datetime):
@@ -27,7 +53,7 @@ def set_file_times(path: Path, dt: datetime.datetime):
         os.utime(entry.path, (fixed_time, fixed_time))
 
 
-def fs_tree_overview(root: Path) -> str:
+def _fs_tree_overview(root: Path) -> str:
     lines = []
     for entry in iter_scandir_files(root, excludes=set()):
         file_path = Path(entry.path)
@@ -43,8 +69,11 @@ def fs_tree_overview(root: Path) -> str:
             crc32 = f'{crc32:08x}'
             nlink = file_stat.st_nlink
             size = file_stat.st_size
-            birthtime = getattr(file_stat, 'st_birthtime', file_stat.st_mtime)
-            birthtime = datetime.datetime.fromtimestamp(birthtime).strftime('%H:%M:%S')
+            if entry.name == 'SHA256SUMS':
+                birthtime = '-'
+            else:
+                birthtime = getattr(file_stat, 'st_birthtime', file_stat.st_mtime)
+                birthtime = datetime.datetime.fromtimestamp(birthtime).strftime('%H:%M:%S')
 
         if entry.is_symlink():
             file_type = 'symlink'
@@ -70,7 +99,8 @@ def fs_tree_overview(root: Path) -> str:
 
 def assert_fs_tree_overview(root: Path, expected_overview: str):
     expected_overview = textwrap.dedent(expected_overview).strip()
-    actual_overview = fs_tree_overview(root)
+    with NoLogs(logger_name='PyHardLinkBackup'):
+        actual_overview = _fs_tree_overview(root)
     assert_text_equal(
         actual_overview,
         expected_overview,
@@ -122,7 +152,11 @@ class BackupTreeTestCase(TestCase):
             #######################################################################################
             # Create first backup:
 
-            with freeze_time('2026-01-01T12:34:56Z', auto_tick_seconds=0):
+            with (
+                self.assertLogs(level=logging.INFO),
+                patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
+                freeze_time('2026-01-01T12:34:56Z', auto_tick_seconds=0),
+            ):
                 result = backup_tree(
                     src_root=src_root,
                     backup_root=backup_root,
@@ -171,11 +205,13 @@ class BackupTreeTestCase(TestCase):
                 root=backup_dir,
                 expected_overview="""
                     path                 birthtime    type        nlink      size  CRC32
+                    SHA256SUMS           -            file            1       410  45c07cf7
                     file2.txt            12:00:00     file            1        14  8a11514a
                     hardlink2file1       12:00:00     file            1        14  8a11514a
                     large_file.bin       12:00:00     file            1  67108865  9671eaac
                     min_sized_file1.bin  12:00:00     hardlink        2      1000  f0d93de4
                     min_sized_file2.bin  12:00:00     hardlink        2      1000  f0d93de4
+                    subdir/SHA256SUMS    -            file            1        75  1af5ecc7
                     subdir/file.txt      12:00:00     file            1        22  c0167e63
                     symlink2file1        12:00:00     symlink         2        14  8a11514a
                 """,
@@ -193,7 +229,11 @@ class BackupTreeTestCase(TestCase):
             #######################################################################################
             # Just backup again:
 
-            with freeze_time('2026-01-02T12:34:56Z', auto_tick_seconds=0):
+            with (
+                self.assertLogs(level=logging.INFO),
+                patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
+                freeze_time('2026-01-02T12:34:56Z', auto_tick_seconds=0),
+            ):
                 result = backup_tree(
                     src_root=src_root,
                     backup_root=backup_root,
@@ -226,11 +266,13 @@ class BackupTreeTestCase(TestCase):
                 root=backup_dir,
                 expected_overview="""
                     path                 birthtime    type        nlink      size  CRC32
+                    SHA256SUMS           -            file            1       410  45c07cf7
                     file2.txt            12:00:00     file            1        14  8a11514a
                     hardlink2file1       12:00:00     file            1        14  8a11514a
                     large_file.bin       12:00:00     hardlink        2  67108865  9671eaac
                     min_sized_file1.bin  12:00:00     hardlink        4      1000  f0d93de4
                     min_sized_file2.bin  12:00:00     hardlink        4      1000  f0d93de4
+                    subdir/SHA256SUMS    -            file            1        75  1af5ecc7
                     subdir/file.txt      12:00:00     file            1        22  c0167e63
                     symlink2file1        12:00:00     symlink         2        14  8a11514a
                 """,
@@ -254,16 +296,41 @@ class BackupTreeTestCase(TestCase):
             """
 
             # Let's remove one of the files used for hardlinking from the first backup:
-            (backup_root / 'source/20260101_123456/min_sized_file1.bin').unlink()
+            min_sized_file1_bak_path = backup_root / 'source/20260101_123456/min_sized_file1.bin'
+            assert_is_file(min_sized_file1_bak_path)
+            min_sized_file1_bak_path.unlink()
 
             # Backup again:
-            with freeze_time('2026-01-03T12:34:56Z', auto_tick_seconds=0):
+            with (
+                self.assertLogs(level=logging.INFO),
+                patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
+                freeze_time('2026-01-03T12:34:56Z', auto_tick_seconds=0),
+            ):
                 result = backup_tree(
                     src_root=src_root,
                     backup_root=backup_root,
                     excludes={'.cache'},
                 )
             backup_dir = result.backup_dir
+
+            # Note: min_sized_file1.bin and min_sized_file2.bin are hardlinked,
+            # but not with the first backup anymore! So it's only nlink=2 now!
+            assert_fs_tree_overview(
+                root=backup_dir,
+                expected_overview="""
+                    path                 birthtime    type        nlink      size  CRC32
+                    SHA256SUMS           -            file            1       410  45c07cf7
+                    file2.txt            12:00:00     file            1        14  8a11514a
+                    hardlink2file1       12:00:00     file            1        14  8a11514a
+                    large_file.bin       12:00:00     hardlink        3  67108865  9671eaac
+                    min_sized_file1.bin  12:00:00     hardlink        2      1000  f0d93de4
+                    min_sized_file2.bin  12:00:00     hardlink        2      1000  f0d93de4
+                    subdir/SHA256SUMS    -            file            1        75  1af5ecc7
+                    subdir/file.txt      12:00:00     file            1        22  c0167e63
+                    symlink2file1        12:00:00     symlink         2        14  8a11514a
+                """,
+            )
+
             self.assertEqual(
                 result,
                 BackupResult(
@@ -278,22 +345,6 @@ class BackupTreeTestCase(TestCase):
                     copied_small_files=3,
                     copied_small_size=50,
                 ),
-            )
-
-            # Note: min_sized_file1.bin and min_sized_file2.bin are hardlinked,
-            # but not with the first backup anymore! So it's only nlink=2 now!
-            assert_fs_tree_overview(
-                root=backup_dir,
-                expected_overview="""
-                    path                 birthtime    type        nlink      size  CRC32
-                    file2.txt            12:00:00     file            1        14  8a11514a
-                    hardlink2file1       12:00:00     file            1        14  8a11514a
-                    large_file.bin       12:00:00     hardlink        3  67108865  9671eaac
-                    min_sized_file1.bin  12:00:00     hardlink        2      1000  f0d93de4
-                    min_sized_file2.bin  12:00:00     hardlink        2      1000  f0d93de4
-                    subdir/file.txt      12:00:00     file            1        22  c0167e63
-                    symlink2file1        12:00:00     symlink         2        14  8a11514a
-                """,
             )
 
             # Note: min_sized_file1.bin is now from the 2026-01-03 backup!
@@ -341,7 +392,7 @@ class BackupTreeTestCase(TestCase):
             #######################################################################################
             # Create first backup:
 
-            with freeze_time('2026-01-01T12:34:56Z', auto_tick_seconds=0):
+            with self.assertLogs(level=logging.INFO), freeze_time('2026-01-01T12:34:56Z', auto_tick_seconds=0):
                 result = backup_tree(src_root=src_root, backup_root=backup_root, excludes=set())
             backup_dir1 = result.backup_dir
             self.assertEqual(
@@ -353,6 +404,7 @@ class BackupTreeTestCase(TestCase):
                 root=temp_path,  # The complete overview os source + backup and outside file
                 expected_overview="""
                     path                                     birthtime    type     nlink    size    CRC32
+                    bak/src/20260101_123456/SHA256SUMS       -            file     1        82      c03fd60e
                     bak/src/20260101_123456/broken_symlink   -            symlink  -        -       -
                     bak/src/20260101_123456/source_file.txt  12:00:00     file     1        31      9309a10c
                     bak/src/20260101_123456/symlink2outside  12:00:00     symlink  1        36      24b5bf4c
