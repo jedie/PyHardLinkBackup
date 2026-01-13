@@ -40,8 +40,8 @@ Documentation = "https://github.com/jedie/PyHardLinkBackup"
 Source = "https://github.com/jedie/PyHardLinkBackup"
 
 [project.scripts]
-PyHardLinkBackup_app = "PyHardLinkBackup.__main__:main"
-PyHardLinkBackup_dev = "PyHardLinkBackup.cli_dev:main"
+phlb = "PyHardLinkBackup.__main__:main"
+_PyHardLinkBackup_dev = "PyHardLinkBackup.cli_dev:main"
 
 
 [tool.bx_py_utils.doc_write]

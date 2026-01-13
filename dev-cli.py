@@ -57,7 +57,7 @@ DEP_HASH_PATH = VENV_PATH / '.dep_hash'
 
 # script file defined in pyproject.toml as [console_scripts]
 # (Under Windows: ".exe" not added!)
-PROJECT_SHELL_SCRIPT = BIN_PATH / 'PyHardLinkBackup_dev'
+PROJECT_SHELL_SCRIPT = BIN_PATH / '_PyHardLinkBackup_dev'
 
 
 def get_dep_hash():

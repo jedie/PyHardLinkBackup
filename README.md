@@ -175,7 +175,8 @@ v1 is a complete rewrite of PyHardLinkBackup.
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [v1.0.0rc0](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0rc0)
+* [v1.0.0rc1](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0rc1)
+  * 2026-01-13 - Rename [project.scripts] hooks
   * 2026-01-13 - Add DocWrite, handle broken symlinks, keep file meta, handle missing hardlink sources
   * 2026-01-12 - First working iteration with rich progess bar
   * 2026-01-08 - Rewrite everything
