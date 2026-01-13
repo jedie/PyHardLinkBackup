@@ -189,6 +189,8 @@ v1 is a complete rewrite of PyHardLinkBackup.
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v1.0.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.0...v1.0.1)
+  * 2026-01-13 - Store SHA256SUMS files in backup directories
 * [v1.0.0](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0)
   * 2026-01-13 - Change "./cli.py" to "phlb" (because it's the name installed via pipx)
   * 2026-01-13 - Update README
@@ -226,6 +228,9 @@ v1 is a complete rewrite of PyHardLinkBackup.
   * 2020-03-16 - just warn if used directly (needfull for devlopment to call this directly ;)
   * 2020-03-16 - update requirements
   * 2020-03-16 - +pytest-randomly
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v0.12.2](https://github.com/jedie/PyHardLinkBackup/compare/v0.12.1...v0.12.2)
   * 2020-03-06 - repare v0.12.2 release
   * 2020-03-06 - enhance log file content
@@ -234,9 +239,6 @@ v1 is a complete rewrite of PyHardLinkBackup.
   * 2020-03-05 - Fix #40 by decrease log level
   * 2020-03-05 - Update boot_pyhardlinkbackup.cmd
   * 2020-03-05 - Update boot_pyhardlinkbackup.sh
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v0.12.1](https://github.com/jedie/PyHardLinkBackup/compare/v0.12.0...v0.12.1)
   * 2020-03-05 - update tests and set version to 0.12.1
   * 2020-03-05 - less verbose pytest output
