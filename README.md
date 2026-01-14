@@ -10,6 +10,8 @@ HardLink/Deduplication Backups with Python
 
 **WIP:** v1.0.0 is a complete rewrite of PyHardLinkBackup.
 
+It's similar to `rsync --link-dest` but the deduplication is done globally for all backups and all paths.
+
 ## installation
 
 You can use [pipx](https://pipx.pypa.io/stable/installation/) to install and use PyHardLinkBackup, e.g.:
@@ -198,6 +200,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...main)
+  * 2026-01-14 - A a note to rsync --link-dest
   * 2026-01-14 - Use cli_base.cli_tools.test_utils.base_testcases
 * [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)
   * 2026-01-14 - Change backup timestamp directory to old schema: '%Y-%m-%d-%H%M%S'
