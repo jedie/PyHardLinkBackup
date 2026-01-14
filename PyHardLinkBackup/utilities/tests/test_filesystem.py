@@ -3,9 +3,10 @@ import os
 import tempfile
 from pathlib import Path
 
+from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
+
 from PyHardLinkBackup.constants import HASH_ALGO
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, hash_file, iter_scandir_files, read_and_hash_file
-from PyHardLinkBackup.utilities.tests.base_testcases import BaseTestCase
 
 
 class TestHashFile(BaseTestCase):

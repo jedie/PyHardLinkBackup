@@ -4,10 +4,10 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from bx_py_utils.test_utils.log_utils import NoLogs
+from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
 
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
-from PyHardLinkBackup.utilities.tests.base_testcases import BaseTestCase
 
 
 class TemporaryFileSizeDatabase(tempfile.TemporaryDirectory):
