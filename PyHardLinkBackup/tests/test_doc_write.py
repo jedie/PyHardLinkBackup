@@ -19,7 +19,8 @@ class DocuWriteApiTestCase(TestCase):
         """
         assert_is_file(PACKAGE_ROOT / 'pyproject.toml')
 
-        info: GeneratedInfo = generate(base_path=PACKAGE_ROOT)
+        with self.assertLogs():
+            info: GeneratedInfo = generate(base_path=PACKAGE_ROOT)
         self.assertGreaterEqual(len(info.paths), 1)
         self.assertEqual(info.update_count, 0, 'No files should be updated, commit the changes')
         self.assertEqual(info.remove_count, 0, 'No files should be removed, commit the changes')

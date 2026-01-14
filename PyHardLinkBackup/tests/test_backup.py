@@ -13,6 +13,7 @@ from bx_py_utils.test_utils.assertion import assert_text_equal
 from bx_py_utils.test_utils.datetime import parse_dt
 from bx_py_utils.test_utils.log_utils import NoLogs
 from bx_py_utils.test_utils.redirect import RedirectOut
+from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
 from freezegun import freeze_time
 from tabulate import tabulate
 
@@ -20,7 +21,6 @@ from PyHardLinkBackup.backup import BackupResult, backup_tree
 from PyHardLinkBackup.constants import CHUNK_SIZE
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
-from PyHardLinkBackup.utilities.tests.base_testcases import BaseTestCase
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
 
 

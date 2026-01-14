@@ -6,10 +6,10 @@ from pathlib import Path
 from bx_py_utils.path import assert_is_dir
 from bx_py_utils.test_utils.assertion import assert_text_equal
 from bx_py_utils.test_utils.log_utils import NoLogs
+from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
 
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase, HashAlreadyExistsError
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
-from PyHardLinkBackup.utilities.tests.base_testcases import BaseTestCase
 
 
 class TemporaryFileHashDatabase(tempfile.TemporaryDirectory):

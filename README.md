@@ -197,6 +197,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...main)
+  * 2026-01-14 - Use cli_base.cli_tools.test_utils.base_testcases
 * [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)
   * 2026-01-14 - Change backup timestamp directory to old schema: '%Y-%m-%d-%H%M%S'
   * 2026-01-14 - Add "Overview of main changes" to README
@@ -212,6 +214,9 @@ Overview of main changes:
   * 2026-01-13 - Add DocWrite, handle broken symlinks, keep file meta, handle missing hardlink sources
   * 2026-01-12 - First working iteration with rich progess bar
   * 2026-01-08 - Rewrite everything
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v0.13.0](https://github.com/jedie/PyHardLinkBackup/compare/v0.12.3...v0.13.0)
   * 2020-03-18 - release v0.13.0
   * 2020-03-17 - deactivate pypy tests in travis, because of SQLite errors, like:
@@ -230,9 +235,6 @@ Overview of main changes:
   * 2020-03-17 - dynamic chunk size
   * 2020-03-17 - ignore *.sha512 by default
   * 2020-03-17 - Update boot_pyhardlinkbackup.sh
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v0.12.3](https://github.com/jedie/PyHardLinkBackup/compare/v0.12.2...v0.12.3)
   * 2020-03-17 - update README.rst
   * 2020-03-17 - don't publish if tests fail
