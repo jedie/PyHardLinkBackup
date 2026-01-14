@@ -1,14 +1,14 @@
 import hashlib
 import os
 import tempfile
-import unittest
 from pathlib import Path
 
 from PyHardLinkBackup.constants import HASH_ALGO
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, hash_file, iter_scandir_files, read_and_hash_file
+from PyHardLinkBackup.utilities.tests.base_testcases import BaseTestCase
 
 
-class TestHashFile(unittest.TestCase):
+class TestHashFile(BaseTestCase):
     def test_hash_file(self):
         self.assertEqual(
             hashlib.new(HASH_ALGO, b'test content').hexdigest(),

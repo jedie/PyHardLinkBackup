@@ -185,10 +185,21 @@ usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,install,lint,mypy,nox,pip-au
 
 v1 is a complete rewrite of PyHardLinkBackup.
 
+Overview of main changes:
+
+* Remove Django dependency:
+  * No SQlite database anymore -> Data for deduplication stored in filesystem only
+  * No Django Admin, because we have no database anymore ;)
+* Change hash algorithm from SHA512 to SHA256, because it's faster and still secure enough
+* Don't store `*.sha512` for every file anymore -> We store one `SHA256SUMS` file in every backup directory
+
 ## History
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)
+  * 2026-01-14 - Change backup timestamp directory to old schema: '%Y-%m-%d-%H%M%S'
+  * 2026-01-14 - Add "Overview of main changes" to README
 * [v1.0.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.0...v1.0.1)
   * 2026-01-13 - Store SHA256SUMS files in backup directories
 * [v1.0.0](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0)
@@ -219,6 +230,9 @@ v1 is a complete rewrite of PyHardLinkBackup.
   * 2020-03-17 - dynamic chunk size
   * 2020-03-17 - ignore *.sha512 by default
   * 2020-03-17 - Update boot_pyhardlinkbackup.sh
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v0.12.3](https://github.com/jedie/PyHardLinkBackup/compare/v0.12.2...v0.12.3)
   * 2020-03-17 - update README.rst
   * 2020-03-17 - don't publish if tests fail
@@ -228,9 +242,6 @@ v1 is a complete rewrite of PyHardLinkBackup.
   * 2020-03-16 - just warn if used directly (needfull for devlopment to call this directly ;)
   * 2020-03-16 - update requirements
   * 2020-03-16 - +pytest-randomly
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v0.12.2](https://github.com/jedie/PyHardLinkBackup/compare/v0.12.1...v0.12.2)
   * 2020-03-06 - repare v0.12.2 release
   * 2020-03-06 - enhance log file content

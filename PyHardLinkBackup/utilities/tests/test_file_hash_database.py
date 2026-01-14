@@ -2,7 +2,6 @@ import logging
 import tempfile
 import textwrap
 from pathlib import Path
-from unittest import TestCase
 
 from bx_py_utils.path import assert_is_dir
 from bx_py_utils.test_utils.assertion import assert_text_equal
@@ -10,6 +9,7 @@ from bx_py_utils.test_utils.log_utils import NoLogs
 
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase, HashAlreadyExistsError
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
+from PyHardLinkBackup.utilities.tests.base_testcases import BaseTestCase
 
 
 class TemporaryFileHashDatabase(tempfile.TemporaryDirectory):
@@ -25,6 +25,7 @@ class TemporaryFileHashDatabase(tempfile.TemporaryDirectory):
 
 
 def get_hash_db_filenames(hash_db: FileHashDatabase) -> list[str]:
+    # with NoLogs('PyHardLinkBackup.utilities.filesystem'):
     return sorted(
         str(Path(entry.path).relative_to(hash_db.base_path))
         for entry in iter_scandir_files(hash_db.base_path, excludes=set())
@@ -35,19 +36,19 @@ def get_hash_db_info(backup_root: Path) -> str:
     db_base_path = backup_root / '.phlb' / 'hash-lookup'
     assert_is_dir(db_base_path)
 
-    lines = []
-    for entry in iter_scandir_files(db_base_path, excludes=set()):
-        hash_path = Path(entry.path)
-        rel_path = hash_path.relative_to(db_base_path)
-        rel_file_path = hash_path.read_text()
-        lines.append(f'{str(rel_path)[:20]}… -> {rel_file_path}')
+    with NoLogs(logger_name='XY'):
+        lines = []
+        for entry in iter_scandir_files(db_base_path, excludes=set()):
+            hash_path = Path(entry.path)
+            rel_path = hash_path.relative_to(db_base_path)
+            rel_file_path = hash_path.read_text()
+            lines.append(f'{str(rel_path)[:20]}… -> {rel_file_path}')
     return '\n'.join(sorted(lines))
 
 
 def assert_hash_db_info(backup_root: Path, expected: str):
     expected = textwrap.dedent(expected).strip()
-    with NoLogs(logger_name='PyHardLinkBackup'):
-        actual = get_hash_db_info(backup_root)
+    actual = get_hash_db_info(backup_root)
     assert_text_equal(
         actual,
         expected,
@@ -55,7 +56,7 @@ def assert_hash_db_info(backup_root: Path, expected: str):
     )
 
 
-class FileHashDatabaseTestCase(TestCase):
+class FileHashDatabaseTestCase(BaseTestCase):
     def test_happy_path(self):
         with TemporaryFileHashDatabase() as hash_db:
             self.assertIsInstance(hash_db, FileHashDatabase)
@@ -73,10 +74,11 @@ class FileHashDatabaseTestCase(TestCase):
             self.assertIs(hash_db.get('12345678abcdef'), None)
             hash_db['12345678abcdef'] = file_a_path
             self.assertEqual(hash_db.get('12345678abcdef'), file_a_path)
-            self.assertEqual(
-                get_hash_db_filenames(hash_db),
-                ['12/34/12345678abcdef'],
-            )
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                self.assertEqual(
+                    get_hash_db_filenames(hash_db),
+                    ['12/34/12345678abcdef'],
+                )
 
             ########################################################################################
             # Another instance using the same directory:
@@ -94,21 +96,23 @@ class FileHashDatabaseTestCase(TestCase):
 
             another_hash_db['12abcd345678abcdef'] = file_b_path
             self.assertEqual(another_hash_db.get('12abcd345678abcdef'), file_b_path)
-            self.assertEqual(
-                get_hash_db_filenames(another_hash_db),
-                [
-                    '12/34/12345678abcdef',
-                    '12/ab/12abcd345678abcdef',
-                ],
-            )
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                self.assertEqual(
+                    get_hash_db_filenames(another_hash_db),
+                    [
+                        '12/34/12345678abcdef',
+                        '12/ab/12abcd345678abcdef',
+                    ],
+                )
 
-            assert_hash_db_info(
-                backup_root=hash_db.backup_root,
-                expected="""
-                    12/34/12345678abcdef… -> rel/path/to/file-A
-                    12/ab/12abcd345678ab… -> rel/path/to/file-B
-                """,
-            )
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                assert_hash_db_info(
+                    backup_root=hash_db.backup_root,
+                    expected="""
+                        12/34/12345678abcdef… -> rel/path/to/file-A
+                        12/ab/12abcd345678ab… -> rel/path/to/file-B
+                    """,
+                )
 
             ########################################################################################
             # Deny "overwrite" of existing hash:
@@ -128,9 +132,10 @@ class FileHashDatabaseTestCase(TestCase):
             with self.assertLogs(level=logging.WARNING) as logs:
                 self.assertIs(hash_db.get('12345678abcdef'), None)
             self.assertIn('Hash database entry found, but file does not exist', ''.join(logs.output))
-            assert_hash_db_info(
-                backup_root=hash_db.backup_root,
-                expected="""
-                    12/ab/12abcd345678ab… -> rel/path/to/file-B
-                """,
-            )
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                assert_hash_db_info(
+                    backup_root=hash_db.backup_root,
+                    expected="""
+                        12/ab/12abcd345678ab… -> rel/path/to/file-B
+                    """,
+                )

@@ -75,7 +75,7 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
     phlb_conf_dir = backup_root / '.phlb'
     phlb_conf_dir.mkdir(parents=False, exist_ok=True)
 
-    backup_dir = backup_root / src_root.name / datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_dir = backup_root / src_root.name / datetime.now().strftime('%Y-%m-%d-%H%M%S')
     logger.info('Backup %s to %s', src_root, backup_dir)
     backup_dir.mkdir(parents=True, exist_ok=False)
 
