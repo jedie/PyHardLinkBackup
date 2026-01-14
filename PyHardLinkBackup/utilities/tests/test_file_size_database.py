@@ -1,10 +1,13 @@
+import logging
 import tempfile
 from collections.abc import Iterable
 from pathlib import Path
-from unittest import TestCase
+
+from bx_py_utils.test_utils.log_utils import NoLogs
 
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
+from PyHardLinkBackup.utilities.tests.base_testcases import BaseTestCase
 
 
 class TemporaryFileSizeDatabase(tempfile.TemporaryDirectory):
@@ -27,10 +30,11 @@ def get_size_db_filenames(size_db: FileSizeDatabase) -> Iterable[str]:
 
 
 def get_sizes(size_db: FileSizeDatabase) -> Iterable[int]:
-    return sorted(int(entry.name) for entry in iter_scandir_files(size_db.base_path, excludes=set()))
+    with NoLogs('PyHardLinkBackup.utilities.filesystem'):
+        return sorted(int(entry.name) for entry in iter_scandir_files(size_db.base_path, excludes=set()))
 
 
-class FileSizeDatabaseTestCase(TestCase):
+class FileSizeDatabaseTestCase(BaseTestCase):
     def test_happy_path(self):
         with TemporaryFileSizeDatabase() as size_db:
             self.assertIsInstance(size_db, FileSizeDatabase)
@@ -52,27 +56,29 @@ class FileSizeDatabaseTestCase(TestCase):
             self.assertIn(1234, size_db)
             self.assertIn(567890, size_db)
 
-            self.assertEqual(get_sizes(size_db), [1234, 567890])
-            self.assertEqual(
-                get_size_db_filenames(size_db),
-                [
-                    '12/34/1234',
-                    '56/78/567890',
-                ],
-            )
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                self.assertEqual(get_sizes(size_db), [1234, 567890])
+                self.assertEqual(
+                    get_size_db_filenames(size_db),
+                    [
+                        '12/34/1234',
+                        '56/78/567890',
+                    ],
+                )
 
             ########################################################################################
             # Another instance using the same directory:
 
             another_size_db = FileSizeDatabase(phlb_conf_dir=size_db.base_path.parent)
-            self.assertEqual(get_sizes(another_size_db), [1234, 567890])
-            self.assertEqual(
-                get_size_db_filenames(another_size_db),
-                [
-                    '12/34/1234',
-                    '56/78/567890',
-                ],
-            )
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                self.assertEqual(get_sizes(another_size_db), [1234, 567890])
+                self.assertEqual(
+                    get_size_db_filenames(another_size_db),
+                    [
+                        '12/34/1234',
+                        '56/78/567890',
+                    ],
+                )
 
             ########################################################################################
             # "Share" directories:
@@ -107,25 +113,26 @@ class FileSizeDatabaseTestCase(TestCase):
             ########################################################################################
             # Check final state:
 
-            self.assertEqual(
-                get_size_db_filenames(size_db),
-                [
-                    '12/34/1234',
-                    '12/34/123400001111',
-                    '12/34/123400002222',
-                    '12/88/128800003333',
-                    '12/99/129900004444',
-                    '56/78/567890',
-                ],
-            )
-            self.assertEqual(
-                get_sizes(size_db),
-                [
-                    1234,
-                    567890,
-                    123400001111,
-                    123400002222,
-                    128800003333,
-                    129900004444,
-                ],
-            )
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                self.assertEqual(
+                    get_size_db_filenames(size_db),
+                    [
+                        '12/34/1234',
+                        '12/34/123400001111',
+                        '12/34/123400002222',
+                        '12/88/128800003333',
+                        '12/99/129900004444',
+                        '56/78/567890',
+                    ],
+                )
+                self.assertEqual(
+                    get_sizes(size_db),
+                    [
+                        1234,
+                        567890,
+                        123400001111,
+                        123400002222,
+                        128800003333,
+                        129900004444,
+                    ],
+                )

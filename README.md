@@ -197,7 +197,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...main)
+* [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)
+  * 2026-01-14 - Change backup timestamp directory to old schema: '%Y-%m-%d-%H%M%S'
   * 2026-01-14 - Add "Overview of main changes" to README
 * [v1.0.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.0...v1.0.1)
   * 2026-01-13 - Store SHA256SUMS files in backup directories
