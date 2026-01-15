@@ -74,8 +74,8 @@ usage: phlb [-h] {backup,rebuild,version}
 ╭─ subcommands ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ (required)                                                                                                           │
 │   • backup   Backup the source directory to the destination directory using hard links for deduplication.            │
-│   • rebuild  Rebuild the file hash and size database by scanning all backup files. Note: It will not verify with     │
-│              existing file hashes/sizes, it just adds missing hashes/sizes db entries used for deduplication.        │
+│   • rebuild  Rebuild the file hash and size database by scanning all backup files. And also verify SHA256SUMS and/or │
+│              store missing hashes in SHA256SUMS files.                                                               │
 │   • version  Print version and exit                                                                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
@@ -213,7 +213,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...main)
+* [v1.3.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...v1.3.0)
+  * 2026-01-15 - Verify SHA256SUMS files in "rebuild" command, too.
   * 2026-01-15 - Code cleanup: use more generic names for and in BackupProgress
   * 2026-01-15 - Add tests for rebuild
   * 2026-01-15 - Add command to "rebuld" the size and hash filesystem database

@@ -22,6 +22,7 @@ from PyHardLinkBackup.utilities.filesystem import (
 )
 from PyHardLinkBackup.utilities.humanize import human_filesize
 from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress
+from PyHardLinkBackup.utilities.sha256sums import store_hash
 
 
 logger = logging.getLogger(__name__)
@@ -149,22 +150,6 @@ def backup_one_file(
         backup_result.copied_size += size
 
     store_hash(dst_path, file_hash)
-
-
-def store_hash(file_path: Path, file_hash: str):
-    """DocWrite: README.md ## SHA256SUMS
-    A `SHA256SUMS` file is stored in each backup directory containing the SHA256 hashes of all files in that directory.
-    It's the same format as e.g.: `sha256sum * > SHA256SUMS` command produces.
-    So it's possible to verify the integrity of the backup files later.
-    e.g.:
-    ```bash
-    cd .../your/backup/foobar/20240101_120000/
-    sha256sum -c SHA256SUMS
-    ```
-    """
-    hash_file_path = file_path.parent / 'SHA256SUMS'
-    with hash_file_path.open('a') as f:
-        f.write(f'{file_hash}  {file_path.name}\n')
 
 
 def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> BackupResult:
