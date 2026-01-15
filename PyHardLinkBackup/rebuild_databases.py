@@ -54,7 +54,7 @@ def rebuild_one_file(
         rebuild_result.added_hash_count += 1
 
 
-def rebuild(backup_root: Path):
+def rebuild(backup_root: Path) -> RebuildResult:
     backup_root = backup_root.resolve()
     if not backup_root.is_dir():
         print(f'Error: Backup directory "{backup_root}" does not exist!')
