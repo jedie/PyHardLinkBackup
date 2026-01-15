@@ -21,7 +21,7 @@ from PyHardLinkBackup.utilities.filesystem import (
     supports_hardlinks,
 )
 from PyHardLinkBackup.utilities.humanize import human_filesize
-from PyHardLinkBackup.utilities.rich_utils import BackupProgress
+from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress
 
 
 logger = logging.getLogger(__name__)
@@ -202,7 +202,7 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
 
     print(f'\nBackup to {backup_dir}...\n')
 
-    with BackupProgress(src_file_count, src_total_size) as progress:
+    with DisplayFileTreeProgress(src_file_count, src_total_size) as progress:
         # "Databases" for deduplication
         size_db = FileSizeDatabase(phlb_conf_dir)
         hash_db = FileHashDatabase(backup_root, phlb_conf_dir)
@@ -226,11 +226,13 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
             else:
                 now = time.monotonic()
                 if now >= next_update:
-                    progress.update(backup_count=backup_result.backup_count, backup_size=backup_result.backup_size)
+                    progress.update(
+                        completed_file_count=backup_result.backup_count, completed_size=backup_result.backup_size
+                    )
                     next_update = now + 0.5
 
         # Finalize progress indicator values:
-        progress.update(backup_count=backup_result.backup_count, backup_size=backup_result.backup_size)
+        progress.update(completed_file_count=backup_result.backup_count, completed_size=backup_result.backup_size)
 
     print(f'\nBackup complete: {backup_dir} (total size {human_filesize(backup_result.backup_size)})\n')
     print(f'  Total files processed: {backup_result.backup_count}')
