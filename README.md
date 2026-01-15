@@ -48,6 +48,18 @@ Backup the source directory to the destination directory using hard links for de
 
 
 
+Running a backup looks like:
+
+![2026-01-15-phlb1.png](https://raw.githubusercontent.com/jedie/jedie.github.io/main/screenshots/PyHardLinkBackup/2026-01-15-phlb1.png "2026-01-15-phlb1.png")
+
+
+
+If it's finished it display a summary:
+
+![2026-01-15-phlb2.png](https://raw.githubusercontent.com/jedie/jedie.github.io/main/screenshots/PyHardLinkBackup/2026-01-15-phlb2.png "2026-01-15-phlb2.png")
+
+
+
 complete help for main CLI app:
 
 [comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
@@ -199,6 +211,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...main)
+  * 2026-01-15 - Add screenshots in the README
 * [v1.2.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...v1.2.0)
   * 2026-01-15 - Add error handling: Log exception but continue with the backup
   * 2026-01-15 - Check permission and hadlink support on destination path
@@ -210,6 +224,9 @@ Overview of main changes:
   * 2026-01-14 - Add "Overview of main changes" to README
 * [v1.0.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.0...v1.0.1)
   * 2026-01-13 - Store SHA256SUMS files in backup directories
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.0.0](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0)
   * 2026-01-13 - Change "./cli.py" to "phlb" (because it's the name installed via pipx)
   * 2026-01-13 - Update README
@@ -220,9 +237,6 @@ Overview of main changes:
   * 2026-01-13 - Add DocWrite, handle broken symlinks, keep file meta, handle missing hardlink sources
   * 2026-01-12 - First working iteration with rich progess bar
   * 2026-01-08 - Rewrite everything
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v0.13.0](https://github.com/jedie/PyHardLinkBackup/compare/v0.12.3...v0.13.0)
   * 2020-03-18 - release v0.13.0
   * 2020-03-17 - deactivate pypy tests in travis, because of SQLite errors, like:
