@@ -1,15 +1,25 @@
 import hashlib
+import logging
 import os
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
 
 from PyHardLinkBackup.constants import HASH_ALGO
-from PyHardLinkBackup.utilities.filesystem import copy_and_hash, hash_file, iter_scandir_files, read_and_hash_file
+from PyHardLinkBackup.utilities.filesystem import (
+    copy_and_hash,
+    hash_file,
+    iter_scandir_files,
+    read_and_hash_file,
+    supports_hardlinks,
+)
 
 
 class TestHashFile(BaseTestCase):
+    maxDiff = None
+
     def test_hash_file(self):
         self.assertEqual(
             hashlib.new(HASH_ALGO, b'test content').hexdigest(),
@@ -93,3 +103,24 @@ class TestHashFile(BaseTestCase):
         logs = ''.join(logs.output)
         self.assertIn('Scanning directory ', logs)
         self.assertIn('Excluding directory ', logs)
+
+    def test_supports_hardlinks(self):
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertLogs(level=logging.INFO) as logs:
+                self.assertTrue(supports_hardlinks(Path(temp)))
+            self.assertEqual(
+                ''.join(logs.output),
+                f'INFO:PyHardLinkBackup.utilities.filesystem:Hardlink support in {temp}: True',
+            )
+
+            with (
+                self.assertLogs(level=logging.ERROR) as logs,
+                patch('PyHardLinkBackup.utilities.filesystem.os.link', side_effect=OSError),
+            ):
+                self.assertFalse(supports_hardlinks(Path(temp)))
+            logs = ''.join(logs.output)
+            self.assertIn(f'Hardlink test failed in {temp}:', logs)
+            self.assertIn('OSError', logs)
+
+        with self.assertLogs(level=logging.DEBUG), self.assertRaises(NotADirectoryError):
+            supports_hardlinks(Path('/not/existing/directory'))

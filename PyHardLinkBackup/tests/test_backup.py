@@ -20,7 +20,7 @@ from tabulate import tabulate
 from PyHardLinkBackup.backup import BackupResult, backup_tree
 from PyHardLinkBackup.constants import CHUNK_SIZE
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
-from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
+from PyHardLinkBackup.utilities.filesystem import copy_and_hash, iter_scandir_files
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
 
 
@@ -184,6 +184,7 @@ class BackupTreeTestCase(BaseTestCase):
                     copied_size=67109915,
                     copied_small_files=3,
                     copied_small_size=50,
+                    error_count=0,
                 ),
             )
 
@@ -267,6 +268,7 @@ class BackupTreeTestCase(BaseTestCase):
                     copied_size=50,
                     copied_small_files=3,
                     copied_small_size=50,
+                    error_count=0,
                 ),
             )
             # The second backup:
@@ -360,6 +362,7 @@ class BackupTreeTestCase(BaseTestCase):
                     copied_size=1050,
                     copied_small_files=3,
                     copied_small_size=50,
+                    error_count=0,
                 ),
             )
 
@@ -454,6 +457,7 @@ class BackupTreeTestCase(BaseTestCase):
                     copied_size=31,
                     copied_small_files=1,
                     copied_small_size=31,
+                    error_count=0,
                 ),
             )
 
@@ -474,3 +478,65 @@ class BackupTreeTestCase(BaseTestCase):
             Symlinks are not stored in our FileHashDatabase, because they are not considered for hardlinking."""
             with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
                 assert_hash_db_info(backup_root=backup_root, expected='')
+
+    def test_error_handling(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+
+            src_root = temp_path / 'source'
+            backup_root = temp_path / 'backup'
+
+            src_root.mkdir()
+            backup_root.mkdir()
+
+            (src_root / 'file1.txt').write_text('File 1')
+            (src_root / 'file2.txt').write_text('File 2')
+            (src_root / 'file3.txt').write_text('File 3')
+
+            # Set modification times to a fixed time for easier testing:
+            set_file_times(src_root, dt=parse_dt('2026-01-01T12:00:00+0000'))
+
+            def mocked_copy_and_hash(src: Path, dst: Path):
+                if src.name == 'file2.txt':
+                    raise PermissionError('Bam!')
+                else:
+                    return copy_and_hash(src, dst)
+
+            with (
+                self.assertLogs(level=logging.ERROR) as logs,
+                patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
+                patch('PyHardLinkBackup.backup.copy_and_hash', mocked_copy_and_hash),
+                freeze_time('2026-01-01T12:34:56Z', auto_tick_seconds=0),
+                RedirectOut() as redirected_out,
+            ):
+                result = backup_tree(
+                    src_root=src_root,
+                    backup_root=backup_root,
+                    excludes={'.cache'},
+                )
+            self.assertEqual(redirected_out.stderr, '')
+            self.assertIn('Backup complete', redirected_out.stdout)
+            self.assertIn('Errors during backup:', redirected_out.stdout)
+
+            logs = ''.join(logs.output)
+            self.assertIn(
+                f'ERROR:PyHardLinkBackup.backup:Backup {src_root / "file2.txt"} PermissionError: Bam!\n',
+                logs,
+            )
+            self.assertIn('\nTraceback (most recent call last):\n', logs)
+            self.assertEqual(
+                result,
+                BackupResult(
+                    backup_dir=result.backup_dir,
+                    backup_count=3,
+                    backup_size=18,
+                    symlink_files=0,
+                    hardlinked_files=0,
+                    hardlinked_size=0,
+                    copied_files=2,
+                    copied_size=12,
+                    copied_small_files=2,
+                    copied_small_size=12,
+                    error_count=1,
+                ),
+            )

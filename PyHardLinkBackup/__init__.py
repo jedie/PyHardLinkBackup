@@ -3,5 +3,5 @@
 """
 
 # See https://packaging.python.org/en/latest/specifications/version-specifiers/
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 __author__ = 'Jens Diemer <PyHardLinkBackup@jensdiemer.de>'

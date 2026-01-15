@@ -199,7 +199,9 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...main)
+* [v1.2.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...v1.2.0)
+  * 2026-01-15 - Add error handling: Log exception but continue with the backup
+  * 2026-01-15 - Check permission and hadlink support on destination path
   * 2026-01-14 - Enhance progress bars
   * 2026-01-14 - A a note to rsync --link-dest
   * 2026-01-14 - Use cli_base.cli_tools.test_utils.base_testcases
