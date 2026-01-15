@@ -18,6 +18,7 @@ from PyHardLinkBackup.utilities.filesystem import (
     humanized_fs_scan,
     iter_scandir_files,
     read_and_hash_file,
+    supports_hardlinks,
 )
 from PyHardLinkBackup.utilities.humanize import human_filesize
 from PyHardLinkBackup.utilities.rich_utils import BackupProgress
@@ -67,6 +68,16 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
     if not backup_root.is_dir():
         print('Error: Backup directory does not exist!')
         print(f'Please create "{backup_root}" directory first and start again!\n')
+        sys.exit(1)
+
+    if not os.access(backup_root, os.W_OK):
+        print('Error: No write access to backup directory!')
+        print(f'Please check permissions for backup directory: "{backup_root}"\n')
+        sys.exit(1)
+
+    if not supports_hardlinks(backup_root):
+        print('Error: Filesystem for backup directory does not support hardlinks!')
+        print(f'Please check backup directory: "{backup_root}"\n')
         sys.exit(1)
 
     # Step 1: Scan source directory:

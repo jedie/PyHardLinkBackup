@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 from typing import Iterable
 
+from bx_py_utils.path import assert_is_dir
 from rich.progress import (
     Progress,
     SpinnerColumn,
@@ -133,3 +134,25 @@ def humanized_fs_scan(path: Path, excludes: set[str]) -> tuple[int, int]:
         )
 
     return file_count, total_size
+
+
+def supports_hardlinks(directory: Path) -> bool:
+    logger.debug('Checking hardlink support in %s', directory)
+    assert_is_dir(directory)
+    test_src_file = directory / '.phlb_test'
+    test_dst_file = directory / '.phlb_test_link'
+    hardlinks_supported = False
+    try:
+        test_src_file.write_text('test')
+        os.link(test_src_file, test_dst_file)
+        assert test_dst_file.read_text() == 'test'
+        hardlinks_supported = True
+    except OSError as err:
+        # e.g.: FAT/exFAT filesystems ;)
+        logger.exception('Hardlink test failed in %s: %s', directory, err)
+    finally:
+        test_src_file.unlink(missing_ok=True)
+        test_dst_file.unlink(missing_ok=True)
+
+    logger.info('Hardlink support in %s: %s', directory, hardlinks_supported)
+    return hardlinks_supported
