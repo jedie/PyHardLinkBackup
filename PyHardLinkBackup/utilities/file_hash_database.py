@@ -32,6 +32,10 @@ class FileHashDatabase:
         hash_path = self.base_path / first_dir_name / second_dir_name / hash
         return hash_path
 
+    def __contains__(self, hash: str) -> bool:
+        hash_path = self._get_hash_path(hash)
+        return hash_path.exists()
+
     def get(self, hash: str) -> Path | None:
         hash_path = self._get_hash_path(hash)
         try:

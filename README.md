@@ -64,18 +64,20 @@ complete help for main CLI app:
 
 [comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
 ```
-usage: phlb [-h] {backup,version}
+usage: phlb [-h] {backup,rebuild,version}
 
 
 
-╭─ options ─────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ -h, --help   show this help message and exit                                                              │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ subcommands ─────────────────────────────────────────────────────────────────────────────────────────────╮
-│ (required)                                                                                                │
-│   • backup   Backup the source directory to the destination directory using hard links for deduplication. │
-│   • version  Print version and exit                                                                       │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ -h, --help   show this help message and exit                                                                         │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ subcommands ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ (required)                                                                                                           │
+│   • backup   Backup the source directory to the destination directory using hard links for deduplication.            │
+│   • rebuild  Rebuild the file hash and size database by scanning all backup files. Note: It will not verify with     │
+│              existing file hashes/sizes, it just adds missing hashes/sizes db entries used for deduplication.        │
+│   • version  Print version and exit                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
 
@@ -212,6 +214,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...main)
+  * 2026-01-15 - Add command to "rebuld" the size and hash filesystem database
   * 2026-01-15 - Add screenshots in the README
 * [v1.2.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...v1.2.0)
   * 2026-01-15 - Add error handling: Log exception but continue with the backup
