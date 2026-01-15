@@ -7,6 +7,7 @@ from cli_base.cli_tools.verbosity import setup_logging
 from cli_base.tyro_commands import TyroVerbosityArgType
 from rich import print  # noqa
 
+from PyHardLinkBackup import rebuild_databases
 from PyHardLinkBackup.backup import backup_tree
 from PyHardLinkBackup.cli_app import app
 
@@ -48,3 +49,24 @@ def backup(
         backup_root=dst,
         excludes=set(excludes),
     )
+
+
+@app.command
+def rebuild(
+    backup_root: Annotated[
+        Path,
+        tyro.conf.arg(
+            metavar='backup-directory',
+            help='Root directory of the the backups.',
+        ),
+    ],
+    /,
+    verbosity: TyroVerbosityArgType = 2,
+) -> None:
+    """
+    Rebuild the file hash and size database by scanning all backup files.
+    Note: It will not verify with existing file hashes/sizes,
+    it just adds missing hashes/sizes db entries used for deduplication.
+    """
+    setup_logging(verbosity=verbosity)
+    rebuild_databases.rebuild(backup_root=backup_root)

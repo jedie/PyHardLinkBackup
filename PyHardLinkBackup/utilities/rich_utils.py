@@ -64,7 +64,7 @@ class BackupProgress:
         self.file_size_progress_task = self.file_size_progress.tasks[0]
 
         progress_table = Table.grid()
-        progress_table.add_row(Panel(self.overall_progress, title='[b]Overall Backup Progress', border_style='green'))
+        progress_table.add_row(Panel(self.overall_progress, title='[b]Overall Progress', border_style='green'))
         progress_table.add_row(Panel(self.file_count_progress, title='Total files saved'))
         progress_table.add_row(Panel(self.file_size_progress, title='Total file size processed'))
 

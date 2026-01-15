@@ -72,8 +72,10 @@ class FileHashDatabaseTestCase(BaseTestCase):
             file_a_path.touch()
 
             self.assertIs(hash_db.get('12345678abcdef'), None)
+            self.assertIs('12345678abcdef' in hash_db, False)
             hash_db['12345678abcdef'] = file_a_path
             self.assertEqual(hash_db.get('12345678abcdef'), file_a_path)
+            self.assertIs('12345678abcdef' in hash_db, True)
             with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
                 self.assertEqual(
                     get_hash_db_filenames(hash_db),
