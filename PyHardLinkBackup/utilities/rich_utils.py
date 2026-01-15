@@ -29,13 +29,14 @@ class HumanFileSizeColumn(ProgressColumn):
                 file_size = task.fields[self.field_name]
             except KeyError:
                 raise KeyError(f'Field {self.field_name=} not found in: {task.fields.keys()=}') from None
-        return Text(f'| {human_filesize(file_size)}')
+        return Text(human_filesize(file_size))
 
 
 class BackupProgress:
     def __init__(self, src_file_count: int, src_total_size: int):
+        percentage_format = '[progress.percentage]{task.percentage:>3.1f}%'
         self.overall_progress = Progress(
-            TaskProgressColumn(),
+            TaskProgressColumn(text_format=percentage_format),
             BarColumn(bar_width=50),
             TextColumn('Elapsed:'),
             TimeElapsedColumn(),
@@ -45,15 +46,15 @@ class BackupProgress:
         self.overall_progress_task_id = self.overall_progress.add_task(description='', total=100)
 
         self.file_count_progress = Progress(
-            TaskProgressColumn(),
+            TaskProgressColumn(text_format=percentage_format),
             BarColumn(bar_width=50),
-            TextColumn('{task.completed} Files'),
+            TextColumn('{task.completed}/{task.total} Files'),
         )
         self.file_count_progress_task_id = self.file_count_progress.add_task(description='', total=src_file_count)
         self.file_count_progress_task = self.file_count_progress.tasks[0]
 
         self.file_size_progress = Progress(
-            TaskProgressColumn(),
+            TaskProgressColumn(text_format=percentage_format),
             BarColumn(bar_width=50),
             HumanFileSizeColumn(),
             '|',

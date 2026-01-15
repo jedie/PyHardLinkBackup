@@ -200,6 +200,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...main)
+  * 2026-01-14 - Enhance progress bars
   * 2026-01-14 - A a note to rsync --link-dest
   * 2026-01-14 - Use cli_base.cli_tools.test_utils.base_testcases
 * [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)

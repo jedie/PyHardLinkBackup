@@ -80,8 +80,10 @@ def humanized_fs_scan(path: Path, excludes: set[str]) -> tuple[int, int]:
         '{task.description}',
         SpinnerColumn('simpleDots'),
         TextColumn('[green]{task.fields[file_count]} Files'),
+        '|',
         HumanFileSizeColumn(field_name='total_size'),
-        TextColumn('| [cyan]{task.fields[files_per_sec]} Files/sec'),
+        '|',
+        TextColumn('[cyan]{task.fields[files_per_sec]} Files/sec'),
     )
 
     file_count = 0
