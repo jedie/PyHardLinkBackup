@@ -32,8 +32,8 @@ class HumanFileSizeColumn(ProgressColumn):
         return Text(human_filesize(file_size))
 
 
-class BackupProgress:
-    def __init__(self, src_file_count: int, src_total_size: int):
+class DisplayFileTreeProgress:
+    def __init__(self, total_file_count: int, total_size: int):
         percentage_format = '[progress.percentage]{task.percentage:>3.1f}%'
         self.overall_progress = Progress(
             TaskProgressColumn(text_format=percentage_format),
@@ -50,7 +50,7 @@ class BackupProgress:
             BarColumn(bar_width=50),
             TextColumn('{task.completed}/{task.total} Files'),
         )
-        self.file_count_progress_task_id = self.file_count_progress.add_task(description='', total=src_file_count)
+        self.file_count_progress_task_id = self.file_count_progress.add_task(description='', total=total_file_count)
         self.file_count_progress_task = self.file_count_progress.tasks[0]
 
         self.file_size_progress = Progress(
@@ -60,7 +60,7 @@ class BackupProgress:
             '|',
             TransferSpeedColumn(),
         )
-        self.file_size_progress_task_id = self.file_size_progress.add_task(description='', total=src_total_size)
+        self.file_size_progress_task_id = self.file_size_progress.add_task(description='', total=total_size)
         self.file_size_progress_task = self.file_size_progress.tasks[0]
 
         progress_table = Table.grid()
@@ -74,15 +74,15 @@ class BackupProgress:
         self.live.__enter__()
         return self
 
-    def update(self, backup_count: int, backup_size: int):
+    def update(self, completed_file_count: int, completed_size: int):
         self.file_count_progress.update(
             task_id=self.file_count_progress_task_id,
-            completed=backup_count,
+            completed=completed_file_count,
             refresh=True,
         )
         self.file_size_progress.update(
             task_id=self.file_size_progress_task_id,
-            completed=backup_size,
+            completed=completed_size,
             refresh=True,
         )
         self.overall_progress.update(

@@ -9,7 +9,7 @@ from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import hash_file, humanized_fs_scan, iter_scandir_files
 from PyHardLinkBackup.utilities.humanize import human_filesize
-from PyHardLinkBackup.utilities.rich_utils import BackupProgress
+from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress
 
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ def rebuild_one_file(
         rebuild_result.added_hash_count += 1
 
 
-def rebuild(backup_root: Path):
+def rebuild(backup_root: Path) -> RebuildResult:
     backup_root = backup_root.resolve()
     if not backup_root.is_dir():
         print(f'Error: Backup directory "{backup_root}" does not exist!')
@@ -70,7 +70,7 @@ def rebuild(backup_root: Path):
 
     file_count, total_size = humanized_fs_scan(backup_root, excludes={'.phlb'})
 
-    with BackupProgress(file_count, total_size) as progress:
+    with DisplayFileTreeProgress(file_count, total_size) as progress:
         # "Databases" for deduplication
         size_db = FileSizeDatabase(phlb_conf_dir)
         hash_db = FileHashDatabase(backup_root, phlb_conf_dir)
@@ -92,11 +92,13 @@ def rebuild(backup_root: Path):
             else:
                 now = time.monotonic()
                 if now >= next_update:
-                    progress.update(backup_count=rebuild_result.process_count, backup_size=rebuild_result.process_size)
+                    progress.update(
+                        completed_file_count=rebuild_result.process_count, completed_size=rebuild_result.process_size
+                    )
                     next_update = now + 0.5
 
         # Finalize progress indicator values:
-        progress.update(backup_count=rebuild_result.process_count, backup_size=rebuild_result.process_size)
+        progress.update(completed_file_count=rebuild_result.process_count, completed_size=rebuild_result.process_size)
 
     print(f'\nRebuild "{backup_root}" completed:')
     print(f'  Total files processed: {rebuild_result.process_count}')

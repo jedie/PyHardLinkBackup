@@ -214,6 +214,8 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...main)
+  * 2026-01-15 - Code cleanup: use more generic names for and in BackupProgress
+  * 2026-01-15 - Add tests for rebuild
   * 2026-01-15 - Add command to "rebuld" the size and hash filesystem database
   * 2026-01-15 - Add screenshots in the README
 * [v1.2.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...v1.2.0)
