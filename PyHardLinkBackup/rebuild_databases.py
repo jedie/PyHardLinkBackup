@@ -10,6 +10,7 @@ from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import hash_file, humanized_fs_scan, iter_scandir_files
 from PyHardLinkBackup.utilities.humanize import human_filesize
 from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress
+from PyHardLinkBackup.utilities.sha256sums import check_sha256sums, store_hash
 
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,10 @@ class RebuildResult:
     added_hash_count: int = 0
     #
     error_count: int = 0
+    #
+    hash_verified_count: int = 0
+    hash_mismatch_count: int = 0
+    hash_not_found_count: int = 0
 
 
 def rebuild_one_file(
@@ -34,6 +39,10 @@ def rebuild_one_file(
     rebuild_result: RebuildResult,
 ):
     rebuild_result.process_count += 1
+
+    if entry.name == 'SHA256SUMS':
+        # Skip existing SHA256SUMS files
+        return
 
     size = entry.stat().st_size
     rebuild_result.process_size += size
@@ -52,6 +61,24 @@ def rebuild_one_file(
     if file_hash not in hash_db:
         hash_db[file_hash] = file_path
         rebuild_result.added_hash_count += 1
+
+    # We have calculated the current hash of the file,
+    # Let's check if we can verify it, too:
+    file_path = Path(entry.path)
+    compare_result = check_sha256sums(
+        file_path=file_path,
+        file_hash=file_hash,
+    )
+    if compare_result is True:
+        rebuild_result.hash_verified_count += 1
+    elif compare_result is False:
+        rebuild_result.hash_mismatch_count += 1
+    elif compare_result is None:
+        rebuild_result.hash_not_found_count += 1
+        store_hash(
+            file_path=file_path,
+            file_hash=file_hash,
+        )
 
 
 def rebuild(backup_root: Path) -> RebuildResult:
@@ -103,10 +130,18 @@ def rebuild(backup_root: Path) -> RebuildResult:
     print(f'\nRebuild "{backup_root}" completed:')
     print(f'  Total files processed: {rebuild_result.process_count}')
     print(f'  Total size processed: {human_filesize(rebuild_result.process_size)}')
+
     print(f'  Added file size information entries: {rebuild_result.added_size_count}')
     print(f'  Added file hash entries: {rebuild_result.added_hash_count}')
+
     if rebuild_result.error_count > 0:
         print(f'  Errors during rebuild: {rebuild_result.error_count} (see log for details)')
+
+    print('\nSHA256SUMS verification results:')
+    print(f'  Successfully verified files: {rebuild_result.hash_verified_count}')
+    print(f'  File hash mismatches: {rebuild_result.hash_mismatch_count}')
+    print(f'  File hashes not found, newly stored: {rebuild_result.hash_not_found_count}')
+
     print()
 
     return rebuild_result

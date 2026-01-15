@@ -64,9 +64,8 @@ def rebuild(
     verbosity: TyroVerbosityArgType = 2,
 ) -> None:
     """
-    Rebuild the file hash and size database by scanning all backup files.
-    Note: It will not verify with existing file hashes/sizes,
-    it just adds missing hashes/sizes db entries used for deduplication.
+    Rebuild the file hash and size database by scanning all backup files. And also verify SHA256SUMS
+    and/or store missing hashes in SHA256SUMS files.
     """
     setup_logging(verbosity=verbosity)
     rebuild_databases.rebuild(backup_root=backup_root)

@@ -1,5 +1,6 @@
 import logging
 import tempfile
+import textwrap
 from pathlib import Path
 from unittest.mock import patch
 
@@ -82,17 +83,6 @@ class RebuildDatabaseTestCase(BaseTestCase):
             with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG), RedirectOut() as redirected_out:
                 rebuild_result = rebuild(backup_root)
             self.assertEqual(
-                rebuild_result,
-                RebuildResult(
-                    process_count=1,
-                    process_size=FileSizeDatabase.MIN_SIZE,
-                    added_size_count=1,
-                    added_hash_count=1,
-                    error_count=0,
-                ),
-            )
-
-            self.assertEqual(
                 sorted_rglob_paths(backup_root),
                 [
                     '.phlb',
@@ -106,6 +96,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
                     '.phlb/size-lookup/10/00/1000',
                     'source-name',
                     'source-name/2026-01-15-181709',
+                    'source-name/2026-01-15-181709/SHA256SUMS',
                     'source-name/2026-01-15-181709/file1.txt',
                 ],
             )
@@ -114,10 +105,28 @@ class RebuildDatabaseTestCase(BaseTestCase):
                 [
                     '.phlb/hash-lookup/bb/c4/bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8',
                     '.phlb/size-lookup/10/00/1000',
+                    'source-name/2026-01-15-181709/SHA256SUMS',
                     'source-name/2026-01-15-181709/file1.txt',
                 ],
             )
             self.assertEqual(redirected_out.stderr, '')
+            self.assertEqual(
+                rebuild_result,
+                RebuildResult(
+                    process_count=1,
+                    process_size=1000,
+                    added_size_count=1,
+                    added_hash_count=1,
+                    error_count=0,
+                    hash_verified_count=0,
+                    hash_mismatch_count=0,
+                    hash_not_found_count=1,
+                ),
+            )
+            self.assertEqual(
+                (snapshot_path / 'SHA256SUMS').read_text(),
+                'bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8  file1.txt\n',
+            )
 
             #######################################################################################
             # Add a file with same content and run again:
@@ -125,29 +134,41 @@ class RebuildDatabaseTestCase(BaseTestCase):
             minimum_file_content = 'X' * FileSizeDatabase.MIN_SIZE
             (snapshot_path / 'same_content.txt').write_text(minimum_file_content)
 
-            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG), RedirectOut() as redirected_out:
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG) as logs, RedirectOut() as redirected_out:
                 rebuild_result = rebuild(backup_root)
-            self.assertEqual(
-                rebuild_result,
-                RebuildResult(
-                    process_count=2,
-                    process_size=2000,
-                    added_size_count=0,
-                    added_hash_count=0,
-                    error_count=0,
-                ),
-            )
             # No new hash of size entries, just the new file:
             self.assertEqual(
                 sorted_rglob_files(backup_root),
                 [
                     '.phlb/hash-lookup/bb/c4/bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8',
                     '.phlb/size-lookup/10/00/1000',
+                    'source-name/2026-01-15-181709/SHA256SUMS',
                     'source-name/2026-01-15-181709/file1.txt',
                     'source-name/2026-01-15-181709/same_content.txt',
                 ],
             )
             self.assertEqual(redirected_out.stderr, '')
+            self.assertEqual(
+                rebuild_result,
+                RebuildResult(
+                    process_count=3,
+                    process_size=2000,
+                    added_size_count=0,
+                    added_hash_count=0,
+                    error_count=0,
+                    hash_verified_count=1,  # Existing file verified successfully
+                    hash_mismatch_count=0,
+                    hash_not_found_count=1,  # One file added
+                ),
+                '\n'.join(logs.output) + redirected_out.stdout,
+            )
+            self.assertEqual(
+                (snapshot_path / 'SHA256SUMS').read_text(),
+                textwrap.dedent("""\
+                    bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8  file1.txt
+                    bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8  same_content.txt
+                """),
+            )
 
             #######################################################################################
             # Test error handling
@@ -171,10 +192,13 @@ class RebuildDatabaseTestCase(BaseTestCase):
             self.assertEqual(
                 rebuild_result,
                 RebuildResult(
-                    process_count=1,
+                    process_count=2,
                     process_size=1000,
                     added_size_count=0,
                     added_hash_count=0,
                     error_count=1,  # <<< one file caused error
+                    hash_verified_count=1,
+                    hash_mismatch_count=0,
+                    hash_not_found_count=0,
                 ),
             )
