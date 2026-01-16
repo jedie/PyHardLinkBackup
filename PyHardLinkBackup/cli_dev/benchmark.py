@@ -10,16 +10,34 @@ from cli_base.tyro_commands import TyroVerbosityArgType
 from rich import print  # noqa
 
 from PyHardLinkBackup.cli_dev import app
-from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
+from PyHardLinkBackup.utilities.filesystem import humanized_fs_scan, iter_scandir_files
+from PyHardLinkBackup.utilities.humanize import PrintTimingContextManager
+from PyHardLinkBackup.utilities.tyro_cli_shared_args import DEFAULT_EXCLUDE_DIRECTORIES, TyroExcludeDirectoriesArgType
 
 
 logger = logging.getLogger(__name__)
 
 
 @app.command
+def scan_benchmark(
+    base_path: Path,
+    /,
+    excludes: TyroExcludeDirectoriesArgType = DEFAULT_EXCLUDE_DIRECTORIES,
+    verbosity: TyroVerbosityArgType = 1,
+) -> None:
+    """
+    Benchmark our filesystem scan routine.
+    """
+    setup_logging(verbosity=verbosity)
+    with PrintTimingContextManager('Filesystem scan completed in'):
+        humanized_fs_scan(path=base_path, excludes=set(excludes))
+
+
+@app.command
 def benchmark_hashes(
     base_path: Path,
     /,
+    excludes: TyroExcludeDirectoriesArgType = DEFAULT_EXCLUDE_DIRECTORIES,
     max_duration: int = 30,  # in seconds
     min_file_size: int = 15 * 1024,  # 15 KiB
     max_file_size: int = 100 * 1024 * 1024,  # 100 MiB
@@ -70,40 +88,41 @@ def benchmark_hashes(
     stop_time = start_time + max_duration
     next_update = start_time + 2
 
-    for dir_entry in iter_scandir_files(base_path):
-        entry_stat = dir_entry.stat()
-        file_size = entry_stat.st_size
-        if not (min_file_size <= file_size <= max_file_size):
-            continue
+    with PrintTimingContextManager('Filesystem scan completed in'):
+        for dir_entry in iter_scandir_files(path=base_path, excludes=set(excludes)):
+            entry_stat = dir_entry.stat()
+            file_size = entry_stat.st_size
+            if not (min_file_size <= file_size <= max_file_size):
+                continue
 
-        start_time = time.perf_counter()
-        file_content = Path(dir_entry.path).read_bytes()
-        duration = time.perf_counter() - start_time
-        total_read_time += duration
-
-        for algo in algorithms:
-            # Actual measurement:
             start_time = time.perf_counter()
-            hashlib.new(algo, file_content)
+            file_content = Path(dir_entry.path).read_bytes()
             duration = time.perf_counter() - start_time
+            total_read_time += duration
 
-            results[algo].add(duration)
+            for algo in algorithms:
+                # Actual measurement:
+                start_time = time.perf_counter()
+                hashlib.new(algo, file_content)
+                duration = time.perf_counter() - start_time
 
-        file_count += 1
-        total_size += entry_stat.st_size
+                results[algo].add(duration)
 
-        now = time.time()
-        if now >= stop_time:
-            print('Reached max duration limit, stopping benchmark...')
-            break
+            file_count += 1
+            total_size += entry_stat.st_size
 
-        if now >= next_update:
-            percent = (now - (stop_time - max_duration)) / max_duration * 100
-            print(
-                f'{int(percent)}% Processed {file_count} files so far,'
-                f' total size: {total_size / 1024 / 1024:.1f} MiB...'
-            )
-            next_update = now + 2
+            now = time.time()
+            if now >= stop_time:
+                print('Reached max duration limit, stopping benchmark...')
+                break
+
+            if now >= next_update:
+                percent = (now - (stop_time - max_duration)) / max_duration * 100
+                print(
+                    f'{int(percent)}% Processed {file_count} files so far,'
+                    f' total size: {total_size / 1024 / 1024:.1f} MiB...'
+                )
+                next_update = now + 2
 
     print(f'\nTotal files hashed: {file_count}, total size: {total_size / 1024 / 1024:.1f} MiB')
 

@@ -112,7 +112,7 @@ def assert_fs_tree_overview(root: Path, expected_overview: str):
 class BackupTreeTestCase(BaseTestCase):
     def test_happy_path(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
+            temp_path = Path(temp_dir).resolve()
 
             src_root = temp_path / 'source'
             backup_root = temp_path / 'backup'
@@ -379,7 +379,7 @@ class BackupTreeTestCase(BaseTestCase):
 
     def test_symlink(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
+            temp_path = Path(temp_dir).resolve()
 
             src_root = temp_path / 'src'
             backup_root = temp_path / 'bak'
@@ -481,7 +481,7 @@ class BackupTreeTestCase(BaseTestCase):
 
     def test_error_handling(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
+            temp_path = Path(temp_dir).resolve()
 
             src_root = temp_path / 'source'
             backup_root = temp_path / 'backup'

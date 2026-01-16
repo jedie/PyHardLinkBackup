@@ -1,0 +1,12 @@
+from typing import Annotated
+
+import tyro
+
+
+TyroExcludeDirectoriesArgType = Annotated[
+    tuple[str, ...],
+    tyro.conf.arg(
+        help='List of directories to exclude from backup.',
+    ),
+]
+DEFAULT_EXCLUDE_DIRECTORIES = ('__pycache__', '.cache', '.temp', '.tmp', '.tox', '.nox')
