@@ -23,7 +23,7 @@ def sorted_rglob_files(path: Path):
 class RebuildDatabaseTestCase(BaseTestCase):
     def test_happy_path(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
+            temp_path = Path(temp_dir).resolve()
 
             backup_root = temp_path / 'backup'
 

@@ -10,6 +10,7 @@ from rich import print  # noqa
 from PyHardLinkBackup import rebuild_databases
 from PyHardLinkBackup.backup import backup_tree
 from PyHardLinkBackup.cli_app import app
+from PyHardLinkBackup.utilities.tyro_cli_shared_args import DEFAULT_EXCLUDE_DIRECTORIES, TyroExcludeDirectoriesArgType
 
 
 logger = logging.getLogger(__name__)
@@ -32,12 +33,7 @@ def backup(
         ),
     ],
     /,
-    excludes: Annotated[
-        tuple,
-        tyro.conf.arg(
-            help='List of directory or file names to exclude from backup.',
-        ),
-    ] = ('__pycache__', '.cache', '.temp', '.tmp', '.tox', '.nox'),
+    excludes: TyroExcludeDirectoriesArgType = DEFAULT_EXCLUDE_DIRECTORIES,
     verbosity: TyroVerbosityArgType = 2,
 ) -> None:
     """
@@ -47,7 +43,7 @@ def backup(
     backup_tree(
         src_root=src,
         backup_root=dst,
-        excludes=set(excludes),
+        excludes=excludes,
     )
 
 

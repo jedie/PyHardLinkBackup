@@ -31,18 +31,17 @@ usage: phlb backup [-h] source destination [--excludes [STR [STR ...]]] [-v]
 
 Backup the source directory to the destination directory using hard links for deduplication.
 
-╭─ positional arguments ───────────────────────────────────────────────────────────────────────────────────────────────╮
-│ source       Source directory to back up. (required)                                                                 │
-│ destination  Destination directory for the backup. (required)                                                        │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ -h, --help   show this help message and exit                                                                         │
-│ --excludes [STR [STR ...]]                                                                                           │
-│              List of directory or file names to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox    │
-│              .nox)                                                                                                   │
-│ -v, --verbosity                                                                                                      │
-│              Verbosity level; e.g.: -v, -vv, -vvv, etc. (repeatable)                                                 │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ positional arguments ──────────────────────────────────────────────────────────────────────────────────────╮
+│ source       Source directory to back up. (required)                                                        │
+│ destination  Destination directory for the backup. (required)                                               │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ options ───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ -h, --help   show this help message and exit                                                                │
+│ --excludes [STR [STR ...]]                                                                                  │
+│              List of directories to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox .nox) │
+│ -v, --verbosity                                                                                             │
+│              Verbosity level; e.g.: -v, -vv, -vvv, etc. (repeatable)                                        │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated backup help end ✂✂✂)
 
@@ -159,7 +158,7 @@ The file contains only the relative path to the first hardlink of this file cont
 
 [comment]: <> (✂✂✂ auto generated dev help start ✂✂✂)
 ```
-usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,install,lint,mypy,nox,pip-audit,publish,shell-completion,test,update,update-readme-history,update-test-snapshot-files,version}
+usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,install,lint,mypy,nox,pip-audit,publish,scan-benchmark,shell-completion,test,update,update-readme-history,update-test-snapshot-files,version}
 
 
 
@@ -177,6 +176,8 @@ usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,install,lint,mypy,nox,pip-au
 │   • nox        Run nox                                                                                               │
 │   • pip-audit  Run pip-audit check against current requirements files                                                │
 │   • publish    Build and upload this project to PyPi                                                                 │
+│   • scan-benchmark                                                                                                   │
+│                Benchmark our filesystem scan routine.                                                                │
 │   • shell-completion                                                                                                 │
 │                Setup shell completion for this CLI (Currently only for bash shell)                                   │
 │   • test       Run unittests                                                                                         │
@@ -213,6 +214,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.3.0...main)
+  * 2026-01-16 - add dev cli command "scan-benchmark"
 * [v1.3.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...v1.3.0)
   * 2026-01-15 - Verify SHA256SUMS files in "rebuild" command, too.
   * 2026-01-15 - Code cleanup: use more generic names for and in BackupProgress
@@ -228,11 +231,11 @@ Overview of main changes:
 * [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)
   * 2026-01-14 - Change backup timestamp directory to old schema: '%Y-%m-%d-%H%M%S'
   * 2026-01-14 - Add "Overview of main changes" to README
-* [v1.0.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.0...v1.0.1)
-  * 2026-01-13 - Store SHA256SUMS files in backup directories
 
 <details><summary>Expand older history entries ...</summary>
 
+* [v1.0.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.0...v1.0.1)
+  * 2026-01-13 - Store SHA256SUMS files in backup directories
 * [v1.0.0](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0)
   * 2026-01-13 - Change "./cli.py" to "phlb" (because it's the name installed via pipx)
   * 2026-01-13 - Update README

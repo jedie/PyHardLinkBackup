@@ -152,7 +152,7 @@ def backup_one_file(
     store_hash(dst_path, file_hash)
 
 
-def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> BackupResult:
+def backup_tree(*, src_root: Path, backup_root: Path, excludes: tuple[str, ...]) -> BackupResult:
     src_root = src_root.resolve()
     if not src_root.is_dir():
         print('Error: Source directory does not exist!')
@@ -176,7 +176,8 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: set[str]) -> Bac
         sys.exit(1)
 
     # Step 1: Scan source directory:
-    src_file_count, src_total_size = humanized_fs_scan(src_root, excludes)
+    excludes = set(excludes)
+    src_file_count, src_total_size = humanized_fs_scan(src_root, excludes=excludes)
 
     phlb_conf_dir = backup_root / '.phlb'
     phlb_conf_dir.mkdir(parents=False, exist_ok=True)

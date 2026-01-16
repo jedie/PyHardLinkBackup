@@ -13,7 +13,7 @@ from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
 class TemporaryFileSizeDatabase(tempfile.TemporaryDirectory):
     def __enter__(self) -> FileSizeDatabase:
         temp_dir = super().__enter__()
-        backup_root = Path(temp_dir)
+        backup_root = Path(temp_dir).resolve()
 
         phlb_conf_dir = backup_root / '.phlb'
         phlb_conf_dir.mkdir()
