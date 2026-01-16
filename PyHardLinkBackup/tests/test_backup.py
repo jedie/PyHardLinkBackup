@@ -144,16 +144,13 @@ class BackupTreeTestCase(
             (sub_dir / 'file.txt').write_text('This is file in subdir')
 
             # Only files bigger than MIN_SIZE will be considered for hardlinking:
-            size_db_min_file = src_root / 'min_sized_file1.bin'
-            size_db_min_file.write_bytes(b'X' * FileSizeDatabase.MIN_SIZE)
+            (src_root / 'min_sized_file1.bin').write_bytes(b'X' * FileSizeDatabase.MIN_SIZE)
 
             # Same content and big enough to be considered for hardlinking:
-            size_db_min_file = src_root / 'min_sized_file2.bin'
-            size_db_min_file.write_bytes(b'X' * FileSizeDatabase.MIN_SIZE)
+            (src_root / 'min_sized_file2.bin').write_bytes(b'X' * FileSizeDatabase.MIN_SIZE)
 
             # Larger then CHUNK_SIZE file will be handled differently:
-            large_file = src_root / 'large_file.bin'
-            large_file.write_bytes(b'Y' * (CHUNK_SIZE + 1))
+            (src_root / 'large_file1.bin').write_bytes(b'Y' * (CHUNK_SIZE + 1))
 
             excluded_dir = src_root / '.cache'
             excluded_dir.mkdir()
@@ -176,7 +173,7 @@ class BackupTreeTestCase(
                     backup_root=backup_root,
                     excludes=('.cache',),
                     log_manager=LoggingManager(
-                        console_level=DEFAULT_CONSOLE_LOG_LEVEL,
+                        console_level='info',
                         file_level=DEFAULT_LOG_FILE_LEVEL,
                     ),
                 )
@@ -208,6 +205,7 @@ class BackupTreeTestCase(
                     copied_small_size=50,
                     error_count=0,
                 ),
+                redirected_out.stdout,
             )
 
             # The sources:
@@ -219,7 +217,7 @@ class BackupTreeTestCase(
                         .cache/tempfile.tmp  12:00:00     file            1        38  41d7a2c9
                         file2.txt            12:00:00     hardlink        2        14  8a11514a
                         hardlink2file1       12:00:00     hardlink        2        14  8a11514a
-                        large_file.bin       12:00:00     file            1  67108865  9671eaac
+                        large_file1.bin      12:00:00     file            1  67108865  9671eaac
                         min_sized_file1.bin  12:00:00     file            1      1000  f0d93de4
                         min_sized_file2.bin  12:00:00     file            1      1000  f0d93de4
                         subdir/file.txt      12:00:00     file            1        22  c0167e63
@@ -234,10 +232,10 @@ class BackupTreeTestCase(
                     root=backup_dir,
                     expected_overview="""
                         path                 birthtime    type        nlink      size  CRC32
-                        SHA256SUMS           <mock>       file            1       410  45c07cf7
+                        SHA256SUMS           <mock>       file            1       411  b02da51e
                         file2.txt            12:00:00     file            1        14  8a11514a
                         hardlink2file1       12:00:00     file            1        14  8a11514a
-                        large_file.bin       12:00:00     file            1  67108865  9671eaac
+                        large_file1.bin      12:00:00     file            1  67108865  9671eaac
                         min_sized_file1.bin  12:00:00     hardlink        2      1000  f0d93de4
                         min_sized_file2.bin  12:00:00     hardlink        2      1000  f0d93de4
                         subdir/SHA256SUMS    <mock>       file            1        75  1af5ecc7
@@ -252,12 +250,31 @@ class BackupTreeTestCase(
                     backup_root=backup_root,
                     expected="""
                         bb/c4/bbc4de2ca238d1… -> source/2026-01-01-123456/min_sized_file1.bin
-                        e6/37/e6374ac11d9049… -> source/2026-01-01-123456/large_file.bin
+                        e6/37/e6374ac11d9049… -> source/2026-01-01-123456/large_file1.bin
                     """,
                 )
 
             #######################################################################################
-            # Just backup again:
+            # Backup again with new added files:
+
+            # New small file with different size and different content:
+            (src_root / 'small_file_newA.txt').write_text('A new file')
+
+            # Add small file that size exists, but has different content:
+            (src_root / 'small_file_newB.txt').write_text('This is file 2')
+
+            # Bigger file with new size and new content:
+            (src_root / 'min_sized_file_newA.bin').write_bytes(b'A' * (FileSizeDatabase.MIN_SIZE + 1))
+
+            # Bigger file with existing size, but different content:
+            (src_root / 'min_sized_file_newB.bin').write_bytes(b'B' * FileSizeDatabase.MIN_SIZE)
+
+            # Add a larger then CHUNK_SIZE file with same existing size, but different content:
+            (src_root / 'large_file2.bin').write_bytes(b'Y' * (CHUNK_SIZE + 1))
+
+            # FIXME: freezegun doesn't handle this, see: https://github.com/spulec/freezegun/issues/392
+            # Set modification times to a fixed time for easier testing:
+            set_file_times(src_root, dt=parse_dt('2026-01-01T12:00:00+0000'))
 
             with (
                 patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
@@ -269,7 +286,7 @@ class BackupTreeTestCase(
                     backup_root=backup_root,
                     excludes=('.cache',),
                     log_manager=LoggingManager(
-                        console_level=DEFAULT_CONSOLE_LOG_LEVEL,
+                        console_level='info',
                         file_level=DEFAULT_LOG_FILE_LEVEL,
                     ),
                 )
@@ -280,23 +297,6 @@ class BackupTreeTestCase(
                 str(Path(backup_dir).relative_to(temp_path)),
                 'backup/source/2026-01-02-123456',
             )
-            self.assertEqual(
-                result,
-                BackupResult(
-                    backup_dir=backup_dir,
-                    log_file=result.log_file,
-                    backup_count=7,
-                    backup_size=67110929,
-                    symlink_files=1,
-                    hardlinked_files=3,  # <<< More hardlinks this time!
-                    hardlinked_size=67110865,
-                    copied_files=3,
-                    copied_size=50,
-                    copied_small_files=3,
-                    copied_small_size=50,
-                    error_count=0,
-                ),
-            )
             # The second backup:
             # * /.cache/ -> excluded
             # * min_sized_file1.bin and min_sized_file2.bin -> hardlinked
@@ -304,26 +304,51 @@ class BackupTreeTestCase(
                 assert_fs_tree_overview(
                     root=backup_dir,
                     expected_overview="""
-                        path                 birthtime    type        nlink      size  CRC32
-                        SHA256SUMS           <mock>       file            1       410  45c07cf7
-                        file2.txt            12:00:00     file            1        14  8a11514a
-                        hardlink2file1       12:00:00     file            1        14  8a11514a
-                        large_file.bin       12:00:00     hardlink        2  67108865  9671eaac
-                        min_sized_file1.bin  12:00:00     hardlink        4      1000  f0d93de4
-                        min_sized_file2.bin  12:00:00     hardlink        4      1000  f0d93de4
-                        subdir/SHA256SUMS    <mock>       file            1        75  1af5ecc7
-                        subdir/file.txt      12:00:00     file            1        22  c0167e63
-                        symlink2file1        12:00:00     symlink         2        14  8a11514a
+                        path                     birthtime    type        nlink      size  CRC32
+                        SHA256SUMS               <mock>       file            1       845  6596856a
+                        file2.txt                12:00:00     file            1        14  8a11514a
+                        hardlink2file1           12:00:00     file            1        14  8a11514a
+                        large_file1.bin          12:00:00     hardlink        3  67108865  9671eaac
+                        large_file2.bin          12:00:00     hardlink        3  67108865  9671eaac
+                        min_sized_file1.bin      12:00:00     hardlink        4      1000  f0d93de4
+                        min_sized_file2.bin      12:00:00     hardlink        4      1000  f0d93de4
+                        min_sized_file_newA.bin  12:00:00     file            1      1001  a48f0e33
+                        min_sized_file_newB.bin  12:00:00     file            1      1000  7d9c564d
+                        small_file_newA.txt      12:00:00     file            1        10  76d1acf1
+                        small_file_newB.txt      12:00:00     file            1        14  131800f0
+                        subdir/SHA256SUMS        <mock>       file            1        75  1af5ecc7
+                        subdir/file.txt          12:00:00     file            1        22  c0167e63
+                        symlink2file1            12:00:00     symlink         2        14  8a11514a
                     """,
                 )
+            self.assertEqual(
+                result,
+                BackupResult(
+                    backup_dir=backup_dir,
+                    log_file=result.log_file,
+                    backup_count=12,
+                    backup_size=134221819,
+                    symlink_files=1,
+                    hardlinked_files=4,
+                    hardlinked_size=134219730,
+                    copied_files=7,
+                    copied_size=2075,
+                    copied_small_files=5,
+                    copied_small_size=74,
+                    error_count=0,
+                ),
+                redirected_out.stdout,
+            )
 
             # The FileHashDatabase remains the same:
             with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
                 assert_hash_db_info(
                     backup_root=backup_root,
                     expected="""
+                        23/d2/23d2ce40d26211… -> source/2026-01-02-123456/min_sized_file_newA.bin
+                        9a/56/9a567077114134… -> source/2026-01-02-123456/min_sized_file_newB.bin
                         bb/c4/bbc4de2ca238d1… -> source/2026-01-01-123456/min_sized_file1.bin
-                        e6/37/e6374ac11d9049… -> source/2026-01-01-123456/large_file.bin
+                        e6/37/e6374ac11d9049… -> source/2026-01-01-123456/large_file1.bin
                     """,
                 )
 
@@ -365,16 +390,21 @@ class BackupTreeTestCase(
                 assert_fs_tree_overview(
                     root=backup_dir,
                     expected_overview="""
-                        path                 birthtime    type        nlink      size  CRC32
-                        SHA256SUMS           <mock>       file            1       410  45c07cf7
-                        file2.txt            12:00:00     file            1        14  8a11514a
-                        hardlink2file1       12:00:00     file            1        14  8a11514a
-                        large_file.bin       12:00:00     hardlink        3  67108865  9671eaac
-                        min_sized_file1.bin  12:00:00     hardlink        2      1000  f0d93de4
-                        min_sized_file2.bin  12:00:00     hardlink        2      1000  f0d93de4
-                        subdir/SHA256SUMS    <mock>       file            1        75  1af5ecc7
-                        subdir/file.txt      12:00:00     file            1        22  c0167e63
-                        symlink2file1        12:00:00     symlink         2        14  8a11514a
+                        path                     birthtime    type        nlink      size  CRC32
+                        SHA256SUMS               <mock>       file            1       845  6596856a
+                        file2.txt                12:00:00     file            1        14  8a11514a
+                        hardlink2file1           12:00:00     file            1        14  8a11514a
+                        large_file1.bin          12:00:00     hardlink        5  67108865  9671eaac
+                        large_file2.bin          12:00:00     hardlink        5  67108865  9671eaac
+                        min_sized_file1.bin      12:00:00     hardlink        2      1000  f0d93de4
+                        min_sized_file2.bin      12:00:00     hardlink        2      1000  f0d93de4
+                        min_sized_file_newA.bin  12:00:00     hardlink        2      1001  a48f0e33
+                        min_sized_file_newB.bin  12:00:00     hardlink        2      1000  7d9c564d
+                        small_file_newA.txt      12:00:00     file            1        10  76d1acf1
+                        small_file_newB.txt      12:00:00     file            1        14  131800f0
+                        subdir/SHA256SUMS        <mock>       file            1        75  1af5ecc7
+                        subdir/file.txt          12:00:00     file            1        22  c0167e63
+                        symlink2file1            12:00:00     symlink         2        14  8a11514a
                     """,
                 )
 
@@ -383,16 +413,16 @@ class BackupTreeTestCase(
                 BackupResult(
                     backup_dir=backup_dir,
                     log_file=result.log_file,
-                    backup_count=7,
-                    backup_size=67110929,
+                    backup_count=12,
+                    backup_size=134221819,
                     symlink_files=1,
-                    hardlinked_files=2,  # <<< Less hardlinks this time, because of missing link source!
-                    hardlinked_size=67109865,
-                    copied_files=4,
-                    copied_size=1050,
-                    copied_small_files=3,
-                    copied_small_size=50,
-                    error_count=0,
+                    hardlinked_files=5,
+                    hardlinked_size=134220731,
+                    copied_files=6,
+                    copied_size=1074,
+                    copied_small_files=5,
+                    copied_small_size=74,
+                    error_count=0
                 ),
             )
 
@@ -402,8 +432,10 @@ class BackupTreeTestCase(
                 assert_hash_db_info(
                     backup_root=backup_root,
                     expected="""
+                        23/d2/23d2ce40d26211… -> source/2026-01-02-123456/min_sized_file_newA.bin
+                        9a/56/9a567077114134… -> source/2026-01-02-123456/min_sized_file_newB.bin
                         bb/c4/bbc4de2ca238d1… -> source/2026-01-03-123456/min_sized_file1.bin
-                        e6/37/e6374ac11d9049… -> source/2026-01-01-123456/large_file.bin
+                        e6/37/e6374ac11d9049… -> source/2026-01-01-123456/large_file1.bin
                     """,
                 )
 

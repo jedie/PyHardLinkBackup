@@ -216,6 +216,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v1.4.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.0...v1.4.1)
+  * 2026-01-16 - Bugfix large file handling
 * [v1.4.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.3.0...v1.4.0)
   * 2026-01-16 - Create log file in backup and a summary.txt
   * 2026-01-16 - Run CI tests on macos, too.
@@ -232,12 +234,12 @@ Overview of main changes:
   * 2026-01-14 - Enhance progress bars
   * 2026-01-14 - A a note to rsync --link-dest
   * 2026-01-14 - Use cli_base.cli_tools.test_utils.base_testcases
-* [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)
-  * 2026-01-14 - Change backup timestamp directory to old schema: '%Y-%m-%d-%H%M%S'
-  * 2026-01-14 - Add "Overview of main changes" to README
 
 <details><summary>Expand older history entries ...</summary>
 
+* [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)
+  * 2026-01-14 - Change backup timestamp directory to old schema: '%Y-%m-%d-%H%M%S'
+  * 2026-01-14 - Add "Overview of main changes" to README
 * [v1.0.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.0...v1.0.1)
   * 2026-01-13 - Store SHA256SUMS files in backup directories
 * [v1.0.0](https://github.com/jedie/PyHardLinkBackup/compare/v0.13.0...v1.0.0)

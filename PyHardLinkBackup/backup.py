@@ -138,12 +138,13 @@ def backup_one_file(
                 backup_result.hardlinked_size += size
             else:
                 logger.info('Copy unique file: %s to %s', src_path, dst_path)
+                file_hash = copy_and_hash(src_path, dst_path)
                 hash_db[file_hash] = dst_path
                 backup_result.copied_files += 1
                 backup_result.copied_size += size
 
         # Keep original file metadata (permission bits, time stamps, and flags)
-        shutil.copy2(src_path, dst_path)
+        shutil.copystat(src_path, dst_path)
     else:
         # A file with this size not backuped before -> Can't be duplicate -> copy and hash
         file_hash = copy_and_hash(src_path, dst_path)
