@@ -34,6 +34,6 @@ class PrintTimingContextManager:
 
     def __exit__(self, exc_type, exc_value, traceback):
         duration = time.perf_counter() - self.start_time
-        print(f'{self.description}: {human_timedelta(duration)}')
+        print(f'{self.description}: {human_timedelta(duration)}\n')
         if exc_type:
             return False  # Do not suppress exceptions

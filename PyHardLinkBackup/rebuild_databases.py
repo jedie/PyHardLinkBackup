@@ -1,16 +1,19 @@
 import dataclasses
+import datetime
 import logging
 import os
 import sys
 import time
 from pathlib import Path
 
+from PyHardLinkBackup.logging_setup import LoggingManager
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import hash_file, humanized_fs_scan, iter_scandir_files
-from PyHardLinkBackup.utilities.humanize import human_filesize
+from PyHardLinkBackup.utilities.humanize import PrintTimingContextManager, human_filesize
 from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress
 from PyHardLinkBackup.utilities.sha256sums import check_sha256sums, store_hash
+from PyHardLinkBackup.utilities.tee import TeeStdoutContext
 
 
 logger = logging.getLogger(__name__)
@@ -33,11 +36,19 @@ class RebuildResult:
 
 def rebuild_one_file(
     *,
+    backup_root: Path,
     entry: os.DirEntry,
     size_db: FileSizeDatabase,
     hash_db: FileHashDatabase,
     rebuild_result: RebuildResult,
 ):
+    file_path = Path(entry.path)
+
+    # We should ignore all files in the root backup directory itself
+    # e.g.: Our *-summary.txt and *.log files
+    if file_path.parent == backup_root:
+        return
+
     rebuild_result.process_count += 1
 
     if entry.name == 'SHA256SUMS':
@@ -51,7 +62,6 @@ def rebuild_one_file(
         # Small files will never deduplicate, skip them
         return
 
-    file_path = Path(entry.path)
     file_hash = hash_file(file_path)
 
     if size not in size_db:
@@ -81,7 +91,10 @@ def rebuild_one_file(
         )
 
 
-def rebuild(backup_root: Path) -> RebuildResult:
+def rebuild(
+    backup_root: Path,
+    log_manager: LoggingManager,
+) -> RebuildResult:
     backup_root = backup_root.resolve()
     if not backup_root.is_dir():
         print(f'Error: Backup directory "{backup_root}" does not exist!')
@@ -95,7 +108,18 @@ def rebuild(backup_root: Path) -> RebuildResult:
         )
         sys.exit(1)
 
-    file_count, total_size = humanized_fs_scan(backup_root, excludes={'.phlb'})
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S')
+    log_manager.start_file_logging(log_file=backup_root / f'{timestamp}-rebuild.log')
+
+    with PrintTimingContextManager('Filesystem scan completed in'):
+        file_count, total_size = humanized_fs_scan(backup_root, excludes={'.phlb'})
+
+        # We should ignore all files in the root backup directory itself
+        # e.g.: Our *-summary.txt and *.log files
+        for file in backup_root.iterdir():
+            if file.is_file():
+                file_count -= 1
+                total_size -= file.stat().st_size
 
     with DisplayFileTreeProgress(file_count, total_size) as progress:
         # "Databases" for deduplication
@@ -108,6 +132,7 @@ def rebuild(backup_root: Path) -> RebuildResult:
         for entry in iter_scandir_files(backup_root, excludes={'.phlb'}):
             try:
                 rebuild_one_file(
+                    backup_root=backup_root,
                     entry=entry,
                     size_db=size_db,
                     hash_db=hash_db,
@@ -127,21 +152,25 @@ def rebuild(backup_root: Path) -> RebuildResult:
         # Finalize progress indicator values:
         progress.update(completed_file_count=rebuild_result.process_count, completed_size=rebuild_result.process_size)
 
-    print(f'\nRebuild "{backup_root}" completed:')
-    print(f'  Total files processed: {rebuild_result.process_count}')
-    print(f'  Total size processed: {human_filesize(rebuild_result.process_size)}')
+    summary_file = backup_root / f'{timestamp}-rebuild-summary.txt'
+    with TeeStdoutContext(summary_file):
+        print(f'\nRebuild "{backup_root}" completed:')
+        print(f'  Total files processed: {rebuild_result.process_count}')
+        print(f'  Total size processed: {human_filesize(rebuild_result.process_size)}')
 
-    print(f'  Added file size information entries: {rebuild_result.added_size_count}')
-    print(f'  Added file hash entries: {rebuild_result.added_hash_count}')
+        print(f'  Added file size information entries: {rebuild_result.added_size_count}')
+        print(f'  Added file hash entries: {rebuild_result.added_hash_count}')
 
-    if rebuild_result.error_count > 0:
-        print(f'  Errors during rebuild: {rebuild_result.error_count} (see log for details)')
+        if rebuild_result.error_count > 0:
+            print(f'  Errors during rebuild: {rebuild_result.error_count} (see log for details)')
 
-    print('\nSHA256SUMS verification results:')
-    print(f'  Successfully verified files: {rebuild_result.hash_verified_count}')
-    print(f'  File hash mismatches: {rebuild_result.hash_mismatch_count}')
-    print(f'  File hashes not found, newly stored: {rebuild_result.hash_not_found_count}')
+        print('\nSHA256SUMS verification results:')
+        print(f'  Successfully verified files: {rebuild_result.hash_verified_count}')
+        print(f'  File hash mismatches: {rebuild_result.hash_mismatch_count}')
+        print(f'  File hashes not found, newly stored: {rebuild_result.hash_not_found_count}')
 
-    print()
+        print()
+
+    logger.info('Rebuild completed. Summary created: %s', summary_file)
 
     return rebuild_result

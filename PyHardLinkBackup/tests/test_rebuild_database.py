@@ -6,8 +6,10 @@ from unittest.mock import patch
 
 from bx_py_utils.test_utils.redirect import RedirectOut
 from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
+from freezegun import freeze_time
 
 from PyHardLinkBackup import rebuild_databases
+from PyHardLinkBackup.logging_setup import NoopLoggingManager
 from PyHardLinkBackup.rebuild_databases import RebuildResult, rebuild, rebuild_one_file
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 
@@ -21,6 +23,8 @@ def sorted_rglob_files(path: Path):
 
 
 class RebuildDatabaseTestCase(BaseTestCase):
+    maxDiff = None
+
     def test_happy_path(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir).resolve()
@@ -28,7 +32,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
             backup_root = temp_path / 'backup'
 
             with self.assertRaises(SystemExit), RedirectOut() as redirected_out:
-                rebuild(backup_root)
+                rebuild(backup_root, log_manager=NoopLoggingManager())
 
             self.assertEqual(redirected_out.stderr, '')
             self.assertEqual(redirected_out.stdout, f'Error: Backup directory "{backup_root}" does not exist!\n')
@@ -36,7 +40,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
             backup_root.mkdir()
 
             with self.assertRaises(SystemExit), RedirectOut() as redirected_out:
-                rebuild(backup_root)
+                rebuild(backup_root, log_manager=NoopLoggingManager())
 
             self.assertEqual(redirected_out.stderr, '')
             self.assertIn('hidden ".phlb" configuration directory is missing', redirected_out.stdout)
@@ -49,8 +53,12 @@ class RebuildDatabaseTestCase(BaseTestCase):
 
             self.assertEqual(sorted_rglob_paths(backup_root), ['.phlb'])
 
-            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG), RedirectOut() as redirected_out:
-                rebuild_result = rebuild(backup_root)
+            with (
+                self.assertLogs('PyHardLinkBackup', level=logging.DEBUG),
+                RedirectOut() as redirected_out,
+                freeze_time('2026-01-16T12:34:56Z', auto_tick_seconds=0),
+            ):
+                rebuild_result = rebuild(backup_root, log_manager=NoopLoggingManager())
             self.assertEqual(
                 rebuild_result,
                 RebuildResult(
@@ -67,6 +75,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
                     '.phlb',
                     '.phlb/hash-lookup',
                     '.phlb/size-lookup',
+                    '2026-01-16-123456-rebuild-summary.txt',
                 ],
             )
             self.assertEqual(redirected_out.stderr, '')
@@ -80,8 +89,12 @@ class RebuildDatabaseTestCase(BaseTestCase):
             minimum_file_content = 'X' * FileSizeDatabase.MIN_SIZE
             (snapshot_path / 'file1.txt').write_text(minimum_file_content)
 
-            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG), RedirectOut() as redirected_out:
-                rebuild_result = rebuild(backup_root)
+            with (
+                self.assertLogs('PyHardLinkBackup', level=logging.DEBUG),
+                RedirectOut() as redirected_out,
+                freeze_time('2026-01-16T12:34:56Z', auto_tick_seconds=0),
+            ):
+                rebuild_result = rebuild(backup_root, log_manager=NoopLoggingManager())
             self.assertEqual(
                 sorted_rglob_paths(backup_root),
                 [
@@ -94,6 +107,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
                     '.phlb/size-lookup/10',
                     '.phlb/size-lookup/10/00',
                     '.phlb/size-lookup/10/00/1000',
+                    '2026-01-16-123456-rebuild-summary.txt',
                     'source-name',
                     'source-name/2026-01-15-181709',
                     'source-name/2026-01-15-181709/SHA256SUMS',
@@ -105,6 +119,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
                 [
                     '.phlb/hash-lookup/bb/c4/bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8',
                     '.phlb/size-lookup/10/00/1000',
+                    '2026-01-16-123456-rebuild-summary.txt',
                     'source-name/2026-01-15-181709/SHA256SUMS',
                     'source-name/2026-01-15-181709/file1.txt',
                 ],
@@ -134,14 +149,19 @@ class RebuildDatabaseTestCase(BaseTestCase):
             minimum_file_content = 'X' * FileSizeDatabase.MIN_SIZE
             (snapshot_path / 'same_content.txt').write_text(minimum_file_content)
 
-            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG) as logs, RedirectOut() as redirected_out:
-                rebuild_result = rebuild(backup_root)
+            with (
+                self.assertLogs('PyHardLinkBackup', level=logging.DEBUG) as logs,
+                RedirectOut() as redirected_out,
+                freeze_time('2026-01-16T12:34:56Z', auto_tick_seconds=0),
+            ):
+                rebuild_result = rebuild(backup_root, log_manager=NoopLoggingManager())
             # No new hash of size entries, just the new file:
             self.assertEqual(
                 sorted_rglob_files(backup_root),
                 [
                     '.phlb/hash-lookup/bb/c4/bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8',
                     '.phlb/size-lookup/10/00/1000',
+                    '2026-01-16-123456-rebuild-summary.txt',
                     'source-name/2026-01-15-181709/SHA256SUMS',
                     'source-name/2026-01-15-181709/file1.txt',
                     'source-name/2026-01-15-181709/same_content.txt',
@@ -183,7 +203,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
                 RedirectOut() as redirected_out,
                 patch.object(rebuild_databases, 'rebuild_one_file', rebuild_one_file_mock),
             ):
-                rebuild_result = rebuild(backup_root)
+                rebuild_result = rebuild(backup_root, log_manager=NoopLoggingManager())
             logs = ''.join(logs.output)
             self.assertIn(f'Backup {snapshot_path}/file1.txt OSError: Bam!\n', logs)
             self.assertIn('\nTraceback (most recent call last):\n', logs)
