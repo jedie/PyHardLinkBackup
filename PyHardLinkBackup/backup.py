@@ -1,15 +1,16 @@
 import dataclasses
+import datetime
 import logging
 import os
 import shutil
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 from rich import print  # noqa
 
 from PyHardLinkBackup.constants import CHUNK_SIZE
+from PyHardLinkBackup.logging_setup import LoggingManager
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import (
@@ -20,9 +21,10 @@ from PyHardLinkBackup.utilities.filesystem import (
     read_and_hash_file,
     supports_hardlinks,
 )
-from PyHardLinkBackup.utilities.humanize import human_filesize
+from PyHardLinkBackup.utilities.humanize import PrintTimingContextManager, human_filesize
 from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress
 from PyHardLinkBackup.utilities.sha256sums import store_hash
+from PyHardLinkBackup.utilities.tee import TeeStdoutContext
 
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,7 @@ logger = logging.getLogger(__name__)
 @dataclasses.dataclass
 class BackupResult:
     backup_dir: Path
+    log_file: Path
     #
     backup_count: int = 0
     backup_size: int = 0
@@ -152,7 +155,13 @@ def backup_one_file(
     store_hash(dst_path, file_hash)
 
 
-def backup_tree(*, src_root: Path, backup_root: Path, excludes: tuple[str, ...]) -> BackupResult:
+def backup_tree(
+    *,
+    src_root: Path,
+    backup_root: Path,
+    excludes: tuple[str, ...],
+    log_manager: LoggingManager,
+) -> BackupResult:
     src_root = src_root.resolve()
     if not src_root.is_dir():
         print('Error: Source directory does not exist!')
@@ -176,15 +185,22 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: tuple[str, ...])
         sys.exit(1)
 
     # Step 1: Scan source directory:
-    excludes = set(excludes)
-    src_file_count, src_total_size = humanized_fs_scan(src_root, excludes=excludes)
+    excludes: set = set(excludes)
+    with PrintTimingContextManager('Filesystem scan completed in'):
+        src_file_count, src_total_size = humanized_fs_scan(src_root, excludes=excludes)
 
     phlb_conf_dir = backup_root / '.phlb'
     phlb_conf_dir.mkdir(parents=False, exist_ok=True)
 
-    backup_dir = backup_root / src_root.name / datetime.now().strftime('%Y-%m-%d-%H%M%S')
-    logger.info('Backup %s to %s', src_root, backup_dir)
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S')
+    backup_main_dir = backup_root / src_root.name
+    backup_dir = backup_main_dir / timestamp
     backup_dir.mkdir(parents=True, exist_ok=False)
+
+    log_file = backup_main_dir / f'{timestamp}-backup.log'
+    log_manager.start_file_logging(log_file)
+
+    logger.info('Backup %s to %s', src_root, backup_dir)
 
     print(f'\nBackup to {backup_dir}...\n')
 
@@ -193,7 +209,7 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: tuple[str, ...])
         size_db = FileSizeDatabase(phlb_conf_dir)
         hash_db = FileHashDatabase(backup_root, phlb_conf_dir)
 
-        backup_result = BackupResult(backup_dir=backup_dir)
+        backup_result = BackupResult(backup_dir=backup_dir, log_file=log_file)
 
         next_update = 0
         for entry in iter_scandir_files(src_root, excludes=excludes):
@@ -220,21 +236,25 @@ def backup_tree(*, src_root: Path, backup_root: Path, excludes: tuple[str, ...])
         # Finalize progress indicator values:
         progress.update(completed_file_count=backup_result.backup_count, completed_size=backup_result.backup_size)
 
-    print(f'\nBackup complete: {backup_dir} (total size {human_filesize(backup_result.backup_size)})\n')
-    print(f'  Total files processed: {backup_result.backup_count}')
-    print(f'   * Symlinked files: {backup_result.symlink_files}')
-    print(
-        f'   * Hardlinked files: {backup_result.hardlinked_files}'
-        f' (saved {human_filesize(backup_result.hardlinked_size)})'
-    )
-    print(f'   * Copied files: {backup_result.copied_files} (total {human_filesize(backup_result.copied_size)})')
-    print(
-        f'     of which small (<{size_db.MIN_SIZE} Bytes)'
-        f' files: {backup_result.copied_small_files}'
-        f' (total {human_filesize(backup_result.copied_small_size)})'
-    )
-    if backup_result.error_count > 0:
-        print(f'  Errors during backup: {backup_result.error_count} (see log for details)')
-    print()
+    summary_file = backup_main_dir / f'{timestamp}-summary.txt'
+    with TeeStdoutContext(summary_file):
+        print(f'\nBackup complete: {backup_dir} (total size {human_filesize(backup_result.backup_size)})\n')
+        print(f'  Total files processed: {backup_result.backup_count}')
+        print(f'   * Symlinked files: {backup_result.symlink_files}')
+        print(
+            f'   * Hardlinked files: {backup_result.hardlinked_files}'
+            f' (saved {human_filesize(backup_result.hardlinked_size)})'
+        )
+        print(f'   * Copied files: {backup_result.copied_files} (total {human_filesize(backup_result.copied_size)})')
+        print(
+            f'     of which small (<{size_db.MIN_SIZE} Bytes)'
+            f' files: {backup_result.copied_small_files}'
+            f' (total {human_filesize(backup_result.copied_small_size)})'
+        )
+        if backup_result.error_count > 0:
+            print(f'  Errors during backup: {backup_result.error_count} (see log for details)')
+        print()
+
+    logger.info('Backup completed. Summary created: %s', summary_file)
 
     return backup_result

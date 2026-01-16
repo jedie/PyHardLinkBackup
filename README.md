@@ -27,7 +27,7 @@ The main command is `phlb backup <source> <destination>`:
 
 [comment]: <> (✂✂✂ auto generated backup help start ✂✂✂)
 ```
-usage: phlb backup [-h] source destination [--excludes [STR [STR ...]]] [-v]
+usage: phlb backup [-h] [BACKUP OPTIONS]
 
 Backup the source directory to the destination directory using hard links for deduplication.
 
@@ -39,8 +39,10 @@ Backup the source directory to the destination directory using hard links for de
 │ -h, --help   show this help message and exit                                                                │
 │ --excludes [STR [STR ...]]                                                                                  │
 │              List of directories to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox .nox) │
-│ -v, --verbosity                                                                                             │
-│              Verbosity level; e.g.: -v, -vv, -vvv, etc. (repeatable)                                        │
+│ --verbosity {debug,info,warning,error}                                                                      │
+│              Log level for console logging. (default: warning)                                              │
+│ --log-file-level {debug,info,warning,error}                                                                 │
+│              Log level for the log file (default: info)                                                     │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated backup help end ✂✂✂)
@@ -214,7 +216,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.3.0...main)
+* [v1.4.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.3.0...v1.4.0)
+  * 2026-01-16 - Create log file in backup and a summary.txt
   * 2026-01-16 - Run CI tests on macos, too.
   * 2026-01-16 - add dev cli command "scan-benchmark"
 * [v1.3.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...v1.3.0)

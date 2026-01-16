@@ -3,6 +3,7 @@ import logging
 import os
 import tempfile
 import textwrap
+import unittest
 import zlib
 from collections.abc import Iterable
 from pathlib import Path
@@ -13,12 +14,13 @@ from bx_py_utils.test_utils.assertion import assert_text_equal
 from bx_py_utils.test_utils.datetime import parse_dt
 from bx_py_utils.test_utils.log_utils import NoLogs
 from bx_py_utils.test_utils.redirect import RedirectOut
-from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
+from cli_base.cli_tools.test_utils.base_testcases import OutputMustCapturedTestCaseMixin
 from freezegun import freeze_time
 from tabulate import tabulate
 
 from PyHardLinkBackup.backup import BackupResult, backup_tree
 from PyHardLinkBackup.constants import CHUNK_SIZE
+from PyHardLinkBackup.logging_setup import DEFAULT_CONSOLE_LOG_LEVEL, DEFAULT_LOG_FILE_LEVEL, LoggingManager
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, iter_scandir_files
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
@@ -67,12 +69,20 @@ def _fs_tree_overview(root: Path) -> str:
             size = '-'
             birthtime = '-'
         else:
-            crc32 = zlib.crc32(file_path.read_bytes())
-            crc32 = f'{crc32:08x}'
+            is_log_file = entry.name.endswith('-backup.log') or entry.name.endswith('-summary.txt')
+            if is_log_file:
+                # flaky content!
+                crc32 = '<mock>'
+                size = '<mock>'
+            else:
+                crc32 = zlib.crc32(file_path.read_bytes())
+                crc32 = f'{crc32:08x}'
+                size = file_stat.st_size
+
             nlink = file_stat.st_nlink
-            size = file_stat.st_size
-            if entry.name == 'SHA256SUMS':
-                birthtime = '-'
+
+            if entry.name == 'SHA256SUMS' or is_log_file:
+                birthtime = '<mock>'
             else:
                 birthtime = getattr(file_stat, 'st_birthtime', file_stat.st_mtime)
                 birthtime = datetime.datetime.fromtimestamp(birthtime).strftime('%H:%M:%S')
@@ -109,7 +119,10 @@ def assert_fs_tree_overview(root: Path, expected_overview: str):
     )
 
 
-class BackupTreeTestCase(BaseTestCase):
+class BackupTreeTestCase(
+    OutputMustCapturedTestCaseMixin,
+    unittest.TestCase,
+):
     def test_happy_path(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir).resolve()
@@ -154,7 +167,6 @@ class BackupTreeTestCase(BaseTestCase):
             # Create first backup:
 
             with (
-                self.assertLogs(level=logging.INFO),
                 patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
                 freeze_time('2026-01-01T12:34:56Z', auto_tick_seconds=0),
                 RedirectOut() as redirected_out,
@@ -162,7 +174,11 @@ class BackupTreeTestCase(BaseTestCase):
                 result = backup_tree(
                     src_root=src_root,
                     backup_root=backup_root,
-                    excludes={'.cache'},
+                    excludes=('.cache',),
+                    log_manager=LoggingManager(
+                        console_level=DEFAULT_CONSOLE_LOG_LEVEL,
+                        file_level=DEFAULT_LOG_FILE_LEVEL,
+                    ),
                 )
             self.assertEqual(redirected_out.stderr, '')
             self.assertIn('Backup complete', redirected_out.stdout)
@@ -171,10 +187,16 @@ class BackupTreeTestCase(BaseTestCase):
                 str(Path(backup_dir).relative_to(temp_path)),
                 'backup/source/2026-01-01-123456',
             )
+            log_file = result.log_file
+            self.assertEqual(
+                str(Path(log_file).relative_to(temp_path)),
+                'backup/source/2026-01-01-123456-backup.log',
+            )
             self.assertEqual(
                 result,
                 BackupResult(
                     backup_dir=backup_dir,
+                    log_file=log_file,
                     backup_count=7,
                     backup_size=67110929,
                     symlink_files=1,
@@ -212,13 +234,13 @@ class BackupTreeTestCase(BaseTestCase):
                     root=backup_dir,
                     expected_overview="""
                         path                 birthtime    type        nlink      size  CRC32
-                        SHA256SUMS           -            file            1       410  45c07cf7
+                        SHA256SUMS           <mock>       file            1       410  45c07cf7
                         file2.txt            12:00:00     file            1        14  8a11514a
                         hardlink2file1       12:00:00     file            1        14  8a11514a
                         large_file.bin       12:00:00     file            1  67108865  9671eaac
                         min_sized_file1.bin  12:00:00     hardlink        2      1000  f0d93de4
                         min_sized_file2.bin  12:00:00     hardlink        2      1000  f0d93de4
-                        subdir/SHA256SUMS    -            file            1        75  1af5ecc7
+                        subdir/SHA256SUMS    <mock>       file            1        75  1af5ecc7
                         subdir/file.txt      12:00:00     file            1        22  c0167e63
                         symlink2file1        12:00:00     symlink         2        14  8a11514a
                     """,
@@ -238,7 +260,6 @@ class BackupTreeTestCase(BaseTestCase):
             # Just backup again:
 
             with (
-                self.assertLogs(level=logging.INFO),
                 patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
                 freeze_time('2026-01-02T12:34:56Z', auto_tick_seconds=0),
                 RedirectOut() as redirected_out,
@@ -246,7 +267,11 @@ class BackupTreeTestCase(BaseTestCase):
                 result = backup_tree(
                     src_root=src_root,
                     backup_root=backup_root,
-                    excludes={'.cache'},
+                    excludes=('.cache',),
+                    log_manager=LoggingManager(
+                        console_level=DEFAULT_CONSOLE_LOG_LEVEL,
+                        file_level=DEFAULT_LOG_FILE_LEVEL,
+                    ),
                 )
             self.assertEqual(redirected_out.stderr, '')
             self.assertIn('Backup complete', redirected_out.stdout)
@@ -259,6 +284,7 @@ class BackupTreeTestCase(BaseTestCase):
                 result,
                 BackupResult(
                     backup_dir=backup_dir,
+                    log_file=result.log_file,
                     backup_count=7,
                     backup_size=67110929,
                     symlink_files=1,
@@ -279,13 +305,13 @@ class BackupTreeTestCase(BaseTestCase):
                     root=backup_dir,
                     expected_overview="""
                         path                 birthtime    type        nlink      size  CRC32
-                        SHA256SUMS           -            file            1       410  45c07cf7
+                        SHA256SUMS           <mock>       file            1       410  45c07cf7
                         file2.txt            12:00:00     file            1        14  8a11514a
                         hardlink2file1       12:00:00     file            1        14  8a11514a
                         large_file.bin       12:00:00     hardlink        2  67108865  9671eaac
                         min_sized_file1.bin  12:00:00     hardlink        4      1000  f0d93de4
                         min_sized_file2.bin  12:00:00     hardlink        4      1000  f0d93de4
-                        subdir/SHA256SUMS    -            file            1        75  1af5ecc7
+                        subdir/SHA256SUMS    <mock>       file            1        75  1af5ecc7
                         subdir/file.txt      12:00:00     file            1        22  c0167e63
                         symlink2file1        12:00:00     symlink         2        14  8a11514a
                     """,
@@ -316,7 +342,6 @@ class BackupTreeTestCase(BaseTestCase):
 
             # Backup again:
             with (
-                self.assertLogs(level=logging.INFO),
                 patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
                 freeze_time('2026-01-03T12:34:56Z', auto_tick_seconds=0),
                 RedirectOut() as redirected_out,
@@ -324,7 +349,11 @@ class BackupTreeTestCase(BaseTestCase):
                 result = backup_tree(
                     src_root=src_root,
                     backup_root=backup_root,
-                    excludes={'.cache'},
+                    excludes=('.cache',),
+                    log_manager=LoggingManager(
+                        console_level=DEFAULT_CONSOLE_LOG_LEVEL,
+                        file_level=DEFAULT_LOG_FILE_LEVEL,
+                    ),
                 )
             self.assertEqual(redirected_out.stderr, '')
             self.assertIn('Backup complete', redirected_out.stdout)
@@ -337,13 +366,13 @@ class BackupTreeTestCase(BaseTestCase):
                     root=backup_dir,
                     expected_overview="""
                         path                 birthtime    type        nlink      size  CRC32
-                        SHA256SUMS           -            file            1       410  45c07cf7
+                        SHA256SUMS           <mock>       file            1       410  45c07cf7
                         file2.txt            12:00:00     file            1        14  8a11514a
                         hardlink2file1       12:00:00     file            1        14  8a11514a
                         large_file.bin       12:00:00     hardlink        3  67108865  9671eaac
                         min_sized_file1.bin  12:00:00     hardlink        2      1000  f0d93de4
                         min_sized_file2.bin  12:00:00     hardlink        2      1000  f0d93de4
-                        subdir/SHA256SUMS    -            file            1        75  1af5ecc7
+                        subdir/SHA256SUMS    <mock>       file            1        75  1af5ecc7
                         subdir/file.txt      12:00:00     file            1        22  c0167e63
                         symlink2file1        12:00:00     symlink         2        14  8a11514a
                     """,
@@ -353,6 +382,7 @@ class BackupTreeTestCase(BaseTestCase):
                 result,
                 BackupResult(
                     backup_dir=backup_dir,
+                    log_file=result.log_file,
                     backup_count=7,
                     backup_size=67110929,
                     symlink_files=1,
@@ -413,11 +443,18 @@ class BackupTreeTestCase(BaseTestCase):
             # Create first backup:
 
             with (
-                self.assertLogs(level=logging.INFO),
                 freeze_time('2026-01-01T12:34:56Z', auto_tick_seconds=0),
                 RedirectOut() as redirected_out,
             ):
-                result = backup_tree(src_root=src_root, backup_root=backup_root, excludes=set())
+                result = backup_tree(
+                    src_root=src_root,
+                    backup_root=backup_root,
+                    excludes=(),
+                    log_manager=LoggingManager(
+                        console_level=DEFAULT_CONSOLE_LOG_LEVEL,
+                        file_level=DEFAULT_LOG_FILE_LEVEL,
+                    ),
+                )
             self.assertEqual(redirected_out.stderr, '')
             self.assertIn('Backup complete', redirected_out.stdout)
             backup_dir1 = result.backup_dir
@@ -427,11 +464,20 @@ class BackupTreeTestCase(BaseTestCase):
             )
 
             with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                """DocWrite: README.md # PyHardLinkBackup - Notes
+                A log file is stored in the backup directory. e.g.:
+                * `bak/src/2026-01-01-123456-backup.log`
+
+                A finished backup also creates a summary file. e.g.:
+                * `bak/src/2026-01-01-123456-summary.txt`
+                """
                 assert_fs_tree_overview(
                     root=temp_path,  # The complete overview os source + backup and outside file
                     expected_overview="""
                         path                                       birthtime    type     nlink    size    CRC32
-                        bak/src/2026-01-01-123456/SHA256SUMS       -            file     1        82      c03fd60e
+                        bak/src/2026-01-01-123456-backup.log       <mock>       file     1        <mock>  <mock>
+                        bak/src/2026-01-01-123456-summary.txt      <mock>       file     1        <mock>  <mock>
+                        bak/src/2026-01-01-123456/SHA256SUMS       <mock>       file     1        82      c03fd60e
                         bak/src/2026-01-01-123456/broken_symlink   -            symlink  -        -       -
                         bak/src/2026-01-01-123456/source_file.txt  12:00:00     file     1        31      9309a10c
                         bak/src/2026-01-01-123456/symlink2outside  12:00:00     symlink  1        36      24b5bf4c
@@ -448,6 +494,7 @@ class BackupTreeTestCase(BaseTestCase):
                 result,
                 BackupResult(
                     backup_dir=backup_dir1,
+                    log_file=result.log_file,
                     backup_count=4,
                     backup_size=98,
                     symlink_files=3,
@@ -503,7 +550,6 @@ class BackupTreeTestCase(BaseTestCase):
                     return copy_and_hash(src, dst)
 
             with (
-                self.assertLogs(level=logging.ERROR) as logs,
                 patch('PyHardLinkBackup.backup.iter_scandir_files', SortedIterScandirFiles),
                 patch('PyHardLinkBackup.backup.copy_and_hash', mocked_copy_and_hash),
                 freeze_time('2026-01-01T12:34:56Z', auto_tick_seconds=0),
@@ -512,15 +558,22 @@ class BackupTreeTestCase(BaseTestCase):
                 result = backup_tree(
                     src_root=src_root,
                     backup_root=backup_root,
-                    excludes={'.cache'},
+                    excludes=('.cache',),
+                    log_manager=LoggingManager(
+                        console_level=DEFAULT_CONSOLE_LOG_LEVEL,
+                        file_level=DEFAULT_LOG_FILE_LEVEL,
+                    ),
                 )
             self.assertEqual(redirected_out.stderr, '')
             self.assertIn('Backup complete', redirected_out.stdout)
             self.assertIn('Errors during backup:', redirected_out.stdout)
 
-            logs = ''.join(logs.output)
+            log_file = result.log_file
+            assert_is_file(log_file)
+            self.assertEqual(str(log_file), f'{temp_path}/backup/source/2026-01-01-123456-backup.log')
+            logs = log_file.read_text()
             self.assertIn(
-                f'ERROR:PyHardLinkBackup.backup:Backup {src_root / "file2.txt"} PermissionError: Bam!\n',
+                f'Backup {src_root / "file2.txt"} PermissionError: Bam!\n',
                 logs,
             )
             self.assertIn('\nTraceback (most recent call last):\n', logs)
@@ -528,6 +581,7 @@ class BackupTreeTestCase(BaseTestCase):
                 result,
                 BackupResult(
                     backup_dir=result.backup_dir,
+                    log_file=log_file,
                     backup_count=3,
                     backup_size=18,
                     symlink_files=0,
