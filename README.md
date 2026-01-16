@@ -215,6 +215,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.3.0...main)
+  * 2026-01-16 - Run CI tests on macos, too.
   * 2026-01-16 - add dev cli command "scan-benchmark"
 * [v1.3.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...v1.3.0)
   * 2026-01-15 - Verify SHA256SUMS files in "rebuild" command, too.
