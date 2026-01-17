@@ -53,6 +53,7 @@ def compare_one_file(
     hash_db: FileHashDatabase,
     compare_dir: Path,
     compare_result: CompareResult,
+    progress: DisplayFileTreeProgress,
 ) -> None:
     src_size = entry.stat().st_size
 
@@ -80,8 +81,8 @@ def compare_one_file(
         compare_result.file_size_missmatch += 1
         return
 
-    src_hash = hash_file(src_path)
-    dst_hash = hash_file(dst_path)
+    src_hash = hash_file(src_path, progress=progress, total_size=src_size)
+    dst_hash = hash_file(dst_path, progress=progress, total_size=dst_size)
 
     if src_hash != dst_hash:
         logger.warning(
@@ -158,7 +159,11 @@ def compare_tree(
     with PrintTimingContextManager('Filesystem scan completed in'):
         src_file_count, src_total_size = humanized_fs_scan(src_root, excludes=excludes)
 
-    with DisplayFileTreeProgress(src_file_count, src_total_size) as progress:
+    with DisplayFileTreeProgress(
+        description=f'Compare {src_root}...',
+        total_file_count=src_file_count,
+        total_size=src_total_size,
+    ) as progress:
         # init "databases":
         size_db = FileSizeDatabase(phlb_conf_dir)
         hash_db = FileHashDatabase(backup_root, phlb_conf_dir)
@@ -175,6 +180,7 @@ def compare_tree(
                     hash_db=hash_db,
                     compare_dir=compare_dir,
                     compare_result=compare_result,
+                    progress=progress,
                 )
             except Exception as err:
                 logger.exception(f'Compare {entry.path} {err.__class__.__name__}: {err}')
@@ -184,12 +190,12 @@ def compare_tree(
                 if now >= next_update:
                     progress.update(
                         completed_file_count=compare_result.total_file_count,
-                        completed_size=compare_result.total_size,
+                        advance_size=compare_result.total_size,
                     )
                     next_update = now + 0.5
 
         # Finalize progress indicator values:
-        progress.update(completed_file_count=compare_result.total_file_count, completed_size=compare_result.total_size)
+        progress.update(completed_file_count=compare_result.total_file_count, advance_size=compare_result.total_size)
 
     summary_file = compare_main_dir / f'{now_timestamp}-summary.txt'
     with TeeStdoutContext(summary_file):

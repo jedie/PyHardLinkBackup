@@ -15,6 +15,7 @@ from PyHardLinkBackup.utilities.filesystem import (
     read_and_hash_file,
     supports_hardlinks,
 )
+from PyHardLinkBackup.utilities.rich_utils import NoopProgress
 from PyHardLinkBackup.utilities.tests.unittest_utilities import TemporaryDirectoryPath
 
 
@@ -31,7 +32,7 @@ class TestHashFile(BaseTestCase):
             temp_file_path.write_bytes(b'test content')
 
             with self.assertLogs(level='INFO') as logs:
-                file_hash = hash_file(temp_file_path)
+                file_hash = hash_file(temp_file_path, progress=NoopProgress(), total_size=123)
         self.assertEqual(file_hash, '6ae8a75555209fd6c44157c0aed8016e763ff435a19cf186f76863140143ff72')
         self.assertIn(' sha256 hash: 6ae8a7', ''.join(logs.output))
 
@@ -43,7 +44,7 @@ class TestHashFile(BaseTestCase):
             src_path.write_bytes(b'test content')
 
             with self.assertLogs(level='INFO') as logs:
-                file_hash = copy_and_hash(src=src_path, dst=dst_path)
+                file_hash = copy_and_hash(src=src_path, dst=dst_path, progress=NoopProgress(), total_size=123)
 
             self.assertEqual(dst_path.read_bytes(), b'test content')
         self.assertEqual(file_hash, '6ae8a75555209fd6c44157c0aed8016e763ff435a19cf186f76863140143ff72')

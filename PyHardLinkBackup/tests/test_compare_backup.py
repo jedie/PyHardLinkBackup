@@ -12,6 +12,7 @@ from PyHardLinkBackup.logging_setup import DEFAULT_LOG_FILE_LEVEL
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import hash_file
+from PyHardLinkBackup.utilities.rich_utils import NoopProgress
 from PyHardLinkBackup.utilities.tests.unittest_utilities import (
     CollectOpenFiles,
     PyHardLinkBackupTestCaseMixin,
@@ -90,7 +91,7 @@ class CompareBackupTestCase(PyHardLinkBackupTestCaseMixin, TestCase):
         size_db = FileSizeDatabase(phlb_conf_dir)
         size_db.add(FileSizeDatabase.MIN_SIZE + 1)
         hash_db = FileHashDatabase(self.backup_root, phlb_conf_dir)
-        src_hash = hash_file(large_file_in_dbs)
+        src_hash = hash_file(large_file_in_dbs, progress=NoopProgress(), total_size=1234)
         hash_db[src_hash] = last_backup_dir / 'large_file_in_dbs.txt'
 
         #######################################################################################

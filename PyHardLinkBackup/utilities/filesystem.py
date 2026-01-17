@@ -15,29 +15,44 @@ from rich.progress import (
 )
 
 from PyHardLinkBackup.constants import CHUNK_SIZE, HASH_ALGO
-from PyHardLinkBackup.utilities.rich_utils import HumanFileSizeColumn
+from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress, HumanFileSizeColumn, LargeFileProgress
 
 
 logger = logging.getLogger(__name__)
 
+MIN_SIZE_FOR_PROGRESS_BAR = CHUNK_SIZE * 10
 
-def hash_file(path: Path) -> str:
+
+def hash_file(path: Path, progress: DisplayFileTreeProgress, total_size: int) -> str:
     logger.debug('Hash file %s using %s', path, HASH_ALGO)
-    with path.open('rb') as f:
-        digest = hashlib.file_digest(f, HASH_ALGO)
-
-    file_hash = digest.hexdigest()
+    hasher = hashlib.new(HASH_ALGO)
+    with LargeFileProgress(
+        f'Hashing large file: {path.name}',
+        parent_progress=progress,
+        total_size=total_size,
+    ) as progress_bar:
+        with path.open('rb') as f:
+            while chunk := f.read(CHUNK_SIZE):
+                hasher.update(chunk)
+                progress_bar.update(advance=len(chunk))
+    file_hash = hasher.hexdigest()
     logger.info('%s %s hash: %s', path, HASH_ALGO, file_hash)
     return file_hash
 
 
-def copy_and_hash(src: Path, dst: Path) -> str:
+def copy_and_hash(src: Path, dst: Path, progress: DisplayFileTreeProgress, total_size: int) -> str:
     logger.debug('Copy and hash file %s to %s using %s', src, dst, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)
-    with src.open('rb') as source_file, dst.open('wb') as dst_file:
-        while chunk := source_file.read(CHUNK_SIZE):
-            dst_file.write(chunk)
-            hasher.update(chunk)
+    with LargeFileProgress(
+        f'Copying large file: {src.name}',
+        parent_progress=progress,
+        total_size=total_size,
+    ) as progress_bar:
+        with src.open('rb') as source_file, dst.open('wb') as dst_file:
+            while chunk := source_file.read(CHUNK_SIZE):
+                dst_file.write(chunk)
+                hasher.update(chunk)
+                progress_bar.update(advance=len(chunk))
 
     # Keep original file metadata (permission bits, last access time, last modification time, and flags)
     shutil.copystat(src, dst)
