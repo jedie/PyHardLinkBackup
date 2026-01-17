@@ -5,6 +5,7 @@ from unittest import TestCase
 
 from bx_py_utils.test_utils.redirect import RedirectOut
 from cli_base.cli_tools.test_utils.assertion import assert_in
+from cli_base.cli_tools.test_utils.rich_test_utils import NoColorEnvRich
 
 from PyHardLinkBackup.compare_backup import CompareResult, LoggingManager, compare_tree
 from PyHardLinkBackup.logging_setup import DEFAULT_LOG_FILE_LEVEL
@@ -24,7 +25,12 @@ def assert_compare_backup(
     excludes: tuple[str, ...] = (),
     excpected_error_count: int = 0,
 ) -> None:
-    with RedirectOut() as redirected_out:
+    with (
+        NoColorEnvRich(
+            width=200,  # Wide width to avoid line breaks in test output that failed assert_in()
+        ),
+        RedirectOut() as redirected_out,
+    ):
         result = compare_tree(
             src_root=src_root,
             backup_root=backup_root,
