@@ -261,6 +261,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...main)
+  * 2026-01-17 - Remove unfinished copied files on errors
   * 2026-01-17 - Display/update progress on very lage files #75 and enhance all bars
   * 2026-01-18 - Expand tests: Check file open calls
   * 2026-01-17 - expand tests

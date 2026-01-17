@@ -23,6 +23,22 @@ logger = logging.getLogger(__name__)
 MIN_SIZE_FOR_PROGRESS_BAR = CHUNK_SIZE * 10
 
 
+class RemoveFileOnError:
+    def __init__(self, file_path: Path):
+        self.file_path = file_path
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if exc_type:
+            logger.info(f'Removing incomplete file {self.file_path} due to error: {exc_value}',
+                exc_info=(exc_type, exc_value, exc_traceback),
+            )
+            self.file_path.unlink(missing_ok=True)
+            return False
+
+
 def hash_file(path: Path, progress: DisplayFileTreeProgress, total_size: int) -> str:
     logger.debug('Hash file %s using %s', path, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)

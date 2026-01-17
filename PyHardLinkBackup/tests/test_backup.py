@@ -585,14 +585,38 @@ class BackupTreeTestCase(
         (self.src_root / 'file3.txt').write_text('File 3')
 
         def mocked_copy_and_hash(src: Path, dst: Path, progress: DisplayFileTreeProgress, total_size: int):
+            file_hash = copy_and_hash(src, dst, NoopProgress(), total_size)
             if src.name == 'file2.txt':
                 raise PermissionError('Bam!')
-            else:
-                return copy_and_hash(src, dst, NoopProgress(), total_size)
+            return file_hash
 
-        with patch('PyHardLinkBackup.backup.copy_and_hash', mocked_copy_and_hash):
+        with (
+            patch('PyHardLinkBackup.backup.copy_and_hash', mocked_copy_and_hash),
+            CollectOpenFiles(self.temp_path) as collector,
+        ):
             redirected_out, result = self.create_backup(time_to_freeze='2026-01-01T12:34:56Z')
-
+        self.assertEqual(
+            collector.opened_for_read,
+            [
+                'r backups/.phlb_test_link',
+                'rb source/file1.txt',
+                'rb source/file2.txt',
+                'rb source/file3.txt',
+            ],
+        )
+        self.assertEqual(
+            collector.opened_for_write,
+            [
+                'w backups/.phlb_test',
+                'a backups/source/2026-01-01-123456-backup.log',
+                'wb backups/source/2026-01-01-123456/file1.txt',
+                'a backups/source/2026-01-01-123456/SHA256SUMS',
+                'wb backups/source/2026-01-01-123456/file2.txt',
+                'wb backups/source/2026-01-01-123456/file3.txt',
+                'a backups/source/2026-01-01-123456/SHA256SUMS',
+                'w backups/source/2026-01-01-123456-summary.txt',
+            ],
+        )
         self.assertEqual(redirected_out.stderr, '')
         self.assertIn('Backup complete', redirected_out.stdout)
         self.assertIn('Errors during backup:', redirected_out.stdout)
@@ -606,6 +630,11 @@ class BackupTreeTestCase(
             logs,
         )
         self.assertIn('\nTraceback (most recent call last):\n', logs)
+        self.assertIn(
+            f'Removing incomplete file {self.temp_path}/backups/source/2026-01-01-123456/file2.txt'
+            ' due to error: Bam!\n',
+            logs,
+        )
         self.assertEqual(
             result,
             BackupResult(
@@ -623,6 +652,16 @@ class BackupTreeTestCase(
                 error_count=1,
             ),
         )
+        with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+            assert_fs_tree_overview(
+                root=result.backup_dir,
+                expected_overview="""
+                    path        birthtime    type      nlink    size  CRC32
+                    SHA256SUMS  <mock>       file          1     152  563342a4
+                    file1.txt   12:00:00     file          1       6  07573806
+                    file3.txt   12:00:00     file          1       6  e959592a
+                """,  # file2.txt is missing!
+            )
 
         #######################################################################################
         # Compare the backup
