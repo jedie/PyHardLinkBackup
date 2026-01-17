@@ -5,7 +5,7 @@ from typing import Annotated
 import tyro
 from rich import print  # noqa
 
-from PyHardLinkBackup import rebuild_databases
+from PyHardLinkBackup import compare_backup, rebuild_databases
 from PyHardLinkBackup.backup import backup_tree
 from PyHardLinkBackup.cli_app import app
 from PyHardLinkBackup.logging_setup import (
@@ -53,6 +53,42 @@ def backup(
         file_level=log_file_level,
     )
     backup_tree(
+        src_root=src,
+        backup_root=dst,
+        excludes=excludes,
+        log_manager=log_manager,
+    )
+
+
+@app.command
+def compare(
+    src: Annotated[
+        Path,
+        tyro.conf.arg(
+            metavar='source',
+            help='Source directory that should be compared with the last backup.',
+        ),
+    ],
+    dst: Annotated[
+        Path,
+        tyro.conf.arg(
+            metavar='destination',
+            help='Destination directory with the backups. Will pick the last backup for comparison.',
+        ),
+    ],
+    /,
+    excludes: TyroExcludeDirectoriesArgType = DEFAULT_EXCLUDE_DIRECTORIES,
+    verbosity: TyroConsoleLogLevelArgType = DEFAULT_CONSOLE_LOG_LEVEL,
+    log_file_level: TyroLogFileLevelArgType = DEFAULT_LOG_FILE_LEVEL,
+) -> None:
+    """
+    Compares a source tree with the last backup and validates all known file hashes.
+    """
+    log_manager = LoggingManager(
+        console_level=verbosity,
+        file_level=log_file_level,
+    )
+    compare_backup.compare_tree(
         src_root=src,
         backup_root=dst,
         excludes=excludes,

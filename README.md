@@ -65,7 +65,7 @@ complete help for main CLI app:
 
 [comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
 ```
-usage: phlb [-h] {backup,rebuild,version}
+usage: phlb [-h] {backup,compare,rebuild,version}
 
 
 
@@ -75,6 +75,7 @@ usage: phlb [-h] {backup,rebuild,version}
 ╭─ subcommands ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ (required)                                                                                                           │
 │   • backup   Backup the source directory to the destination directory using hard links for deduplication.            │
+│   • compare  Compares a source tree with the last backup and validates all known file hashes.                        │
 │   • rebuild  Rebuild the file hash and size database by scanning all backup files. And also verify SHA256SUMS and/or │
 │              store missing hashes in SHA256SUMS files.                                                               │
 │   • version  Print version and exit                                                                                  │
@@ -216,6 +217,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v1.5.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.1...v1.5.0)
+  * 2026-01-17 - NEW: Compare command to verify source tree with last backup
 * [v1.4.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.0...v1.4.1)
   * 2026-01-16 - Bugfix large file handling
 * [v1.4.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.3.0...v1.4.0)
@@ -228,15 +231,15 @@ Overview of main changes:
   * 2026-01-15 - Add tests for rebuild
   * 2026-01-15 - Add command to "rebuld" the size and hash filesystem database
   * 2026-01-15 - Add screenshots in the README
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.2.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...v1.2.0)
   * 2026-01-15 - Add error handling: Log exception but continue with the backup
   * 2026-01-15 - Check permission and hadlink support on destination path
   * 2026-01-14 - Enhance progress bars
   * 2026-01-14 - A a note to rsync --link-dest
   * 2026-01-14 - Use cli_base.cli_tools.test_utils.base_testcases
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v1.1.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.0.1...v1.1.0)
   * 2026-01-14 - Change backup timestamp directory to old schema: '%Y-%m-%d-%H%M%S'
   * 2026-01-14 - Add "Overview of main changes" to README
