@@ -1,5 +1,4 @@
 import logging
-import tempfile
 import textwrap
 from pathlib import Path
 from unittest.mock import patch
@@ -12,6 +11,7 @@ from PyHardLinkBackup import rebuild_databases
 from PyHardLinkBackup.logging_setup import NoopLoggingManager
 from PyHardLinkBackup.rebuild_databases import RebuildResult, rebuild, rebuild_one_file
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
+from PyHardLinkBackup.utilities.tests.unittest_utilities import TemporaryDirectoryPath
 
 
 def sorted_rglob_paths(path: Path):
@@ -26,9 +26,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
     maxDiff = None
 
     def test_happy_path(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir).resolve()
-
+        with TemporaryDirectoryPath() as temp_path:
             backup_root = temp_path / 'backup'
 
             with self.assertRaises(SystemExit), RedirectOut() as redirected_out:
