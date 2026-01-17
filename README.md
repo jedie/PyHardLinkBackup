@@ -217,7 +217,7 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.5.0...main)
+* [v1.6.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.5.0...v1.6.0)
   * 2026-01-17 - Fix flaky test, because of terminal size
   * 2026-01-17 - Bugfix: Don't hash new large files twice
   * 2026-01-17 - Use compare also in backup tests
