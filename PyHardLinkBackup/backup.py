@@ -70,8 +70,8 @@ def backup_one_file(
 
     try:
         size = entry.stat().st_size
-    except FileNotFoundError:
-        # e.g.: Handle broken symlink
+    except FileNotFoundError as err:
+        logger.warning(f'Broken symlink {src_path}: {err.__class__.__name__}: {err}')
         target = os.readlink(src_path)
         dst_path.symlink_to(target)
         backup_result.symlink_files += 1
