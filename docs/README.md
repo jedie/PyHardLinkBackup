@@ -5,10 +5,10 @@ HardLink/Deduplication Backups with Python
 # PyHardLinkBackup - Notes
 
 A log file is stored in the backup directory. e.g.:
-* `bak/src/2026-01-01-123456-backup.log`
+* `backups/source/2026-01-01-123456-backup.log`
 
 A finished backup also creates a summary file. e.g.:
-* `bak/src/2026-01-01-123456-summary.txt`
+* `backups/source/2026-01-01-123456-summary.txt`
 
 ## FileHashDatabase
 
