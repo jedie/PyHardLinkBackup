@@ -80,8 +80,8 @@ def compare_one_file(
         compare_result.file_size_missmatch += 1
         return
 
-    src_hash = hash_file(src_path)
-    dst_hash = hash_file(dst_path)
+    src_hash = hash_file(src_path, total_size=src_size)
+    dst_hash = hash_file(dst_path, total_size=dst_size)
 
     if src_hash != dst_hash:
         logger.warning(
