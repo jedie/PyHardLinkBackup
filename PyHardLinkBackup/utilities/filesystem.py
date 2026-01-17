@@ -8,10 +8,12 @@ from typing import Iterable
 
 from bx_py_utils.path import assert_is_dir
 from rich.progress import (
+    BarColumn,
     Progress,
     SpinnerColumn,
     TextColumn,
     TimeElapsedColumn,
+    TimeRemainingColumn,
 )
 
 from PyHardLinkBackup.constants import CHUNK_SIZE, HASH_ALGO
@@ -20,24 +22,61 @@ from PyHardLinkBackup.utilities.rich_utils import HumanFileSizeColumn
 
 logger = logging.getLogger(__name__)
 
+MIN_SIZE_FOR_PROGRESS_BAR = CHUNK_SIZE * 10
 
-def hash_file(path: Path) -> str:
+
+def hash_file(path: Path, total_size: int) -> str:
     logger.debug('Hash file %s using %s', path, HASH_ALGO)
-    with path.open('rb') as f:
-        digest = hashlib.file_digest(f, HASH_ALGO)
-
-    file_hash = digest.hexdigest()
+    hasher = hashlib.new(HASH_ALGO)
+    read = 0
+    progress = Progress(
+        TextColumn('[progress.description]{task.description}'),
+        TextColumn('[green]{task.percentage:>3.1f}%'),
+        TextColumn('[cyan]{task.completed}/{task.total} bytes'),
+        BarColumn(bar_width=50),
+        TextColumn('Elapsed:'),
+        TimeElapsedColumn(),
+        TextColumn('Remaining:'),
+        TimeRemainingColumn(),
+    )
+    with progress:
+        if total_size > MIN_SIZE_FOR_PROGRESS_BAR:
+            task_id = progress.add_task(f'Hashing {path.name}', total=total_size)
+        with path.open('rb') as f:
+            while chunk := f.read(CHUNK_SIZE):
+                hasher.update(chunk)
+                read += len(chunk)
+                if total_size > MIN_SIZE_FOR_PROGRESS_BAR:
+                    progress.update(task_id, completed=read, refresh=True)
+    file_hash = hasher.hexdigest()
     logger.info('%s %s hash: %s', path, HASH_ALGO, file_hash)
     return file_hash
 
 
-def copy_and_hash(src: Path, dst: Path) -> str:
+def copy_and_hash(src: Path, dst: Path, total_size: int) -> str:
     logger.debug('Copy and hash file %s to %s using %s', src, dst, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)
-    with src.open('rb') as source_file, dst.open('wb') as dst_file:
-        while chunk := source_file.read(CHUNK_SIZE):
-            dst_file.write(chunk)
-            hasher.update(chunk)
+    copied = 0
+    progress = Progress(
+        TextColumn('[progress.description]{task.description}'),
+        TextColumn('[green]{task.percentage:>3.1f}%'),
+        TextColumn('[cyan]{task.completed}/{task.total} bytes'),
+        BarColumn(bar_width=50),
+        TextColumn('Elapsed:'),
+        TimeElapsedColumn(),
+        TextColumn('Remaining:'),
+        TimeRemainingColumn(),
+    )
+    with progress:
+        if total_size > MIN_SIZE_FOR_PROGRESS_BAR:
+            task_id = progress.add_task(f'Copying {src.name}', total=total_size)
+        with src.open('rb') as source_file, dst.open('wb') as dst_file:
+            while chunk := source_file.read(CHUNK_SIZE):
+                dst_file.write(chunk)
+                hasher.update(chunk)
+                copied += len(chunk)
+                if total_size > MIN_SIZE_FOR_PROGRESS_BAR:
+                    progress.update(task_id, completed=copied, refresh=True)
 
     # Keep original file metadata (permission bits, last access time, last modification time, and flags)
     shutil.copystat(src, dst)

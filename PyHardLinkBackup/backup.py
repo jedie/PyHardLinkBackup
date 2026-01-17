@@ -100,7 +100,7 @@ def backup_one_file(
     if size < size_db.MIN_SIZE:
         # Small file -> always copy without deduplication
         logger.info('Copy small file: %s to %s', src_path, dst_path)
-        file_hash = copy_and_hash(src_path, dst_path)
+        file_hash = copy_and_hash(src_path, dst_path, total_size=size)
         backup_result.copied_files += 1
         backup_result.copied_size += size
         backup_result.copied_small_files += 1
@@ -129,7 +129,7 @@ def backup_one_file(
 
         else:
             # Large file
-            file_hash = hash_file(src_path)  # Calculate hash without copying
+            file_hash = hash_file(src_path, total_size=size)  # Calculate hash without copying
 
             if existing_path := hash_db.get(file_hash):
                 logger.info('Hardlink duplicate file: %s to %s', dst_path, existing_path)
@@ -147,7 +147,7 @@ def backup_one_file(
         shutil.copystat(src_path, dst_path)
     else:
         # A file with this size not backuped before -> Can't be duplicate -> copy and hash
-        file_hash = copy_and_hash(src_path, dst_path)
+        file_hash = copy_and_hash(src_path, dst_path, total_size=size)
         size_db.add(size)
         hash_db[file_hash] = dst_path
         backup_result.copied_files += 1
