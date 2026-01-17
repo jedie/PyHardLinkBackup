@@ -1,5 +1,4 @@
 import shutil
-import tempfile
 from pathlib import Path
 from unittest import TestCase
 
@@ -12,6 +11,7 @@ from PyHardLinkBackup.logging_setup import DEFAULT_LOG_FILE_LEVEL
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import hash_file
+from PyHardLinkBackup.utilities.tests.unittest_utilities import TemporaryDirectoryPath
 
 
 def assert_compare_backup(
@@ -53,10 +53,7 @@ def assert_compare_backup(
 
 class CompareBackupTestCase(TestCase):
     def test_happy_path(self):
-        with tempfile.TemporaryDirectory() as src_dir, tempfile.TemporaryDirectory() as backup_dir:
-            src_root = Path(src_dir).resolve()
-            backup_root = Path(backup_dir).resolve()
-
+        with TemporaryDirectoryPath() as src_root, TemporaryDirectoryPath() as backup_root:
             # Setup backup structure
             phlb_conf_dir = backup_root / '.phlb'
             phlb_conf_dir.mkdir()

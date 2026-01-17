@@ -15,6 +15,7 @@ from PyHardLinkBackup.utilities.filesystem import (
     read_and_hash_file,
     supports_hardlinks,
 )
+from PyHardLinkBackup.utilities.tests.unittest_utilities import TemporaryDirectoryPath
 
 
 class TestHashFile(BaseTestCase):
@@ -35,9 +36,7 @@ class TestHashFile(BaseTestCase):
         self.assertIn(' sha256 hash: 6ae8a7', ''.join(logs.output))
 
     def test_copy_and_hash(self):
-        with tempfile.TemporaryDirectory() as temp:
-            temp_path = Path(temp)
-
+        with TemporaryDirectoryPath() as temp_path:
             src_path = temp_path / 'source.txt'
             dst_path = temp_path / 'dest.txt'
 
@@ -62,9 +61,7 @@ class TestHashFile(BaseTestCase):
         self.assertIn(' sha256 hash: 6ae8a7', ''.join(logs.output))
 
     def test_iter_scandir_files(self):
-        with tempfile.TemporaryDirectory() as temp:
-            temp_path = Path(temp)
-
+        with TemporaryDirectoryPath() as temp_path:
             (temp_path / 'file1.txt').write_bytes(b'content1')
             (temp_path / 'file2.txt').write_bytes(b'content2')
             subdir = temp_path / 'subdir'
@@ -105,21 +102,21 @@ class TestHashFile(BaseTestCase):
         self.assertIn('Excluding directory ', logs)
 
     def test_supports_hardlinks(self):
-        with tempfile.TemporaryDirectory() as temp:
+        with TemporaryDirectoryPath() as temp_path:
             with self.assertLogs(level=logging.INFO) as logs:
-                self.assertTrue(supports_hardlinks(Path(temp)))
+                self.assertTrue(supports_hardlinks(temp_path))
             self.assertEqual(
                 ''.join(logs.output),
-                f'INFO:PyHardLinkBackup.utilities.filesystem:Hardlink support in {temp}: True',
+                f'INFO:PyHardLinkBackup.utilities.filesystem:Hardlink support in {temp_path}: True',
             )
 
             with (
                 self.assertLogs(level=logging.ERROR) as logs,
                 patch('PyHardLinkBackup.utilities.filesystem.os.link', side_effect=OSError),
             ):
-                self.assertFalse(supports_hardlinks(Path(temp)))
+                self.assertFalse(supports_hardlinks(temp_path))
             logs = ''.join(logs.output)
-            self.assertIn(f'Hardlink test failed in {temp}:', logs)
+            self.assertIn(f'Hardlink test failed in {temp_path}:', logs)
             self.assertIn('OSError', logs)
 
         with self.assertLogs(level=logging.DEBUG), self.assertRaises(NotADirectoryError):

@@ -1,7 +1,6 @@
 import datetime
 import logging
 import os
-import tempfile
 import textwrap
 import unittest
 import zlib
@@ -24,6 +23,7 @@ from PyHardLinkBackup.tests.test_compare_backup import assert_compare_backup
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, iter_scandir_files
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
+from PyHardLinkBackup.utilities.tests.unittest_utilities import TemporaryDirectoryPath
 
 
 class SortedIterScandirFiles:
@@ -124,9 +124,7 @@ class BackupTreeTestCase(
     unittest.TestCase,
 ):
     def test_happy_path(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir).resolve()
-
+        with TemporaryDirectoryPath() as temp_path:
             src_root = temp_path / 'source'
             backup_root = temp_path / 'backup'
 
@@ -482,9 +480,7 @@ class BackupTreeTestCase(
             )
 
     def test_symlink(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir).resolve()
-
+        with TemporaryDirectoryPath() as temp_path:
             src_root = temp_path / 'src'
             backup_root = temp_path / 'bak'
 
@@ -619,9 +615,7 @@ class BackupTreeTestCase(
             )
 
     def test_error_handling(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir).resolve()
-
+        with TemporaryDirectoryPath() as temp_path:
             src_root = temp_path / 'source'
             backup_root = temp_path / 'backup'
 
