@@ -6,11 +6,20 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/PyHardLinkBackup)](https://github.com/jedie/PyHardLinkBackup/blob/main/pyproject.toml)
 [![License GPL-3.0-or-later](https://img.shields.io/pypi/l/PyHardLinkBackup)](https://github.com/jedie/PyHardLinkBackup/blob/main/LICENSE)
 
-HardLink/Deduplication Backups with Python
+PyHardLinkBackup is a cross-platform backup tool designed for efficient, reliable, and accessible backups.
+Similar to `rsync --link-dest`, but with global deduplication across all backups and all paths, not just between two directories.
 
-**WIP:** v1.0.0 is a complete rewrite of PyHardLinkBackup.
+Some aspects:
 
-It's similar to `rsync --link-dest` but the deduplication is done globally for all backups and all paths.
+- Creates deduplicated, versioned backups using hardlinks, minimizing storage usage by linking identical files across all backup snapshots.
+- Employs a global deduplication database (by file size and SHA256 hash) per backup root, ensuring that duplicate files are detected and hardlinked even if they are moved or renamed between backups.
+- Backups are stored as regular files and directories—no proprietary formats—so you can access your data directly without special tools.
+- Deleting old snapshots does not affect the integrity of remaining backups.
+- Linux and macOS are fully supported (Windows support is experimental)
+
+Limitations:
+
+- Requires a filesystem that supports hardlinks (e.g., btrfs, zfs, ext4, APFS, NTFS with limitations).
 
 ## installation
 
@@ -23,7 +32,16 @@ pipx install PyHardLinkBackup
 ```
 
 After this you can call the CLI via `phlb` command.
-The main command is `phlb backup <source> <destination>`:
+The main command is `phlb backup <source> <destination>` to create a backup.
+
+e.g.:
+
+```bash
+phlb backup /path/to/source /path/to/destination
+```
+
+This will create a snapshot in `/path/to/destination` using hard links for deduplication. You can safely delete old snapshots without affecting others.
+
 
 [comment]: <> (✂✂✂ auto generated backup help start ✂✂✂)
 ```
@@ -60,8 +78,39 @@ If it's finished it display a summary:
 ![2026-01-15-phlb2.png](https://raw.githubusercontent.com/jedie/jedie.github.io/main/screenshots/PyHardLinkBackup/2026-01-15-phlb2.png "2026-01-15-phlb2.png")
 
 
+### update
 
-complete help for main CLI app:
+If you use pipx, just call:
+```bash
+pipx upgrade PyHardLinkBackup
+```
+see: https://pipx.pypa.io/stable/docs/#pipx-upgrade
+
+
+### Troubleshooting
+
+- **Permission Errors:** Ensure you have read access to source and write access to destination.
+- **Hardlink Limits:** Some filesystems (e.g., NTFS) have limits on the number of hardlinks per file.
+- **Symlink Handling:** Broken symlinks are handled gracefully; see logs for details.
+- **Backup Deletion:** Deleting a snapshot does not affect deduplication of other backups.
+- **Log Files:** Check the log file in each backup directory for error details.
+
+
+To lower the priority of the backup process (useful to reduce system impact during heavy backups), you can use `nice` and `ionice` on Linux systems:
+
+```bash
+nice -n 19 ionice -c3 phlb backup /path/to/source /path/to/destination
+```
+- `nice -n 19` sets the lowest CPU priority.
+- `ionice -c3` sets the lowest I/O priority (idle class).
+
+Adjust priority of an already running backup:
+```bash
+renice 19 -p $(pgrep phlb) && ionice -c3 -p $(pgrep phlb)
+```
+
+
+### complete help for main CLI app
 
 [comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
 ```
@@ -84,13 +133,7 @@ usage: phlb [-h] {backup,compare,rebuild,version}
 [comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
 
 
-### update
 
-If you use pipx, just call:
-```bash
-pipx upgrade PyHardLinkBackup
-```
-see: https://pipx.pypa.io/stable/docs/#pipx-upgrade
 
 
 ## concept
@@ -217,6 +260,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...main)
+  * 2026-01-17 - Update README
 * [v1.6.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.5.0...v1.6.0)
   * 2026-01-17 - Fix flaky test, because of terminal size
   * 2026-01-17 - Bugfix: Don't hash new large files twice
@@ -225,13 +270,13 @@ Overview of main changes:
   * 2026-01-17 - NEW: Compare command to verify source tree with last backup
 * [v1.4.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.0...v1.4.1)
   * 2026-01-16 - Bugfix large file handling
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.4.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.3.0...v1.4.0)
   * 2026-01-16 - Create log file in backup and a summary.txt
   * 2026-01-16 - Run CI tests on macos, too.
   * 2026-01-16 - add dev cli command "scan-benchmark"
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v1.3.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...v1.3.0)
   * 2026-01-15 - Verify SHA256SUMS files in "rebuild" command, too.
   * 2026-01-15 - Code cleanup: use more generic names for and in BackupProgress
