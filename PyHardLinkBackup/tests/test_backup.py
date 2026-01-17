@@ -18,7 +18,7 @@ from tabulate import tabulate
 
 from PyHardLinkBackup.backup import BackupResult, backup_tree
 from PyHardLinkBackup.constants import CHUNK_SIZE
-from PyHardLinkBackup.logging_setup import DEFAULT_LOG_FILE_LEVEL, LoggingManager
+from PyHardLinkBackup.logging_setup import DEFAULT_LOG_FILE_LEVEL, LoggingManager, LogLevelLiteral
 from PyHardLinkBackup.tests.test_compare_backup import assert_compare_backup
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, iter_scandir_files
@@ -138,7 +138,12 @@ class BackupTreeTestCase(
         self.src_root.mkdir()
         self.backup_root.mkdir()
 
-    def create_backup(self, *, time_to_freeze: str):
+    def create_backup(
+        self,
+        *,
+        time_to_freeze: str,
+        log_file_level: LogLevelLiteral = DEFAULT_LOG_FILE_LEVEL,
+    ):
         # FIXME: freezegun doesn't handle this, see: https://github.com/spulec/freezegun/issues/392
         # Set modification times to a fixed time for easier testing:
         set_file_times(self.src_root, dt=parse_dt('2026-01-01T12:00:00+0000'))
@@ -154,7 +159,7 @@ class BackupTreeTestCase(
                 excludes=('.cache',),
                 log_manager=LoggingManager(
                     console_level='info',
-                    file_level=DEFAULT_LOG_FILE_LEVEL,
+                    file_level=log_file_level,
                 ),
             )
 
@@ -646,3 +651,100 @@ class BackupTreeTestCase(
             excpected_successful_file_count=2,
             excpected_error_count=0,
         )
+
+    def test_skip_sha256sums_file(self):
+        (self.src_root / 'SHA256SUMS').write_text('dummy hash content')
+        (self.src_root / 'file.txt').write_text('normal file')
+
+        redirected_out, result = self.create_backup(
+            time_to_freeze='2026-01-01T12:34:56Z',
+            log_file_level='debug',  # Skip SHA256SUMS is logged at DEBUG level
+        )
+        backup_dir = result.backup_dir
+
+        with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+            assert_fs_tree_overview(
+                root=backup_dir,
+                expected_overview="""
+                    path        birthtime    type      nlink    size  CRC32
+                    SHA256SUMS  <mock>       file          1      75  9570b1e4
+                    file.txt    12:00:00     file          1      11  e29f436e
+                """,
+            )
+
+        self.assertEqual(
+            (backup_dir / 'SHA256SUMS').read_text(),
+            # Not the dummy content -> the real SHA256SUMS file content:
+            '87f644d525b412d6162932d06db1bc06aaa0508374badc861e40ad85b0e01412  file.txt\n',
+        )
+
+        self.assertIn(
+            'Skip existing SHA256SUMS file',
+            result.log_file.read_text(),
+        )
+
+    def test_large_file_handling(self):
+        with patch('PyHardLinkBackup.backup.CHUNK_SIZE', 1000):
+            (self.src_root / 'large_fileA.txt').write_bytes(b'A' * 1001)
+
+            redirected_out, result = self.create_backup(time_to_freeze='2026-01-11T12:34:56Z')
+            backup_dir = result.backup_dir
+
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                assert_fs_tree_overview(
+                    root=backup_dir,
+                    expected_overview="""
+                        path             birthtime    type      nlink    size  CRC32
+                        SHA256SUMS       <mock>       file          1      82  c3dd960b
+                        large_fileA.txt  12:00:00     file          1    1001  a48f0e33
+                    """,
+                )
+
+            self.assertEqual(
+                (backup_dir / 'SHA256SUMS').read_text(),
+                '23d2ce40d26211a9ffe8096fd1f927f2abd094691839d24f88440f7c5168d500  large_fileA.txt\n',
+            )
+
+            # Same size, different content -> should be copied again:
+            (self.src_root / 'large_fileB.txt').write_bytes(b'B' * 1001)
+
+            redirected_out, result = self.create_backup(time_to_freeze='2026-02-22T12:34:56Z')
+            backup_dir = result.backup_dir
+
+            self.assertEqual(
+                (backup_dir / 'large_fileA.txt').read_text()[:50],
+                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',  # ... AAA
+            )
+            self.assertEqual(
+                (backup_dir / 'large_fileB.txt').read_text()[:50],
+                'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',  # ... BBB
+            )
+
+            log_file_content = result.log_file.read_text()
+            self.assertIn(
+                f'Hardlink duplicate file: {self.temp_path}/backups/source/2026-02-22-123456/large_fileA.txt'
+                f' to {self.temp_path}/backups/source/2026-01-11-123456/large_fileA.txt',
+                log_file_content,
+            )
+            self.assertIn(
+                f'Copy unique file: {self.temp_path}/source/large_fileB.txt'
+                f' to {self.temp_path}/backups/source/2026-02-22-123456/large_fileB.txt',
+                log_file_content,
+            )
+
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                assert_fs_tree_overview(
+                    root=self.backup_root / 'source',
+                    expected_overview="""
+                        path                               birthtime    type        nlink  size    CRC32
+                        2026-01-11-123456-backup.log       <mock>       file            1  <mock>  <mock>
+                        2026-01-11-123456-summary.txt      <mock>       file            1  <mock>  <mock>
+                        2026-01-11-123456/SHA256SUMS       <mock>       file            1  82      c3dd960b
+                        2026-01-11-123456/large_fileA.txt  12:00:00     hardlink        2  1001    a48f0e33
+                        2026-02-22-123456-backup.log       <mock>       file            1  <mock>  <mock>
+                        2026-02-22-123456-summary.txt      <mock>       file            1  <mock>  <mock>
+                        2026-02-22-123456/SHA256SUMS       <mock>       file            1  164     3130cbcb
+                        2026-02-22-123456/large_fileA.txt  12:00:00     hardlink        2  1001    a48f0e33
+                        2026-02-22-123456/large_fileB.txt  12:00:00     file            1  1001    42c06e4a
+                    """,
+                )
