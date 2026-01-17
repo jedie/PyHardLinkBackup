@@ -138,7 +138,7 @@ def backup_one_file(
                 backup_result.hardlinked_size += size
             else:
                 logger.info('Copy unique file: %s to %s', src_path, dst_path)
-                file_hash = copy_and_hash(src_path, dst_path)
+                shutil.copyfile(src_path, dst_path)
                 hash_db[file_hash] = dst_path
                 backup_result.copied_files += 1
                 backup_result.copied_size += size

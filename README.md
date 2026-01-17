@@ -217,6 +217,10 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.5.0...main)
+  * 2026-01-17 - Fix flaky test, because of terminal size
+  * 2026-01-17 - Bugfix: Don't hash new large files twice
+  * 2026-01-17 - Use compare also in backup tests
 * [v1.5.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.1...v1.5.0)
   * 2026-01-17 - NEW: Compare command to verify source tree with last backup
 * [v1.4.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.0...v1.4.1)
@@ -225,15 +229,15 @@ Overview of main changes:
   * 2026-01-16 - Create log file in backup and a summary.txt
   * 2026-01-16 - Run CI tests on macos, too.
   * 2026-01-16 - add dev cli command "scan-benchmark"
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.3.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.2.0...v1.3.0)
   * 2026-01-15 - Verify SHA256SUMS files in "rebuild" command, too.
   * 2026-01-15 - Code cleanup: use more generic names for and in BackupProgress
   * 2026-01-15 - Add tests for rebuild
   * 2026-01-15 - Add command to "rebuld" the size and hash filesystem database
   * 2026-01-15 - Add screenshots in the README
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v1.2.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.1.0...v1.2.0)
   * 2026-01-15 - Add error handling: Log exception but continue with the backup
   * 2026-01-15 - Check permission and hadlink support on destination path

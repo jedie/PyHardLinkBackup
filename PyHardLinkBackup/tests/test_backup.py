@@ -14,13 +14,13 @@ from bx_py_utils.test_utils.assertion import assert_text_equal
 from bx_py_utils.test_utils.datetime import parse_dt
 from bx_py_utils.test_utils.log_utils import NoLogs
 from bx_py_utils.test_utils.redirect import RedirectOut
-from cli_base.cli_tools.test_utils.base_testcases import OutputMustCapturedTestCaseMixin
 from freezegun import freeze_time
 from tabulate import tabulate
 
 from PyHardLinkBackup.backup import BackupResult, backup_tree
 from PyHardLinkBackup.constants import CHUNK_SIZE
 from PyHardLinkBackup.logging_setup import DEFAULT_CONSOLE_LOG_LEVEL, DEFAULT_LOG_FILE_LEVEL, LoggingManager
+from PyHardLinkBackup.tests.test_compare_backup import assert_compare_backup
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, iter_scandir_files
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
@@ -120,7 +120,7 @@ def assert_fs_tree_overview(root: Path, expected_overview: str):
 
 
 class BackupTreeTestCase(
-    OutputMustCapturedTestCaseMixin,
+    # TODO: OutputMustCapturedTestCaseMixin,
     unittest.TestCase,
 ):
     def test_happy_path(self):
@@ -255,6 +255,20 @@ class BackupTreeTestCase(
                 )
 
             #######################################################################################
+            # Compare the backup
+
+            assert_compare_backup(
+                test_case=self,
+                src_root=src_root,
+                backup_root=backup_root,
+                excludes=('.cache',),
+                excpected_last_timestamp='2026-01-01-123456',  # Freezed time, see above
+                excpected_total_file_count=7,
+                excpected_successful_file_count=7,
+                excpected_error_count=0,
+            )
+
+            #######################################################################################
             # Backup again with new added files:
 
             # New small file with different size and different content:
@@ -353,6 +367,20 @@ class BackupTreeTestCase(
                 )
 
             #######################################################################################
+            # Compare the backup
+
+            assert_compare_backup(
+                test_case=self,
+                src_root=src_root,
+                backup_root=backup_root,
+                excludes=('.cache',),
+                excpected_last_timestamp='2026-01-02-123456',  # Freezed time, see above
+                excpected_total_file_count=12,
+                excpected_successful_file_count=12,
+                excpected_error_count=0,
+            )
+
+            #######################################################################################
             # Don't create broken hardlinks!
 
             """DocWrite: README.md ## FileHashDatabase - Missing hardlink target file
@@ -422,7 +450,7 @@ class BackupTreeTestCase(
                     copied_size=1074,
                     copied_small_files=5,
                     copied_small_size=74,
-                    error_count=0
+                    error_count=0,
                 ),
             )
 
@@ -438,6 +466,20 @@ class BackupTreeTestCase(
                         e6/37/e6374ac11d9049… -> source/2026-01-01-123456/large_file1.bin
                     """,
                 )
+
+            #######################################################################################
+            # Compare the backup
+
+            assert_compare_backup(
+                test_case=self,
+                src_root=src_root,
+                backup_root=backup_root,
+                excludes=('.cache',),
+                excpected_last_timestamp='2026-01-03-123456',  # Freezed time, see above
+                excpected_total_file_count=12,
+                excpected_successful_file_count=12,
+                excpected_error_count=0,
+            )
 
     def test_symlink(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -558,6 +600,24 @@ class BackupTreeTestCase(
             with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
                 assert_hash_db_info(backup_root=backup_root, expected='')
 
+            #######################################################################################
+            # Compare the backup
+
+            assert_compare_backup(
+                test_case=self,
+                src_root=src_root,
+                backup_root=backup_root,
+                std_out_parts=(
+                    'Compare completed.',
+                    'broken_symlink',  # <<< the error we expect
+                ),
+                excludes=('.cache',),
+                excpected_last_timestamp='2026-01-01-123456',  # Freezed time, see above
+                excpected_total_file_count=3,
+                excpected_successful_file_count=3,
+                excpected_error_count=1,  # One broken symlink
+            )
+
     def test_error_handling(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir).resolve()
@@ -625,4 +685,22 @@ class BackupTreeTestCase(
                     copied_small_size=12,
                     error_count=1,
                 ),
+            )
+
+            #######################################################################################
+            # Compare the backup
+
+            assert_compare_backup(
+                test_case=self,
+                src_root=src_root,
+                backup_root=backup_root,
+                std_out_parts=(
+                    'Compare completed.',
+                    'file2.txt not found',  # <<< the error we expect
+                ),
+                excludes=('.cache',),
+                excpected_last_timestamp='2026-01-01-123456',  # Freezed time, see above
+                excpected_total_file_count=3,
+                excpected_successful_file_count=2,
+                excpected_error_count=0,
             )

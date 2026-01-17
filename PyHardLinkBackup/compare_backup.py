@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class CompareResult:
+    last_timestamp: str
     compare_dir: Path
     log_file: Path
     #
@@ -162,7 +163,7 @@ def compare_tree(
         size_db = FileSizeDatabase(phlb_conf_dir)
         hash_db = FileHashDatabase(backup_root, phlb_conf_dir)
 
-        compare_result = CompareResult(compare_dir=compare_dir, log_file=log_file)
+        compare_result = CompareResult(last_timestamp=last_timestamp, compare_dir=compare_dir, log_file=log_file)
 
         next_update = 0
         for entry in iter_scandir_files(src_root, excludes=excludes):
