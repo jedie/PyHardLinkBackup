@@ -23,7 +23,7 @@ from PyHardLinkBackup.tests.test_compare_backup import assert_compare_backup
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, iter_scandir_files
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
-from PyHardLinkBackup.utilities.tests.unittest_utilities import TemporaryDirectoryPath
+from PyHardLinkBackup.utilities.tests.unittest_utilities import CollectOpenFiles, TemporaryDirectoryPath
 
 
 class SortedIterScandirFiles:
@@ -684,67 +684,103 @@ class BackupTreeTestCase(
         )
 
     def test_large_file_handling(self):
-        with patch('PyHardLinkBackup.backup.CHUNK_SIZE', 1000):
-            (self.src_root / 'large_fileA.txt').write_bytes(b'A' * 1001)
+        (self.src_root / 'large_fileA.txt').write_bytes(b'A' * 1001)
 
+        with patch('PyHardLinkBackup.backup.CHUNK_SIZE', 1000), CollectOpenFiles(self.temp_path) as collector:
             redirected_out, result = self.create_backup(time_to_freeze='2026-01-11T12:34:56Z')
-            backup_dir = result.backup_dir
+        self.assertEqual(collector.opened_for_read, ['r backups/.phlb_test_link', 'rb source/large_fileA.txt'])
+        self.assertEqual(
+            collector.opened_for_write,
+            [
+                'w backups/.phlb_test',
+                'a backups/source/2026-01-11-123456-backup.log',
+                'wb backups/source/2026-01-11-123456/large_fileA.txt',
+                'w backups/.phlb/hash-lookup/23/d2/23d2ce40d26211a9ffe8096fd1f927f2abd094691839d24f88440f7c5168d500',
+                'a backups/source/2026-01-11-123456/SHA256SUMS',
+                'w backups/source/2026-01-11-123456-summary.txt',
+            ],
+        )
+        backup_dir = result.backup_dir
 
-            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
-                assert_fs_tree_overview(
-                    root=backup_dir,
-                    expected_overview="""
-                        path             birthtime    type      nlink    size  CRC32
-                        SHA256SUMS       <mock>       file          1      82  c3dd960b
-                        large_fileA.txt  12:00:00     file          1    1001  a48f0e33
-                    """,
-                )
-
-            self.assertEqual(
-                (backup_dir / 'SHA256SUMS').read_text(),
-                '23d2ce40d26211a9ffe8096fd1f927f2abd094691839d24f88440f7c5168d500  large_fileA.txt\n',
+        with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+            assert_fs_tree_overview(
+                root=backup_dir,
+                expected_overview="""
+                    path             birthtime    type      nlink    size  CRC32
+                    SHA256SUMS       <mock>       file          1      82  c3dd960b
+                    large_fileA.txt  12:00:00     file          1    1001  a48f0e33
+                """,
             )
 
-            # Same size, different content -> should be copied again:
-            (self.src_root / 'large_fileB.txt').write_bytes(b'B' * 1001)
+        self.assertEqual(
+            (backup_dir / 'SHA256SUMS').read_text(),
+            '23d2ce40d26211a9ffe8096fd1f927f2abd094691839d24f88440f7c5168d500  large_fileA.txt\n',
+        )
 
+        # Same size, different content -> should be copied again:
+        (self.src_root / 'large_fileB.txt').write_bytes(b'B' * 1001)
+
+        with patch('PyHardLinkBackup.backup.CHUNK_SIZE', 1000), CollectOpenFiles(self.temp_path) as collector:
             redirected_out, result = self.create_backup(time_to_freeze='2026-02-22T12:34:56Z')
-            backup_dir = result.backup_dir
+        self.assertEqual(
+            collector.opened_for_read,
+            [
+                'r backups/.phlb_test_link',
+                'rb source/large_fileA.txt',
+                'r backups/.phlb/hash-lookup/23/d2/23d2ce40d26211a9ffe8096fd1f927f2abd094691839d24f88440f7c5168d500',
+                'rb source/large_fileB.txt',
+                'r backups/.phlb/hash-lookup/2a/92/2a925556d3ec9e4258624a324cd9300a9a3d9c86dac6bbbb63071bdb7787afd2',
+                'rb source/large_fileB.txt',
+            ],
+        )
+        self.assertEqual(
+            collector.opened_for_write,
+            [
+                'w backups/.phlb_test',
+                'a backups/source/2026-02-22-123456-backup.log',
+                'a backups/source/2026-02-22-123456/SHA256SUMS',
+                'wb backups/source/2026-02-22-123456/large_fileB.txt',
+                'w backups/.phlb/hash-lookup/2a/92/2a925556d3ec9e4258624a324cd9300a9a3d9c86dac6bbbb63071bdb7787afd2',
+                'a backups/source/2026-02-22-123456/SHA256SUMS',
+                'w backups/source/2026-02-22-123456-summary.txt',
+            ],
+        )
+        backup_dir = result.backup_dir
 
-            self.assertEqual(
-                (backup_dir / 'large_fileA.txt').read_text()[:50],
-                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',  # ... AAA
-            )
-            self.assertEqual(
-                (backup_dir / 'large_fileB.txt').read_text()[:50],
-                'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',  # ... BBB
-            )
+        self.assertEqual(
+            (backup_dir / 'large_fileA.txt').read_text()[:50],
+            'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',  # ... AAA
+        )
+        self.assertEqual(
+            (backup_dir / 'large_fileB.txt').read_text()[:50],
+            'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',  # ... BBB
+        )
 
-            log_file_content = result.log_file.read_text()
-            self.assertIn(
-                f'Hardlink duplicate file: {self.temp_path}/backups/source/2026-02-22-123456/large_fileA.txt'
-                f' to {self.temp_path}/backups/source/2026-01-11-123456/large_fileA.txt',
-                log_file_content,
-            )
-            self.assertIn(
-                f'Copy unique file: {self.temp_path}/source/large_fileB.txt'
-                f' to {self.temp_path}/backups/source/2026-02-22-123456/large_fileB.txt',
-                log_file_content,
-            )
+        log_file_content = result.log_file.read_text()
+        self.assertIn(
+            f'Hardlink duplicate file: {self.temp_path}/backups/source/2026-02-22-123456/large_fileA.txt'
+            f' to {self.temp_path}/backups/source/2026-01-11-123456/large_fileA.txt',
+            log_file_content,
+        )
+        self.assertIn(
+            f'Copy unique file: {self.temp_path}/source/large_fileB.txt'
+            f' to {self.temp_path}/backups/source/2026-02-22-123456/large_fileB.txt',
+            log_file_content,
+        )
 
-            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
-                assert_fs_tree_overview(
-                    root=self.backup_root / 'source',
-                    expected_overview="""
-                        path                               birthtime    type        nlink  size    CRC32
-                        2026-01-11-123456-backup.log       <mock>       file            1  <mock>  <mock>
-                        2026-01-11-123456-summary.txt      <mock>       file            1  <mock>  <mock>
-                        2026-01-11-123456/SHA256SUMS       <mock>       file            1  82      c3dd960b
-                        2026-01-11-123456/large_fileA.txt  12:00:00     hardlink        2  1001    a48f0e33
-                        2026-02-22-123456-backup.log       <mock>       file            1  <mock>  <mock>
-                        2026-02-22-123456-summary.txt      <mock>       file            1  <mock>  <mock>
-                        2026-02-22-123456/SHA256SUMS       <mock>       file            1  164     3130cbcb
-                        2026-02-22-123456/large_fileA.txt  12:00:00     hardlink        2  1001    a48f0e33
-                        2026-02-22-123456/large_fileB.txt  12:00:00     file            1  1001    42c06e4a
-                    """,
-                )
+        with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+            assert_fs_tree_overview(
+                root=self.backup_root / 'source',
+                expected_overview="""
+                    path                               birthtime    type        nlink  size    CRC32
+                    2026-01-11-123456-backup.log       <mock>       file            1  <mock>  <mock>
+                    2026-01-11-123456-summary.txt      <mock>       file            1  <mock>  <mock>
+                    2026-01-11-123456/SHA256SUMS       <mock>       file            1  82      c3dd960b
+                    2026-01-11-123456/large_fileA.txt  12:00:00     hardlink        2  1001    a48f0e33
+                    2026-02-22-123456-backup.log       <mock>       file            1  <mock>  <mock>
+                    2026-02-22-123456-summary.txt      <mock>       file            1  <mock>  <mock>
+                    2026-02-22-123456/SHA256SUMS       <mock>       file            1  164     3130cbcb
+                    2026-02-22-123456/large_fileA.txt  12:00:00     hardlink        2  1001    a48f0e33
+                    2026-02-22-123456/large_fileB.txt  12:00:00     file            1  1001    42c06e4a
+                """,
+            )

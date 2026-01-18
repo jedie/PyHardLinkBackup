@@ -261,6 +261,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...main)
+  * 2026-01-17 - Expand tests: Check file open calls
   * 2026-01-17 - expand tests
   * 2026-01-17 - simplify tests
   * 2026-01-17 - Warn if broken symlink found
