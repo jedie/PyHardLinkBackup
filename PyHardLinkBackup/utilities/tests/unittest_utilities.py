@@ -20,7 +20,30 @@ class TemporaryDirectoryPath(tempfile.TemporaryDirectory):
         return super().__exit__(exc_type, exc_val, exc_tb)
 
 
+class PyHardLinkBackupTestCaseMixin:
+    def setUp(self):
+        super().setUp()
+        self.temp_path_cm = TemporaryDirectoryPath()
+        self.temp_path = self.temp_path_cm.__enter__()
+
+        self.src_root = self.temp_path / 'source'
+        self.backup_root = self.temp_path / 'backups'
+
+        self.src_root.mkdir()
+        self.backup_root.mkdir()
+
+    def tearDown(self):
+        super().tearDown()
+        self.temp_path_cm.__exit__(None, None, None)
+
+
 class CollectOpenFiles(MassContextManager):
+    """
+    Context manager to collect opened files for read and write within a given root directory.
+    Raises an AssertionError if the same file is opened multiple times for read or write.
+
+    Works only for standard open() and pathlib.Path.open().
+    """
     def __init__(self, root: Path):
         self.root = root
 
@@ -37,14 +60,14 @@ class CollectOpenFiles(MassContextManager):
 
         if 'r' in mode and '+' not in mode:
             if file in self.opened_for_read:
-                raise RuntimeError(f'File {rel_path} already opened for read')
+                raise AssertionError(f'File {rel_path} already opened for read')
             self.opened_for_read.append(f'{mode} {rel_path}')
         elif any(m in mode for m in 'wax+'):
             if file in self.opened_for_write:
-                raise RuntimeError(f'File {rel_path} already opened for write')
+                raise AssertionError(f'File {rel_path} already opened for write')
             self.opened_for_write.append(f'{mode} {rel_path}')
         else:
-            raise RuntimeError(f'Unsupported file open {mode=}')
+            raise NotImplementedError(f'Unsupported file open {mode=}')
 
         return self.origin_open(file, mode, *args, **kwargs)
 

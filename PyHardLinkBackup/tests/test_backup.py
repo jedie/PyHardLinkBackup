@@ -23,7 +23,10 @@ from PyHardLinkBackup.tests.test_compare_backup import assert_compare_backup
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, iter_scandir_files
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
-from PyHardLinkBackup.utilities.tests.unittest_utilities import CollectOpenFiles, TemporaryDirectoryPath
+from PyHardLinkBackup.utilities.tests.unittest_utilities import (
+    CollectOpenFiles,
+    PyHardLinkBackupTestCaseMixin,
+)
 
 
 class SortedIterScandirFiles:
@@ -124,20 +127,10 @@ def assert_fs_tree_overview(root: Path, expected_overview: str):
 
 
 class BackupTreeTestCase(
+    PyHardLinkBackupTestCaseMixin,
     # TODO: OutputMustCapturedTestCaseMixin,
     unittest.TestCase,
 ):
-    def setUp(self):
-        super().setUp()
-        self.temp_path_cm = TemporaryDirectoryPath()
-        self.temp_path = self.temp_path_cm.__enter__()
-
-        self.src_root = self.temp_path / 'source'
-        self.backup_root = self.temp_path / 'backups'
-
-        self.src_root.mkdir()
-        self.backup_root.mkdir()
-
     def create_backup(
         self,
         *,
@@ -164,10 +157,6 @@ class BackupTreeTestCase(
             )
 
         return redirected_out, result
-
-    def tearDown(self):
-        super().tearDown()
-        self.temp_path_cm.__exit__(None, None, None)
 
     def test_happy_path(self):
         file1_path = self.src_root / 'file2.txt'
@@ -656,9 +645,27 @@ class BackupTreeTestCase(
         (self.src_root / 'SHA256SUMS').write_text('dummy hash content')
         (self.src_root / 'file.txt').write_text('normal file')
 
-        redirected_out, result = self.create_backup(
-            time_to_freeze='2026-01-01T12:34:56Z',
-            log_file_level='debug',  # Skip SHA256SUMS is logged at DEBUG level
+        with CollectOpenFiles(self.temp_path) as collector:
+            redirected_out, result = self.create_backup(
+                time_to_freeze='2026-01-01T12:34:56Z',
+                log_file_level='debug',  # Skip SHA256SUMS is logged at DEBUG level
+            )
+        self.assertEqual(
+            collector.opened_for_read,
+            [
+                'r backups/.phlb_test_link',
+                'rb source/file.txt',
+            ],
+        )
+        self.assertEqual(
+            collector.opened_for_write,
+            [
+                'w backups/.phlb_test',
+                'a backups/source/2026-01-01-123456-backup.log',
+                'wb backups/source/2026-01-01-123456/file.txt',
+                'a backups/source/2026-01-01-123456/SHA256SUMS',
+                'w backups/source/2026-01-01-123456-summary.txt',
+            ],
         )
         backup_dir = result.backup_dir
 
@@ -688,7 +695,13 @@ class BackupTreeTestCase(
 
         with patch('PyHardLinkBackup.backup.CHUNK_SIZE', 1000), CollectOpenFiles(self.temp_path) as collector:
             redirected_out, result = self.create_backup(time_to_freeze='2026-01-11T12:34:56Z')
-        self.assertEqual(collector.opened_for_read, ['r backups/.phlb_test_link', 'rb source/large_fileA.txt'])
+        self.assertEqual(
+            collector.opened_for_read,
+            [
+                'r backups/.phlb_test_link',
+                'rb source/large_fileA.txt',
+            ],
+        )
         self.assertEqual(
             collector.opened_for_write,
             [
