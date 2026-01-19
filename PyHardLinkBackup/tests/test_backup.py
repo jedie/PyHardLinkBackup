@@ -22,6 +22,7 @@ from PyHardLinkBackup.logging_setup import DEFAULT_LOG_FILE_LEVEL, LoggingManage
 from PyHardLinkBackup.tests.test_compare_backup import assert_compare_backup
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import copy_and_hash, iter_scandir_files
+from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress, NoopProgress
 from PyHardLinkBackup.utilities.tests.test_file_hash_database import assert_hash_db_info
 from PyHardLinkBackup.utilities.tests.unittest_utilities import (
     CollectOpenFiles,
@@ -583,11 +584,11 @@ class BackupTreeTestCase(
         (self.src_root / 'file2.txt').write_text('File 2')
         (self.src_root / 'file3.txt').write_text('File 3')
 
-        def mocked_copy_and_hash(src: Path, dst: Path):
+        def mocked_copy_and_hash(src: Path, dst: Path, progress: DisplayFileTreeProgress, total_size: int):
             if src.name == 'file2.txt':
                 raise PermissionError('Bam!')
             else:
-                return copy_and_hash(src, dst)
+                return copy_and_hash(src, dst, NoopProgress(), total_size)
 
         with patch('PyHardLinkBackup.backup.copy_and_hash', mocked_copy_and_hash):
             redirected_out, result = self.create_backup(time_to_freeze='2026-01-01T12:34:56Z')

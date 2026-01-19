@@ -59,6 +59,7 @@ def backup_one_file(
     hash_db: FileHashDatabase,
     backup_dir: Path,
     backup_result: BackupResult,
+    progress: DisplayFileTreeProgress,
 ) -> None:
     backup_result.backup_count += 1
     src_path = Path(entry.path)
@@ -100,7 +101,7 @@ def backup_one_file(
     if size < size_db.MIN_SIZE:
         # Small file -> always copy without deduplication
         logger.info('Copy small file: %s to %s', src_path, dst_path)
-        file_hash = copy_and_hash(src_path, dst_path)
+        file_hash = copy_and_hash(src_path, dst_path, progress=progress, total_size=size)
         backup_result.copied_files += 1
         backup_result.copied_size += size
         backup_result.copied_small_files += 1
@@ -129,7 +130,7 @@ def backup_one_file(
 
         else:
             # Large file
-            file_hash = hash_file(src_path)  # Calculate hash without copying
+            file_hash = hash_file(src_path, progress=progress, total_size=size)  # Calculate hash without copying
 
             if existing_path := hash_db.get(file_hash):
                 logger.info('Hardlink duplicate file: %s to %s', dst_path, existing_path)
@@ -147,7 +148,7 @@ def backup_one_file(
         shutil.copystat(src_path, dst_path)
     else:
         # A file with this size not backuped before -> Can't be duplicate -> copy and hash
-        file_hash = copy_and_hash(src_path, dst_path)
+        file_hash = copy_and_hash(src_path, dst_path, progress=progress, total_size=size)
         size_db.add(size)
         hash_db[file_hash] = dst_path
         backup_result.copied_files += 1
@@ -205,7 +206,11 @@ def backup_tree(
 
     print(f'\nBackup to {backup_dir}...\n')
 
-    with DisplayFileTreeProgress(src_file_count, src_total_size) as progress:
+    with DisplayFileTreeProgress(
+        description=f'Backup {src_root}...',
+        total_file_count=src_file_count,
+        total_size=src_total_size,
+    ) as progress:
         # "Databases" for deduplication
         size_db = FileSizeDatabase(phlb_conf_dir)
         hash_db = FileHashDatabase(backup_root, phlb_conf_dir)
@@ -222,6 +227,7 @@ def backup_tree(
                     hash_db=hash_db,
                     backup_dir=backup_dir,
                     backup_result=backup_result,
+                    progress=progress,
                 )
             except Exception as err:
                 logger.exception(f'Backup {entry.path} {err.__class__.__name__}: {err}')

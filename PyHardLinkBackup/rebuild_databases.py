@@ -41,6 +41,7 @@ def rebuild_one_file(
     size_db: FileSizeDatabase,
     hash_db: FileHashDatabase,
     rebuild_result: RebuildResult,
+    progress: DisplayFileTreeProgress,
 ):
     file_path = Path(entry.path)
 
@@ -62,7 +63,7 @@ def rebuild_one_file(
         # Small files will never deduplicate, skip them
         return
 
-    file_hash = hash_file(file_path)
+    file_hash = hash_file(file_path, progress=progress, total_size=size)
 
     if size not in size_db:
         size_db.add(size)
@@ -121,7 +122,11 @@ def rebuild(
                 file_count -= 1
                 total_size -= file.stat().st_size
 
-    with DisplayFileTreeProgress(file_count, total_size) as progress:
+    with DisplayFileTreeProgress(
+        description=f'Rebuild {backup_root}...',
+        total_file_count=file_count,
+        total_size=total_size,
+    ) as progress:
         # "Databases" for deduplication
         size_db = FileSizeDatabase(phlb_conf_dir)
         hash_db = FileHashDatabase(backup_root, phlb_conf_dir)
@@ -137,6 +142,7 @@ def rebuild(
                     size_db=size_db,
                     hash_db=hash_db,
                     rebuild_result=rebuild_result,
+                    progress=progress,
                 )
             except Exception as err:
                 logger.exception(f'Backup {entry.path} {err.__class__.__name__}: {err}')
@@ -145,12 +151,12 @@ def rebuild(
                 now = time.monotonic()
                 if now >= next_update:
                     progress.update(
-                        completed_file_count=rebuild_result.process_count, completed_size=rebuild_result.process_size
+                        completed_file_count=rebuild_result.process_count, advance_size=rebuild_result.process_size
                     )
                     next_update = now + 0.5
 
         # Finalize progress indicator values:
-        progress.update(completed_file_count=rebuild_result.process_count, completed_size=rebuild_result.process_size)
+        progress.update(completed_file_count=rebuild_result.process_count, advance_size=rebuild_result.process_size)
 
     summary_file = backup_root / f'{timestamp}-rebuild-summary.txt'
     with TeeStdoutContext(summary_file):

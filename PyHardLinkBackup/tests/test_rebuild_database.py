@@ -110,7 +110,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
                     'source-name/2026-01-15-181709',
                     'source-name/2026-01-15-181709/SHA256SUMS',
                     'source-name/2026-01-15-181709/file1.txt',
-                ],
+                ], redirected_out.stdout
             )
             self.assertEqual(
                 sorted_rglob_files(backup_root),
