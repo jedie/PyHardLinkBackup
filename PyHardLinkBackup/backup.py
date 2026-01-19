@@ -14,6 +14,7 @@ from PyHardLinkBackup.logging_setup import LoggingManager
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase
 from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import (
+    RemoveFileOnError,
     copy_and_hash,
     hash_file,
     humanized_fs_scan,
@@ -96,65 +97,66 @@ def backup_one_file(
     # Process regular files
     assert entry.is_file(follow_symlinks=False), f'Unexpected non-file: {src_path}'
 
-    # Deduplication logic
+    with RemoveFileOnError(dst_path):
+        # Deduplication logic
 
-    if size < size_db.MIN_SIZE:
-        # Small file -> always copy without deduplication
-        logger.info('Copy small file: %s to %s', src_path, dst_path)
-        file_hash = copy_and_hash(src_path, dst_path, progress=progress, total_size=size)
-        backup_result.copied_files += 1
-        backup_result.copied_size += size
-        backup_result.copied_small_files += 1
-        backup_result.copied_small_size += size
-        store_hash(dst_path, file_hash)
-        return
+        if size < size_db.MIN_SIZE:
+            # Small file -> always copy without deduplication
+            logger.info('Copy small file: %s to %s', src_path, dst_path)
+            file_hash = copy_and_hash(src_path, dst_path, progress=progress, total_size=size)
+            backup_result.copied_files += 1
+            backup_result.copied_size += size
+            backup_result.copied_small_files += 1
+            backup_result.copied_small_size += size
+            store_hash(dst_path, file_hash)
+            return
 
-    if size in size_db:
-        logger.debug('File with size %iBytes found before -> hash: %s', size, src_path)
+        if size in size_db:
+            logger.debug('File with size %iBytes found before -> hash: %s', size, src_path)
 
-        if size <= CHUNK_SIZE:
-            # File can be read complete into memory
-            logger.debug('File size %iBytes <= CHUNK_SIZE (%iBytes) -> read complete into memory', size, CHUNK_SIZE)
-            file_content, file_hash = read_and_hash_file(src_path)
-            if existing_path := hash_db.get(file_hash):
-                logger.info('Hardlink duplicate file: %s to %s', dst_path, existing_path)
-                os.link(existing_path, dst_path)
-                backup_result.hardlinked_files += 1
-                backup_result.hardlinked_size += size
+            if size <= CHUNK_SIZE:
+                # File can be read complete into memory
+                logger.debug('File size %iBytes <= CHUNK_SIZE (%iBytes) -> read complete into memory', size, CHUNK_SIZE)
+                file_content, file_hash = read_and_hash_file(src_path)
+                if existing_path := hash_db.get(file_hash):
+                    logger.info('Hardlink duplicate file: %s to %s', dst_path, existing_path)
+                    os.link(existing_path, dst_path)
+                    backup_result.hardlinked_files += 1
+                    backup_result.hardlinked_size += size
+                else:
+                    logger.info('Store unique file: %s to %s', src_path, dst_path)
+                    dst_path.write_bytes(file_content)
+                    hash_db[file_hash] = dst_path
+                    backup_result.copied_files += 1
+                    backup_result.copied_size += size
+
             else:
-                logger.info('Store unique file: %s to %s', src_path, dst_path)
-                dst_path.write_bytes(file_content)
-                hash_db[file_hash] = dst_path
-                backup_result.copied_files += 1
-                backup_result.copied_size += size
+                # Large file
+                file_hash = hash_file(src_path, progress=progress, total_size=size)  # Calculate hash without copying
 
+                if existing_path := hash_db.get(file_hash):
+                    logger.info('Hardlink duplicate file: %s to %s', dst_path, existing_path)
+                    os.link(existing_path, dst_path)
+                    backup_result.hardlinked_files += 1
+                    backup_result.hardlinked_size += size
+                else:
+                    logger.info('Copy unique file: %s to %s', src_path, dst_path)
+                    shutil.copyfile(src_path, dst_path)
+                    hash_db[file_hash] = dst_path
+                    backup_result.copied_files += 1
+                    backup_result.copied_size += size
+
+            # Keep original file metadata (permission bits, time stamps, and flags)
+            shutil.copystat(src_path, dst_path)
         else:
-            # Large file
-            file_hash = hash_file(src_path, progress=progress, total_size=size)  # Calculate hash without copying
+            # A file with this size not backuped before -> Can't be duplicate -> copy and hash
+            file_hash = copy_and_hash(src_path, dst_path, progress=progress, total_size=size)
+            size_db.add(size)
+            hash_db[file_hash] = dst_path
+            backup_result.copied_files += 1
+            backup_result.copied_size += size
 
-            if existing_path := hash_db.get(file_hash):
-                logger.info('Hardlink duplicate file: %s to %s', dst_path, existing_path)
-                os.link(existing_path, dst_path)
-                backup_result.hardlinked_files += 1
-                backup_result.hardlinked_size += size
-            else:
-                logger.info('Copy unique file: %s to %s', src_path, dst_path)
-                shutil.copyfile(src_path, dst_path)
-                hash_db[file_hash] = dst_path
-                backup_result.copied_files += 1
-                backup_result.copied_size += size
-
-        # Keep original file metadata (permission bits, time stamps, and flags)
-        shutil.copystat(src_path, dst_path)
-    else:
-        # A file with this size not backuped before -> Can't be duplicate -> copy and hash
-        file_hash = copy_and_hash(src_path, dst_path, progress=progress, total_size=size)
-        size_db.add(size)
-        hash_db[file_hash] = dst_path
-        backup_result.copied_files += 1
-        backup_result.copied_size += size
-
-    store_hash(dst_path, file_hash)
+        store_hash(dst_path, file_hash)
 
 
 def backup_tree(
