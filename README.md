@@ -66,16 +66,24 @@ Backup the source directory to the destination directory using hard links for de
 [comment]: <> (✂✂✂ auto generated backup help end ✂✂✂)
 
 
+## Screenshots
+### Screenshot - running a backup
 
-Running a backup looks like:
+----
 
-![2026-01-15-phlb1.png](https://raw.githubusercontent.com/jedie/jedie.github.io/main/screenshots/PyHardLinkBackup/2026-01-15-phlb1.png "2026-01-15-phlb1.png")
+![2026-01-19_phlb1.png](https://raw.githubusercontent.com/jedie/jedie.github.io/main/screenshots/PyHardLinkBackup/2026-01-19_phlb1.png "2026-01-19_phlb1.png")
 
+----
 
+### Screenshot - backup finished
 
-If it's finished it display a summary:
+----
 
-![2026-01-15-phlb2.png](https://raw.githubusercontent.com/jedie/jedie.github.io/main/screenshots/PyHardLinkBackup/2026-01-15-phlb2.png "2026-01-15-phlb2.png")
+![2026-01-19_phlb2.png](https://raw.githubusercontent.com/jedie/jedie.github.io/main/screenshots/PyHardLinkBackup/2026-01-19_phlb2.png "2026-01-19_phlb2.png")
+
+----
+
+(more screenshots here: [jedie.github.io/tree/main/screenshots/PyHardLinkBackup](https://github.com/jedie/jedie.github.io/tree/main/screenshots/PyHardLinkBackup))
 
 
 ### update
@@ -260,7 +268,7 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...main)
+* [v1.7.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...v1.7.0)
   * 2026-01-19 - Speedup and enhance unittest
   * 2026-01-17 - Remove unfinished copied files on errors
   * 2026-01-17 - Display/update progress on very lage files #75 and enhance all bars
