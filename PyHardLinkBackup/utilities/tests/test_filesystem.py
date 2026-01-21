@@ -69,6 +69,9 @@ class TestHashFile(BaseTestCase):
             subdir.mkdir()
             (subdir / 'file3.txt').write_bytes(b'content3')
 
+            symlink_dir = temp_path / 'symlink_dir2subdir'
+            symlink_dir.symlink_to(subdir, target_is_directory=True)
+
             # Add a symlink to file1.txt
             (temp_path / 'symlink_to_file1.txt').symlink_to(temp_path / 'file1.txt')
 
@@ -95,6 +98,7 @@ class TestHashFile(BaseTestCase):
                 'file2.txt',
                 'hardlink_to_file2.txt',
                 'subdir/file3.txt',
+                'symlink_dir2subdir',
                 'symlink_to_file1.txt',
             ],
         )

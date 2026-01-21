@@ -74,3 +74,8 @@ sha256sum -c SHA256SUMS
 Symlinks are copied as symlinks in the backup.
 
 Symlinks are not stored in our FileHashDatabase, because they are not considered for hardlinking.
+
+A directory symlink will copy into the backup and points to the original subdir.
+
+If the directory symlink is broken, we still create the symlink in the backup,
+pointing to the original target. But in this case it's a file symlink.

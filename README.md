@@ -20,6 +20,8 @@ Some aspects:
 Limitations:
 
 - Requires a filesystem that supports hardlinks (e.g., btrfs, zfs, ext4, APFS, NTFS with limitations).
+- Empty directories are not backed up.
+
 
 ## installation
 
@@ -268,6 +270,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v1.7.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.2...v1.7.3)
+  * 2026-01-21 - Handle directory symlinks correct
 * [v1.7.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...v1.7.2)
   * 2026-01-21 - Display "Remaining time" to files and sizes, too.
 * [v1.7.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.0...v1.7.1)
@@ -281,13 +285,13 @@ Overview of main changes:
   * 2026-01-17 - simplify tests
   * 2026-01-17 - Warn if broken symlink found
   * 2026-01-17 - Update README
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.6.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.5.0...v1.6.0)
   * 2026-01-17 - Fix flaky test, because of terminal size
   * 2026-01-17 - Bugfix: Don't hash new large files twice
   * 2026-01-17 - Use compare also in backup tests
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v1.5.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.1...v1.5.0)
   * 2026-01-17 - NEW: Compare command to verify source tree with last backup
 * [v1.4.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.0...v1.4.1)

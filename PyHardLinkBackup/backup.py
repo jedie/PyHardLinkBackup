@@ -52,6 +52,16 @@ class BackupResult:
     error_count: int = 0
 
 
+def copy_symlink(src_path: Path, dst_path: Path) -> None:
+    """
+    Copy file and directory symlinks.
+    """
+    target_is_directory = src_path.is_dir()
+    logger.debug('Copy symlink: %s to %s (is directory: %r)', src_path, dst_path, target_is_directory)
+    target = os.readlink(src_path)
+    dst_path.symlink_to(target, target_is_directory=target_is_directory)
+
+
 def backup_one_file(
     *,
     src_root: Path,
@@ -74,8 +84,7 @@ def backup_one_file(
         size = entry.stat().st_size
     except FileNotFoundError as err:
         logger.warning(f'Broken symlink {src_path}: {err.__class__.__name__}: {err}')
-        target = os.readlink(src_path)
-        dst_path.symlink_to(target)
+        copy_symlink(src_path, dst_path)
         backup_result.symlink_files += 1
         return
 
@@ -88,9 +97,7 @@ def backup_one_file(
         return
 
     if entry.is_symlink():
-        logger.debug('Copy symlink: %s to %s', src_path, dst_path)
-        target = os.readlink(src_path)
-        dst_path.symlink_to(target)
+        copy_symlink(src_path, dst_path)
         backup_result.symlink_files += 1
         return
 

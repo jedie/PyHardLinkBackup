@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import shutil
 import textwrap
 import unittest
 import zlib
@@ -68,33 +69,40 @@ def _fs_tree_overview(root: Path) -> str:
     lines = []
     for entry in iter_scandir_files(root, excludes=set()):
         file_path = Path(entry.path)
+        crc32 = '-'
         try:
             file_stat = entry.stat()
         except FileNotFoundError:
-            crc32 = '-'
             nlink = '-'
             size = '-'
             birthtime = '-'
         else:
-            is_log_file = entry.name.endswith('-backup.log') or entry.name.endswith('-summary.txt')
-            if is_log_file:
-                # flaky content!
-                crc32 = '<mock>'
-                size = '<mock>'
-            else:
-                crc32 = zlib.crc32(file_path.read_bytes())
-                crc32 = f'{crc32:08x}'
-                size = file_stat.st_size
-
             nlink = file_stat.st_nlink
+            size = file_stat.st_size
+            birthtime = getattr(file_stat, 'st_birthtime', file_stat.st_mtime)
+            birthtime = datetime.datetime.fromtimestamp(birthtime).strftime('%H:%M:%S')
+            if entry.is_file():
+                is_log_file = entry.name.endswith('-backup.log') or entry.name.endswith('-summary.txt')
+                if is_log_file:
+                    # flaky content!
+                    crc32 = '<mock>'
+                    size = '<mock>'
+                else:
+                    crc32 = zlib.crc32(file_path.read_bytes())
+                    crc32 = f'{crc32:08x}'
 
-            if entry.name == 'SHA256SUMS' or is_log_file:
-                birthtime = '<mock>'
+                if entry.name == 'SHA256SUMS' or is_log_file:
+                    birthtime = '<mock>'
+
+        if file_path.is_dir():
+            if entry.is_symlink():
+                file_type = 'dir-symlink'
+                size = '-'
+                # directories have different nlink values on different OSes:
+                nlink = '<mock>'
             else:
-                birthtime = getattr(file_stat, 'st_birthtime', file_stat.st_mtime)
-                birthtime = datetime.datetime.fromtimestamp(birthtime).strftime('%H:%M:%S')
-
-        if entry.is_symlink():
+                raise RuntimeError(f'Found directory in file scan: {file_path}')
+        elif entry.is_symlink():
             file_type = 'symlink'
         elif nlink > 1:
             file_type = 'hardlink'
@@ -672,7 +680,7 @@ class BackupTreeTestCase(
             excpected_last_timestamp='2026-01-01-123456',  # Freezed time, see above
             excpected_total_file_count=3,
             excpected_successful_file_count=3,
-            excpected_error_count=1,  # One broken symlink
+            excpected_error_count=0,
         )
 
     def test_error_handling(self):
@@ -933,3 +941,173 @@ class BackupTreeTestCase(
                     2026-02-22-123456/large_fileB.txt  12:00:00     file            1  1001    42c06e4a
                 """,
             )
+
+    def test_symlinked_directories(self):
+        (self.src_root / 'root_file.txt').write_text('root file')
+        sub_dir = self.src_root / 'subdir'
+        sub_dir.mkdir()
+        (sub_dir / 'file_in_subdir.txt').write_text('subdir file')
+
+        symlinked_subdir = self.src_root / 'symlinked_subdir'
+        symlinked_subdir.symlink_to(sub_dir, target_is_directory=True)
+
+        with CollectOpenFiles(self.temp_path) as collector:
+            redirected_out, result = self.create_backup(
+                time_to_freeze='2026-01-01T12:34:56Z',
+                log_file_level='debug',
+            )
+        backup_dir = result.backup_dir
+
+        """DocWrite: README.md ## backup implementation - Symlinks
+        A directory symlink will copy into the backup and points to the original subdir."""
+        dir_symlink = backup_dir / 'symlinked_subdir'
+        self.assertEqual(dir_symlink.readlink(), self.src_root / 'subdir')
+        self.assertIs(dir_symlink.is_symlink(), True)
+        self.assertIs(dir_symlink.is_dir(), True)
+
+        self.assertIn(
+            f'Copy symlink: {self.src_root}/symlinked_subdir to {backup_dir}/symlinked_subdir (is directory: True)\n',
+            result.log_file.read_text(),
+        )
+
+        with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+            assert_fs_tree_overview(
+                root=backup_dir,
+                expected_overview="""
+                    path                       birthtime    type         nlink    size    CRC32
+                    SHA256SUMS                 <mock>       file         1        80      b60fc460
+                    root_file.txt              12:00:00     file         1        9       b0c0f839
+                    subdir/SHA256SUMS          <mock>       file         1        85      df6b59ff
+                    subdir/file_in_subdir.txt  12:00:00     file         1        11      0ecdaf55
+                    symlinked_subdir           12:00:00     dir-symlink  <mock>   -       -
+                """,
+            )
+
+        self.assertEqual(
+            (backup_dir / 'SHA256SUMS').read_text(),
+            # No entry for directory symlink:
+            '3d11afb68c4201f4c42f50009ad7cb3215268c5e17a7e87ac54cf1e5a703635d  root_file.txt\n',
+        )
+
+        self.assertEqual(
+            collector.opened_for_read,
+            [
+                'r backups/.phlb_test_link',
+                'rb source/subdir/file_in_subdir.txt',
+                'rb source/root_file.txt',
+            ],
+        )
+        self.assertEqual(
+            collector.opened_for_write,
+            [
+                'w backups/.phlb_test',
+                'a backups/source/2026-01-01-123456-backup.log',
+                'wb backups/source/2026-01-01-123456/subdir/file_in_subdir.txt',
+                'a backups/source/2026-01-01-123456/subdir/SHA256SUMS',
+                'wb backups/source/2026-01-01-123456/root_file.txt',
+                'a backups/source/2026-01-01-123456/SHA256SUMS',
+                'w backups/source/2026-01-01-123456-summary.txt',
+            ],
+        )
+
+        #######################################################################################
+        # Compare the backup
+
+        assert_compare_backup(
+            test_case=self,
+            src_root=self.src_root,
+            backup_root=self.backup_root,
+            std_out_parts=('Compare completed.',),
+            excludes=('.cache',),
+            excpected_last_timestamp='2026-01-01-123456',  # Freezed time, see above
+            excpected_total_file_count=2,
+            excpected_successful_file_count=2,
+            excpected_error_count=0,
+        )
+
+        #######################################################################################
+        # Break the symlinked directory:
+
+        self.assertEqual(symlinked_subdir.readlink(), sub_dir)
+        self.assertIs(symlinked_subdir.exists(follow_symlinks=True), True)
+        self.assertIs(symlinked_subdir.exists(follow_symlinks=False), True)
+
+        shutil.rmtree(sub_dir)
+
+        self.assertEqual(symlinked_subdir.readlink(), sub_dir)
+        self.assertIs(symlinked_subdir.exists(follow_symlinks=True), False)  # <<< broken now!
+        self.assertIs(symlinked_subdir.exists(follow_symlinks=False), True)
+
+        #######################################################################################
+        # Backup again:
+
+        with CollectOpenFiles(self.temp_path) as collector:
+            redirected_out, result = self.create_backup(
+                time_to_freeze='2026-01-23T12:34:56Z',
+                log_file_level='debug',
+            )
+        backup_dir = result.backup_dir
+
+        # It's still a directory symlink in the backup and points to the original subdir:
+        dir_symlink = backup_dir / 'symlinked_subdir'
+        self.assertEqual(dir_symlink.readlink(), self.src_root / 'subdir')
+        self.assertIs(dir_symlink.is_symlink(), True)
+
+        """DocWrite: README.md ## backup implementation - Symlinks
+        If the directory symlink is broken, we still create the symlink in the backup,
+        pointing to the original target. But in this case it's a file symlink."""
+        self.assertIs(dir_symlink.is_dir(), False)
+        self.assertIn(
+            f'Copy symlink: {self.src_root}/symlinked_subdir to {backup_dir}/symlinked_subdir (is directory: False)\n',
+            result.log_file.read_text(),
+        )
+
+        with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+            assert_fs_tree_overview(
+                root=backup_dir,
+                expected_overview="""
+                    path              birthtime    type     nlink    size    CRC32
+                    SHA256SUMS        <mock>       file     1        80      b60fc460
+                    root_file.txt     12:00:00     file     1        9       b0c0f839
+                    symlinked_subdir  -            symlink  -        -       -
+                """,
+            )
+
+        self.assertEqual(
+            (backup_dir / 'SHA256SUMS').read_text(),
+            # No entry for directory symlink:
+            '3d11afb68c4201f4c42f50009ad7cb3215268c5e17a7e87ac54cf1e5a703635d  root_file.txt\n',
+        )
+
+        self.assertEqual(
+            collector.opened_for_read,
+            ['r backups/.phlb_test_link', 'rb source/root_file.txt'],
+        )
+        self.assertEqual(
+            collector.opened_for_write,
+            [
+                'w backups/.phlb_test',
+                'a backups/source/2026-01-23-123456-backup.log',
+                'wb backups/source/2026-01-23-123456/root_file.txt',
+                'a backups/source/2026-01-23-123456/SHA256SUMS',
+                'w backups/source/2026-01-23-123456-summary.txt',
+            ],
+        )
+
+        #######################################################################################
+        # Compare the backup
+
+        assert_compare_backup(
+            test_case=self,
+            src_root=self.src_root,
+            backup_root=self.backup_root,
+            std_out_parts=(
+                'Compare completed.',
+                f'Broken symlink {self.src_root}/symlinked_subdir',
+            ),
+            excludes=('.cache',),
+            excpected_last_timestamp='2026-01-23-123456',  # Freezed time, see above
+            excpected_total_file_count=1,
+            excpected_successful_file_count=1,
+            excpected_error_count=0,
+        )

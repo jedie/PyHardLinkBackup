@@ -90,11 +90,14 @@ def read_and_hash_file(path: Path) -> tuple[bytes, str]:
 def iter_scandir_files(path: Path, excludes: set[str]) -> Iterable[os.DirEntry]:
     """
     Recursively yield all files+symlinks in the given directory.
+    Note: Directory symlinks are treated as files (not recursed into).
     """
     logger.debug('Scanning directory %s', path)
     with os.scandir(path) as scandir_iterator:
         for entry in scandir_iterator:
-            if entry.is_dir(follow_symlinks=True):
+            if entry.is_dir(
+                follow_symlinks=False,  # Handle directory symlinks as files!
+            ):
                 if entry.name in excludes:
                     logger.debug('Excluding directory %s', entry.path)
                     continue
@@ -131,7 +134,12 @@ def humanized_fs_scan(path: Path, excludes: set[str]) -> tuple[int, int]:
     next_update = 0
     with progress:
         for entry in iter_scandir_files(path, excludes=excludes):
+            if not entry.is_file():
+                # Ignore e.g.: directory symlinks
+                continue
+
             file_count += 1
+
             try:
                 total_size += entry.stat().st_size
             except FileNotFoundError:
