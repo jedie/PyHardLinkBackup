@@ -55,18 +55,44 @@ def compare_one_file(
     compare_result: CompareResult,
     progress: DisplayFileTreeProgress,
 ) -> None:
-    src_size = entry.stat().st_size
+    if entry.is_file():
+        # For the progress bars:
+        compare_result.total_file_count += 1
+
+    try:
+        src_size = entry.stat().st_size
+    except FileNotFoundError as err:
+        logger.warning(f'Broken symlink {entry.path}: {err.__class__.__name__}: {err}')
+        return
 
     # For the progress bars:
-    compare_result.total_file_count += 1
     compare_result.total_size += src_size
 
     src_path = Path(entry.path)
+
     dst_path = compare_dir / src_path.relative_to(src_root)
 
     if not dst_path.exists():
         logger.warning('Source file %s not found in compare %s', src_path, dst_path)
         compare_result.src_file_new_count += 1
+        return
+
+    if src_path.is_dir():
+        if not src_path.is_symlink():
+            raise RuntimeError(f'Internal error - Directory found: {src_path=}')
+
+        # compare directory symlink targets:
+        src_target = src_path.readlink()
+        dst_target = dst_path.readlink()
+        if src_target != dst_target:
+            logger.warning(
+                'Source directory symlink %s target %s differs from compare symlink %s target %s',
+                src_path,
+                src_target,
+                dst_path,
+                dst_target,
+            )
+            compare_result.error_count += 1
         return
 
     dst_size = dst_path.stat().st_size
