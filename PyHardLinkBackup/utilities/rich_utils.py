@@ -88,11 +88,17 @@ class DisplayFileTreeProgress:
             ),
             '|',
             TransferSpeedColumn2(unit='files'),
+            '|',
+            TextColumn('Remaining:'),
+            TimeRemainingColumn(),
         )
         self.file_size_progress = Progress(
             HumanFileSizeColumn(),
             '|',
             TransferSpeedColumn(),
+            '|',
+            TextColumn('Remaining:'),
+            TimeRemainingColumn(),
         )
 
         self.overall_progress_task_bar = self.overall_progress_bar.add_task('', total=100)
