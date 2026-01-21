@@ -268,7 +268,7 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...main)
+* [v1.7.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...v1.7.2)
   * 2026-01-21 - Display "Remaining time" to files and sizes, too.
 * [v1.7.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.0...v1.7.1)
   * 2026-01-19 - Update requirements to fix problems under Windows
