@@ -268,6 +268,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...main)
+  * 2026-01-21 - Display "Remaining time" to files and sizes, too.
 * [v1.7.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.0...v1.7.1)
   * 2026-01-19 - Update requirements to fix problems under Windows
 * [v1.7.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...v1.7.0)
@@ -283,11 +285,11 @@ Overview of main changes:
   * 2026-01-17 - Fix flaky test, because of terminal size
   * 2026-01-17 - Bugfix: Don't hash new large files twice
   * 2026-01-17 - Use compare also in backup tests
-* [v1.5.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.1...v1.5.0)
-  * 2026-01-17 - NEW: Compare command to verify source tree with last backup
 
 <details><summary>Expand older history entries ...</summary>
 
+* [v1.5.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.1...v1.5.0)
+  * 2026-01-17 - NEW: Compare command to verify source tree with last backup
 * [v1.4.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.4.0...v1.4.1)
   * 2026-01-16 - Bugfix large file handling
 * [v1.4.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.3.0...v1.4.0)
