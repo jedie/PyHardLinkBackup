@@ -924,7 +924,6 @@ class BackupTreeTestCase(
             f' to {self.temp_path}/backups/source/2026-02-22-123456/large_fileB.txt',
             log_file_content,
         )
-
         with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
             assert_fs_tree_overview(
                 root=self.backup_root / 'source',

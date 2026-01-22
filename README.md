@@ -271,6 +271,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...main)
+  * 2026-01-22 - Display progress also for large unique file copy
   * 2026-01-22 - Optimize progress bars for smaller screens
 * [v1.7.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.2...v1.7.3)
   * 2026-01-21 - Handle directory symlinks correct
