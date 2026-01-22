@@ -218,7 +218,7 @@ The file contains only the relative path to the first hardlink of this file cont
 
 [comment]: <> (✂✂✂ auto generated dev help start ✂✂✂)
 ```
-usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,install,lint,mypy,nox,pip-audit,publish,scan-benchmark,shell-completion,test,update,update-readme-history,update-test-snapshot-files,version}
+usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,fs-info,install,lint,mypy,nox,pip-audit,publish,scan-benchmark,shell-completion,test,update,update-readme-history,update-test-snapshot-files,version}
 
 
 
@@ -230,6 +230,7 @@ usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,install,lint,mypy,nox,pip-au
 │   • benchmark-hashes                                                                                                 │
 │                Benchmark different file hashing algorithms on the given path.                                        │
 │   • coverage   Run tests and show coverage report.                                                                   │
+│   • fs-info    Display information about the filesystem under the given path.                                        │
 │   • install    Install requirements and 'PyHardLinkBackup' via pip as editable.                                      │
 │   • lint       Check/fix code style by run: "ruff check --fix"                                                       │
 │   • mypy       Run Mypy (configured in pyproject.toml)                                                               │
@@ -275,6 +276,8 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...main)
+  * 2026-01-22 - Add "fs-info" in dev cli
+  * 2026-01-22 - rebuild command: fix wrong progress bar
 * [v1.8.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...v1.8.0)
   * 2026-01-22 - Add optional "--name" to enforce a name for the backup sub directory
   * 2026-01-22 - Do not cross filesystem boundaries as default
