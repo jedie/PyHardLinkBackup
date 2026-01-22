@@ -16,6 +16,7 @@ from PyHardLinkBackup.utilities.file_size_database import FileSizeDatabase
 from PyHardLinkBackup.utilities.filesystem import (
     RemoveFileOnError,
     copy_and_hash,
+    copy_with_progress,
     hash_file,
     humanized_fs_scan,
     iter_scandir_files,
@@ -148,7 +149,7 @@ def backup_one_file(
                     backup_result.hardlinked_size += size
                 else:
                     logger.info('Copy unique file: %s to %s', src_path, dst_path)
-                    shutil.copyfile(src_path, dst_path)
+                    copy_with_progress(src_path, dst_path, progress=progress, total_size=size)
                     hash_db[file_hash] = dst_path
                     backup_result.copied_files += 1
                     backup_result.copied_size += size

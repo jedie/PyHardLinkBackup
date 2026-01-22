@@ -43,7 +43,7 @@ def hash_file(path: Path, progress: DisplayFileTreeProgress, total_size: int) ->
     logger.debug('Hash file %s using %s', path, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)
     with LargeFileProgress(
-        f'Hashing large file: "[yellow]{path}[/yellow]"',
+        description=f'Hashing large file: "[yellow]{path}[/yellow]"',
         parent_progress=progress,
         total_size=total_size,
     ) as progress_bar:
@@ -56,11 +56,27 @@ def hash_file(path: Path, progress: DisplayFileTreeProgress, total_size: int) ->
     return file_hash
 
 
+def copy_with_progress(src: Path, dst: Path, progress: DisplayFileTreeProgress, total_size: int) -> None:
+    logger.debug('Copy file %s to %s using %s', src, dst, HASH_ALGO)
+    with LargeFileProgress(
+        description=f'Copying large file: "[yellow]{src}[/yellow]"',
+        parent_progress=progress,
+        total_size=total_size,
+    ) as progress_bar:
+        with src.open('rb') as source_file, dst.open('wb') as dst_file:
+            while chunk := source_file.read(CHUNK_SIZE):
+                dst_file.write(chunk)
+                progress_bar.update(advance=len(chunk))
+
+    # Keep original file metadata (permission bits, last access time, last modification time, and flags)
+    shutil.copystat(src, dst)
+
+
 def copy_and_hash(src: Path, dst: Path, progress: DisplayFileTreeProgress, total_size: int) -> str:
     logger.debug('Copy and hash file %s to %s using %s', src, dst, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)
     with LargeFileProgress(
-        f'Copying large file: "[yellow]{src}[/yellow]"',
+        description=f'Copy and hash large file: "[yellow]{src}[/yellow]"',
         parent_progress=progress,
         total_size=total_size,
     ) as progress_bar:
