@@ -274,6 +274,7 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...main)
 * [v1.8.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...v1.8.0)
   * 2026-01-22 - Add optional "--name" to enforce a name for the backup sub directory
   * 2026-01-22 - Do not cross filesystem boundaries as default
@@ -283,11 +284,11 @@ Overview of main changes:
   * 2026-01-21 - Handle directory symlinks correct
 * [v1.7.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...v1.7.2)
   * 2026-01-21 - Display "Remaining time" to files and sizes, too.
-* [v1.7.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.0...v1.7.1)
-  * 2026-01-19 - Update requirements to fix problems under Windows
 
 <details><summary>Expand older history entries ...</summary>
 
+* [v1.7.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.0...v1.7.1)
+  * 2026-01-19 - Update requirements to fix problems under Windows
 * [v1.7.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...v1.7.0)
   * 2026-01-19 - Speedup and enhance unittest
   * 2026-01-17 - Remove unfinished copied files on errors

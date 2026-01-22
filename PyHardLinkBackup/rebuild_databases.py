@@ -161,12 +161,12 @@ def rebuild(
                 now = time.monotonic()
                 if now >= next_update:
                     progress.update(
-                        completed_file_count=rebuild_result.process_count, advance_size=rebuild_result.process_size
+                        completed_file_count=rebuild_result.process_count, completed_size=rebuild_result.process_size
                     )
                     next_update = now + 0.5
 
         # Finalize progress indicator values:
-        progress.update(completed_file_count=rebuild_result.process_count, advance_size=rebuild_result.process_size)
+        progress.update(completed_file_count=rebuild_result.process_count, completed_size=rebuild_result.process_size)
 
     summary_file = backup_root / f'{timestamp}-rebuild-summary.txt'
     with TeeStdoutContext(summary_file):
