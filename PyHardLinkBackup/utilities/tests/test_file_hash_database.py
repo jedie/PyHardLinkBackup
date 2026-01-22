@@ -28,7 +28,12 @@ def get_hash_db_filenames(hash_db: FileHashDatabase) -> list[str]:
     # with NoLogs('PyHardLinkBackup.utilities.filesystem'):
     return sorted(
         str(Path(entry.path).relative_to(hash_db.base_path))
-        for entry in iter_scandir_files(hash_db.base_path, excludes=set())
+        for entry in iter_scandir_files(
+            path=hash_db.base_path,
+            one_file_system=False,
+            src_device_id=None,
+            excludes=set(),
+        )
     )
 
 
@@ -38,7 +43,12 @@ def get_hash_db_info(backup_root: Path) -> str:
 
     with NoLogs(logger_name='XY'):
         lines = []
-        for entry in iter_scandir_files(db_base_path, excludes=set()):
+        for entry in iter_scandir_files(
+            path=db_base_path,
+            one_file_system=False,
+            src_device_id=None,
+            excludes=set(),
+        ):
             hash_path = Path(entry.path)
             rel_path = hash_path.relative_to(db_base_path)
             rel_file_path = hash_path.read_text()

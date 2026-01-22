@@ -22,6 +22,7 @@ from PyHardLinkBackup.utilities.filesystem import (
     iter_scandir_files,
     read_and_hash_file,
     supports_hardlinks,
+    verbose_path_stat,
 )
 from PyHardLinkBackup.utilities.humanize import PrintTimingContextManager, human_filesize
 from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress
@@ -171,6 +172,7 @@ def backup_tree(
     *,
     src_root: Path,
     backup_root: Path,
+    one_file_system: bool,
     excludes: tuple[str, ...],
     log_manager: LoggingManager,
 ) -> BackupResult:
@@ -180,11 +182,16 @@ def backup_tree(
         print(f'Please check source directory: "{src_root}"\n')
         sys.exit(1)
 
+    src_stat = verbose_path_stat(src_root)
+    src_device_id = src_stat.st_dev
+
     backup_root = backup_root.resolve()
     if not backup_root.is_dir():
         print('Error: Backup directory does not exist!')
         print(f'Please create "{backup_root}" directory first and start again!\n')
         sys.exit(1)
+
+    verbose_path_stat(backup_root)
 
     if not os.access(backup_root, os.W_OK):
         print('Error: No write access to backup directory!')
@@ -199,7 +206,12 @@ def backup_tree(
     # Step 1: Scan source directory:
     excludes: set = set(excludes)
     with PrintTimingContextManager('Filesystem scan completed in'):
-        src_file_count, src_total_size = humanized_fs_scan(src_root, excludes=excludes)
+        src_file_count, src_total_size = humanized_fs_scan(
+            path=src_root,
+            one_file_system=one_file_system,
+            src_device_id=src_device_id,
+            excludes=excludes,
+        )
 
     phlb_conf_dir = backup_root / '.phlb'
     phlb_conf_dir.mkdir(parents=False, exist_ok=True)
@@ -228,7 +240,12 @@ def backup_tree(
         backup_result = BackupResult(backup_dir=backup_dir, log_file=log_file)
 
         next_update = 0
-        for entry in iter_scandir_files(src_root, excludes=excludes):
+        for entry in iter_scandir_files(
+            path=src_root,
+            one_file_system=one_file_system,
+            src_device_id=src_device_id,
+            excludes=excludes,
+        ):
             try:
                 backup_one_file(
                     src_root=src_root,

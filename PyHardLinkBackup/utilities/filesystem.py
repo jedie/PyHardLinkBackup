@@ -23,6 +23,17 @@ logger = logging.getLogger(__name__)
 MIN_SIZE_FOR_PROGRESS_BAR = CHUNK_SIZE * 10
 
 
+def verbose_path_stat(path: Path) -> os.stat_result:
+    stat_result = path.stat()
+    stat_dict = {}
+    for key in dir(stat_result):
+        if key.startswith('st_'):
+            value = getattr(stat_result, key)
+            stat_dict[key] = value
+    logger.info('Stat for %s: %s', path, stat_dict)
+    return stat_result
+
+
 class RemoveFileOnError:
     def __init__(self, file_path: Path):
         self.file_path = file_path
@@ -32,7 +43,8 @@ class RemoveFileOnError:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if exc_type:
-            logger.info(f'Removing incomplete file {self.file_path} due to error: {exc_value}',
+            logger.info(
+                f'Removing incomplete file {self.file_path} due to error: {exc_value}',
                 exc_info=(exc_type, exc_value, exc_traceback),
             )
             self.file_path.unlink(missing_ok=True)
@@ -103,7 +115,13 @@ def read_and_hash_file(path: Path) -> tuple[bytes, str]:
     return content, file_hash
 
 
-def iter_scandir_files(path: Path, excludes: set[str]) -> Iterable[os.DirEntry]:
+def iter_scandir_files(
+    *,
+    path: Path,
+    one_file_system: bool,
+    src_device_id,
+    excludes: set[str],
+) -> Iterable[os.DirEntry]:
     """
     Recursively yield all files+symlinks in the given directory.
     Note: Directory symlinks are treated as files (not recursed into).
@@ -117,13 +135,39 @@ def iter_scandir_files(path: Path, excludes: set[str]) -> Iterable[os.DirEntry]:
                 if entry.name in excludes:
                     logger.debug('Excluding directory %s', entry.path)
                     continue
-                yield from iter_scandir_files(Path(entry.path), excludes=excludes)
+
+                if one_file_system:
+                    try:
+                        entry_device_id = entry.stat(follow_symlinks=False).st_dev
+                    except OSError as err:
+                        # e.g.: broken symlink
+                        logger.debug('Skipping directory %s: %s', entry.path, err)
+                        continue
+                    if entry_device_id != src_device_id:
+                        logger.debug(
+                            'Skipping directory %s: different device ID %s (src device ID: %s)',
+                            entry.path,
+                            entry_device_id,
+                            src_device_id,
+                        )
+                        continue
+
+                yield from iter_scandir_files(
+                    path=Path(entry.path),
+                    one_file_system=one_file_system,
+                    src_device_id=src_device_id,
+                    excludes=excludes,
+                )
             else:
                 # It's a file or symlink or broken symlink
                 yield entry
 
 
-def humanized_fs_scan(path: Path, excludes: set[str]) -> tuple[int, int]:
+def humanized_fs_scan(
+    *,
+    path: Path,
+    **iter_scandir_files_kwargs,
+) -> tuple[int, int]:
     print(f'\nScanning filesystem at: {path}...')
 
     progress = Progress(
@@ -149,7 +193,7 @@ def humanized_fs_scan(path: Path, excludes: set[str]) -> tuple[int, int]:
     )
     next_update = 0
     with progress:
-        for entry in iter_scandir_files(path, excludes=excludes):
+        for entry in iter_scandir_files(path=path, **iter_scandir_files_kwargs):
             if not entry.is_file():
                 # Ignore e.g.: directory symlinks
                 continue
