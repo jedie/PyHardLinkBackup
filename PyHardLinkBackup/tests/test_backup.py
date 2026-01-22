@@ -152,6 +152,7 @@ class BackupTreeTestCase(
         self,
         *,
         time_to_freeze: str,
+        backup_name=None,
         log_file_level: LogLevelLiteral = DEFAULT_LOG_FILE_LEVEL,
     ):
         # FIXME: freezegun doesn't handle this, see: https://github.com/spulec/freezegun/issues/392
@@ -166,6 +167,7 @@ class BackupTreeTestCase(
             result = backup_tree(
                 src_root=self.src_root,
                 backup_root=self.backup_root,
+                backup_name=backup_name,
                 one_file_system=True,
                 excludes=('.cache',),
                 log_manager=LoggingManager(
@@ -1120,3 +1122,46 @@ class BackupTreeTestCase(
             excpected_successful_file_count=1,
             excpected_error_count=0,
         )
+
+    def test_backup_name(self):
+        """DocWrite: README.md # PyHardLinkBackup - Backup Naming
+        The backup name is optional.
+        If not provided, the name of the source directory is used.
+        """
+        (self.src_root / 'file.txt').touch()
+
+        redirected_out, result = self.create_backup(time_to_freeze='2026-01-01T12:34:56Z', backup_name=None)
+        self.assertEqual(
+            str(result.backup_dir.relative_to(self.temp_path)),
+            'backups/source/2026-01-01-123456',
+        )
+
+        redirected_out, result = self.create_backup(time_to_freeze='2026-01-01T12:34:56Z', backup_name='My-Backup')
+        self.assertEqual(
+            str(result.backup_dir.relative_to(self.temp_path)),
+            'backups/My-Backup/2026-01-01-123456',
+        )
+        redirected_out, result = self.create_backup(time_to_freeze='2026-12-24T00:12:34Z', backup_name='My-Backup')
+        self.assertEqual(
+            str(result.backup_dir.relative_to(self.temp_path)),
+            'backups/My-Backup/2026-12-24-001234',
+        )
+        with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+            assert_fs_tree_overview(
+                root=self.backup_root,
+                expected_overview="""
+                    path                                     birthtime    type      nlink  size    CRC32
+                    My-Backup/2026-01-01-123456-backup.log   <mock>       file          1  <mock>  <mock>
+                    My-Backup/2026-01-01-123456-summary.txt  <mock>       file          1  <mock>  <mock>
+                    My-Backup/2026-01-01-123456/SHA256SUMS   <mock>       file          1  75      43d11c57
+                    My-Backup/2026-01-01-123456/file.txt     12:00:00     file          1  0       00000000
+                    My-Backup/2026-12-24-001234-backup.log   <mock>       file          1  <mock>  <mock>
+                    My-Backup/2026-12-24-001234-summary.txt  <mock>       file          1  <mock>  <mock>
+                    My-Backup/2026-12-24-001234/SHA256SUMS   <mock>       file          1  75      43d11c57
+                    My-Backup/2026-12-24-001234/file.txt     12:00:00     file          1  0       00000000
+                    source/2026-01-01-123456-backup.log      <mock>       file          1  <mock>  <mock>
+                    source/2026-01-01-123456-summary.txt     <mock>       file          1  <mock>  <mock>
+                    source/2026-01-01-123456/SHA256SUMS      <mock>       file          1  75      43d11c57
+                    source/2026-01-01-123456/file.txt        12:00:00     file          1  0       00000000
+                """,
+            )

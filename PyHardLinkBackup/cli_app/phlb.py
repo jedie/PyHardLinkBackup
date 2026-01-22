@@ -17,6 +17,7 @@ from PyHardLinkBackup.logging_setup import (
 )
 from PyHardLinkBackup.utilities.tyro_cli_shared_args import (
     DEFAULT_EXCLUDE_DIRECTORIES,
+    TyroBackupNameArgType,
     TyroExcludeDirectoriesArgType,
     TyroOneFileSystemArgType,
 )
@@ -42,6 +43,7 @@ def backup(
         ),
     ],
     /,
+    name: TyroBackupNameArgType = None,
     one_file_system: TyroOneFileSystemArgType = True,
     excludes: TyroExcludeDirectoriesArgType = DEFAULT_EXCLUDE_DIRECTORIES,
     verbosity: TyroConsoleLogLevelArgType = DEFAULT_CONSOLE_LOG_LEVEL,
@@ -57,6 +59,7 @@ def backup(
     backup_tree(
         src_root=src,
         backup_root=dst,
+        backup_name=name,
         one_file_system=one_file_system,
         excludes=excludes,
         log_manager=log_manager,

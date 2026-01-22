@@ -17,3 +17,13 @@ TyroOneFileSystemArgType = Annotated[
         help='Do not cross filesystem boundaries.',
     ),
 ]
+
+TyroBackupNameArgType = Annotated[
+    str | None,
+    tyro.conf.arg(
+        help=(
+            'Optional name for the backup (used to create a subdirectory in the backup destination).'
+            ' If not provided, the name of the source directory is used.'
+        ),
+    ),
+]
