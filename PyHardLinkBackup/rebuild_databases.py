@@ -32,6 +32,9 @@ class RebuildResult:
     hash_verified_count: int = 0
     hash_mismatch_count: int = 0
     hash_not_found_count: int = 0
+    #
+    unique_inode_count: int = 0
+    skip_by_inode_count: int = 0
 
 
 def rebuild_one_file(
@@ -40,9 +43,22 @@ def rebuild_one_file(
     entry: os.DirEntry,
     size_db: FileSizeDatabase,
     hash_db: FileHashDatabase,
+    seen_inodes: set,
+    skip_same_inode: bool,
     rebuild_result: RebuildResult,
     progress: DisplayFileTreeProgress,
 ):
+    inode = entry.inode()
+    if inode not in seen_inodes:
+        seen_inodes.add(inode)
+    else:
+        if skip_same_inode:
+            rebuild_result.skip_by_inode_count += 1
+            # Update counters used in progress display:
+            rebuild_result.process_size += entry.stat().st_size
+            rebuild_result.process_count += 1
+            return
+
     file_path = Path(entry.path)
 
     # We should ignore all files in the root backup directory itself
@@ -58,7 +74,6 @@ def rebuild_one_file(
 
     size = entry.stat().st_size
     rebuild_result.process_size += size
-
     if size < size_db.MIN_SIZE:
         # Small files will never deduplicate, skip them
         return
@@ -94,6 +109,7 @@ def rebuild_one_file(
 
 def rebuild(
     backup_root: Path,
+    skip_same_inode: bool,
     log_manager: LoggingManager,
 ) -> RebuildResult:
     backup_root = backup_root.resolve()
@@ -136,6 +152,8 @@ def rebuild(
         size_db = FileSizeDatabase(phlb_conf_dir)
         hash_db = FileHashDatabase(backup_root, phlb_conf_dir)
 
+        seen_inodes = set()
+
         rebuild_result = RebuildResult()
 
         next_update = 0
@@ -151,6 +169,8 @@ def rebuild(
                     entry=entry,
                     size_db=size_db,
                     hash_db=hash_db,
+                    seen_inodes=seen_inodes,
+                    skip_same_inode=skip_same_inode,
                     rebuild_result=rebuild_result,
                     progress=progress,
                 )
@@ -168,11 +188,16 @@ def rebuild(
         # Finalize progress indicator values:
         progress.update(completed_file_count=rebuild_result.process_count, completed_size=rebuild_result.process_size)
 
+    rebuild_result.unique_inode_count = len(seen_inodes)
+
     summary_file = backup_root / f'{timestamp}-rebuild-summary.txt'
     with TeeStdoutContext(summary_file):
         print(f'\nRebuild "{backup_root}" completed:')
         print(f'  Total files processed: {rebuild_result.process_count}')
         print(f'  Total size processed: {human_filesize(rebuild_result.process_size)}')
+
+        print(f'  Unique inodes count: {rebuild_result.unique_inode_count}')
+        print(f'  Skipped files by inode: {rebuild_result.skip_by_inode_count}')
 
         print(f'  Added file size information entries: {rebuild_result.added_size_count}')
         print(f'  Added file hash entries: {rebuild_result.added_hash_count}')

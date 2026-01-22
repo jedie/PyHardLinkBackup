@@ -276,6 +276,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...main)
+  * 2026-01-22 - rebuid command: skip hashing same files by check the inode uniqueness
   * 2026-01-22 - Add "fs-info" in dev cli
   * 2026-01-22 - rebuild command: fix wrong progress bar
 * [v1.8.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...v1.8.0)
