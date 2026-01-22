@@ -51,21 +51,23 @@ usage: phlb backup [-h] [BACKUP OPTIONS]
 
 Backup the source directory to the destination directory using hard links for deduplication.
 
-╭─ positional arguments ──────────────────────────────────────────────────────────────────────────────────────╮
-│ source       Source directory to back up. (required)                                                        │
-│ destination  Destination directory for the backup. (required)                                               │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ options ───────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ -h, --help   show this help message and exit                                                                │
-│ --one-file-system, --no-one-file-system                                                                     │
-│              Do not cross filesystem boundaries. (default: True)                                            │
-│ --excludes [STR [STR ...]]                                                                                  │
-│              List of directories to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox .nox) │
-│ --verbosity {debug,info,warning,error}                                                                      │
-│              Log level for console logging. (default: warning)                                              │
-│ --log-file-level {debug,info,warning,error}                                                                 │
-│              Log level for the log file (default: info)                                                     │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ positional arguments ───────────────────────────────────────────────────────────────────────────────────────────────╮
+│ source             Source directory to back up. (required)                                                           │
+│ destination        Destination directory for the backup. (required)                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ -h, --help         show this help message and exit                                                                   │
+│ --name {None}|STR  Optional name for the backup (used to create a subdirectory in the backup destination). If not    │
+│                    provided, the name of the source directory is used. (default: None)                               │
+│ --one-file-system, --no-one-file-system                                                                              │
+│                    Do not cross filesystem boundaries. (default: True)                                               │
+│ --excludes [STR [STR ...]]                                                                                           │
+│                    List of directories to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox .nox)    │
+│ --verbosity {debug,info,warning,error}                                                                               │
+│                    Log level for console logging. (default: warning)                                                 │
+│ --log-file-level {debug,info,warning,error}                                                                          │
+│                    Log level for the log file (default: info)                                                        │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated backup help end ✂✂✂)
 
@@ -273,6 +275,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v1.8.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...v1.8.0)
+  * 2026-01-22 - Add optional "--name" to enforce a name for the backup sub directory
   * 2026-01-22 - Do not cross filesystem boundaries as default
   * 2026-01-22 - Display progress also for large unique file copy
   * 2026-01-22 - Optimize progress bars for smaller screens

@@ -2,6 +2,11 @@
 
 HardLink/Deduplication Backups with Python
 
+# PyHardLinkBackup - Backup Naming
+
+The backup name is optional.
+If not provided, the name of the source directory is used.
+
 # PyHardLinkBackup - Notes
 
 A log file is stored in the backup directory. e.g.:

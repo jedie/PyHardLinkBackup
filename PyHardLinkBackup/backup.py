@@ -172,6 +172,7 @@ def backup_tree(
     *,
     src_root: Path,
     backup_root: Path,
+    backup_name: str | None,
     one_file_system: bool,
     excludes: tuple[str, ...],
     log_manager: LoggingManager,
@@ -217,7 +218,9 @@ def backup_tree(
     phlb_conf_dir.mkdir(parents=False, exist_ok=True)
 
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S')
-    backup_main_dir = backup_root / src_root.name
+    if not backup_name:
+        backup_name = src_root.name
+    backup_main_dir = backup_root / backup_name
     backup_dir = backup_main_dir / timestamp
     backup_dir.mkdir(parents=True, exist_ok=False)
 
