@@ -15,6 +15,7 @@ from PyHardLinkBackup.utilities.filesystem import (
     hash_file,
     humanized_fs_scan,
     iter_scandir_files,
+    verbose_path_stat,
 )
 from PyHardLinkBackup.utilities.humanize import PrintTimingContextManager, human_filesize
 from PyHardLinkBackup.utilities.rich_utils import DisplayFileTreeProgress
@@ -149,6 +150,7 @@ def compare_tree(
     *,
     src_root: Path,
     backup_root: Path,
+    one_file_system: bool,
     excludes: tuple[str, ...],
     log_manager: LoggingManager,
 ) -> CompareResult:
@@ -181,9 +183,16 @@ def compare_tree(
     log_file = compare_main_dir / f'{now_timestamp}-compare.log'
     log_manager.start_file_logging(log_file)
 
+    src_device_id = verbose_path_stat(src_root).st_dev
+
     excludes: set = set(excludes)
     with PrintTimingContextManager('Filesystem scan completed in'):
-        src_file_count, src_total_size = humanized_fs_scan(src_root, excludes=excludes)
+        src_file_count, src_total_size = humanized_fs_scan(
+            path=src_root,
+            one_file_system=one_file_system,
+            src_device_id=src_device_id,
+            excludes=excludes,
+        )
 
     with DisplayFileTreeProgress(
         description=f'Compare {src_root}...',
@@ -197,7 +206,12 @@ def compare_tree(
         compare_result = CompareResult(last_timestamp=last_timestamp, compare_dir=compare_dir, log_file=log_file)
 
         next_update = 0
-        for entry in iter_scandir_files(src_root, excludes=excludes):
+        for entry in iter_scandir_files(
+            path=src_root,
+            one_file_system=one_file_system,
+            src_device_id=src_device_id,
+            excludes=excludes,
+        ):
             try:
                 compare_one_file(
                     src_root=src_root,

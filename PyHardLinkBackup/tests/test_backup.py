@@ -36,15 +36,14 @@ class SortedIterScandirFiles:
     This class wraps iter_scandir_files() and yields the entries sorted by name.
     """
 
-    def __init__(self, path: Path, excludes: set):
-        self.path = path
-        self.excludes = excludes
+    def __init__(self, **iter_scandir_files_kwargs):
+        self.iter_scandir_files_kwargs = iter_scandir_files_kwargs
 
     def __enter__(self):
         return self
 
     def __iter__(self) -> Iterable[os.DirEntry]:
-        scandir_iterator = iter_scandir_files(self.path, self.excludes)
+        scandir_iterator = iter_scandir_files(**self.iter_scandir_files_kwargs)
         yield from sorted(scandir_iterator, key=lambda e: e.name)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -57,7 +56,12 @@ def set_file_times(path: Path, dt: datetime.datetime):
         dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
     fixed_time = dt.timestamp()
     with NoLogs(logger_name=''):
-        for entry in iter_scandir_files(path, excludes=set()):
+        for entry in iter_scandir_files(
+            path=path,
+            one_file_system=False,
+            src_device_id=None,
+            excludes=set(),
+        ):
             try:
                 os.utime(entry.path, (fixed_time, fixed_time))
             except FileNotFoundError:
@@ -67,7 +71,12 @@ def set_file_times(path: Path, dt: datetime.datetime):
 
 def _fs_tree_overview(root: Path) -> str:
     lines = []
-    for entry in iter_scandir_files(root, excludes=set()):
+    for entry in iter_scandir_files(
+        path=root,
+        one_file_system=False,
+        src_device_id=None,
+        excludes=set(),
+    ):
         file_path = Path(entry.path)
         crc32 = '-'
         try:
@@ -157,6 +166,7 @@ class BackupTreeTestCase(
             result = backup_tree(
                 src_root=self.src_root,
                 backup_root=self.backup_root,
+                one_file_system=True,
                 excludes=('.cache',),
                 log_manager=LoggingManager(
                     console_level='info',

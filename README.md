@@ -57,6 +57,8 @@ Backup the source directory to the destination directory using hard links for de
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ options ───────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ -h, --help   show this help message and exit                                                                │
+│ --one-file-system, --no-one-file-system                                                                     │
+│              Do not cross filesystem boundaries. (default: True)                                            │
 │ --excludes [STR [STR ...]]                                                                                  │
 │              List of directories to exclude from backup. (default: __pycache__ .cache .temp .tmp .tox .nox) │
 │ --verbosity {debug,info,warning,error}                                                                      │
@@ -270,7 +272,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...main)
+* [v1.8.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...v1.8.0)
+  * 2026-01-22 - Do not cross filesystem boundaries as default
   * 2026-01-22 - Display progress also for large unique file copy
   * 2026-01-22 - Optimize progress bars for smaller screens
 * [v1.7.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.2...v1.7.3)

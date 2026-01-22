@@ -86,7 +86,14 @@ class TestHashFile(BaseTestCase):
             broken_symlink_path.symlink_to(temp_path / 'not/existing/file.txt')
 
             with self.assertLogs(level='DEBUG') as logs:
-                files = list(iter_scandir_files(temp_path, excludes={'__pycache__'}))
+                files = list(
+                    iter_scandir_files(
+                        path=temp_path,
+                        one_file_system=False,
+                        src_device_id=None,
+                        excludes={'__pycache__'},
+                    )
+                )
 
         file_names = sorted([Path(f.path).relative_to(temp_path).as_posix() for f in files])
 
@@ -105,6 +112,38 @@ class TestHashFile(BaseTestCase):
         logs = ''.join(logs.output)
         self.assertIn('Scanning directory ', logs)
         self.assertIn('Excluding directory ', logs)
+
+    def test_one_file_system(self):
+        def scan(temp_path, *, one_file_system, src_device_id):
+            with self.assertLogs(level='DEBUG') as logs:
+                files = list(
+                    iter_scandir_files(
+                        path=temp_path,
+                        one_file_system=one_file_system,
+                        src_device_id=src_device_id,
+                        excludes=set(),
+                    )
+                )
+            file_names = sorted([Path(f.path).relative_to(temp_path).as_posix() for f in files])
+            return file_names, '\n'.join(logs.output)
+
+        with TemporaryDirectoryPath() as temp_path:
+            (temp_path / 'file1.txt').touch()
+            subdir = temp_path / 'subdir'
+            subdir.mkdir()
+            (subdir / 'file2.txt').touch()
+
+            file_names, logs = scan(temp_path, one_file_system=False, src_device_id=None)
+            self.assertEqual(file_names, ['file1.txt', 'subdir/file2.txt'])
+            self.assertIn('Scanning directory ', logs)
+            self.assertNotIn('Skipping', logs)
+
+            file_names, logs = scan(temp_path, one_file_system=True, src_device_id='FooBar')
+            self.assertEqual(file_names, ['file1.txt'])
+            self.assertIn('Scanning directory ', logs)
+            self.assertIn('Skipping directory ', logs)
+            self.assertIn('different device ID', logs)
+            self.assertIn('(src device ID: FooBar)', logs)
 
     def test_supports_hardlinks(self):
         with TemporaryDirectoryPath() as temp_path:

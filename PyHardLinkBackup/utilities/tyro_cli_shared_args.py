@@ -10,3 +10,10 @@ TyroExcludeDirectoriesArgType = Annotated[
     ),
 ]
 DEFAULT_EXCLUDE_DIRECTORIES = ('__pycache__', '.cache', '.temp', '.tmp', '.tox', '.nox')
+
+TyroOneFileSystemArgType = Annotated[
+    bool,
+    tyro.conf.arg(
+        help='Do not cross filesystem boundaries.',
+    ),
+]

@@ -113,7 +113,12 @@ def rebuild(
     log_manager.start_file_logging(log_file=backup_root / f'{timestamp}-rebuild.log')
 
     with PrintTimingContextManager('Filesystem scan completed in'):
-        file_count, total_size = humanized_fs_scan(backup_root, excludes={'.phlb'})
+        file_count, total_size = humanized_fs_scan(
+            path=backup_root,
+            one_file_system=False,
+            src_device_id=None,
+            excludes={'.phlb'},
+        )
 
         # We should ignore all files in the root backup directory itself
         # e.g.: Our *-summary.txt and *.log files
@@ -134,7 +139,12 @@ def rebuild(
         rebuild_result = RebuildResult()
 
         next_update = 0
-        for entry in iter_scandir_files(backup_root, excludes={'.phlb'}):
+        for entry in iter_scandir_files(
+            path=backup_root,
+            one_file_system=False,
+            src_device_id=None,
+            excludes={'.phlb'},
+        ):
             try:
                 rebuild_one_file(
                     backup_root=backup_root,

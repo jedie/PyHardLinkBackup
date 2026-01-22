@@ -39,6 +39,7 @@ def assert_compare_backup(
         result = compare_tree(
             src_root=src_root,
             backup_root=backup_root,
+            one_file_system=True,
             excludes=excludes,
             log_manager=LoggingManager(
                 console_level='info',
@@ -105,6 +106,7 @@ class CompareBackupTestCase(PyHardLinkBackupTestCaseMixin, TestCase):
             result = compare_tree(
                 src_root=self.src_root,
                 backup_root=self.backup_root,
+                one_file_system=True,
                 excludes=(),
                 log_manager=LoggingManager(
                     console_level='info',

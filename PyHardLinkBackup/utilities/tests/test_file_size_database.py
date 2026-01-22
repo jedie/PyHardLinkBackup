@@ -25,13 +25,26 @@ class TemporaryFileSizeDatabase(tempfile.TemporaryDirectory):
 def get_size_db_filenames(size_db: FileSizeDatabase) -> Iterable[str]:
     return sorted(
         str(Path(entry.path).relative_to(size_db.base_path))
-        for entry in iter_scandir_files(size_db.base_path, excludes=set())
+        for entry in iter_scandir_files(
+            path=size_db.base_path,
+            one_file_system=False,
+            src_device_id=None,
+            excludes=set(),
+        )
     )
 
 
 def get_sizes(size_db: FileSizeDatabase) -> Iterable[int]:
     with NoLogs('PyHardLinkBackup.utilities.filesystem'):
-        return sorted(int(entry.name) for entry in iter_scandir_files(size_db.base_path, excludes=set()))
+        return sorted(
+            int(entry.name)
+            for entry in iter_scandir_files(
+                path=size_db.base_path,
+                one_file_system=False,
+                src_device_id=None,
+                excludes=set(),
+            )
+        )
 
 
 class FileSizeDatabaseTestCase(BaseTestCase):
