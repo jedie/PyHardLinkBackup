@@ -270,12 +270,17 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...main)
+  * 2026-01-22 - Optimize progress bars for smaller screens
 * [v1.7.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.2...v1.7.3)
   * 2026-01-21 - Handle directory symlinks correct
 * [v1.7.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...v1.7.2)
   * 2026-01-21 - Display "Remaining time" to files and sizes, too.
 * [v1.7.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.0...v1.7.1)
   * 2026-01-19 - Update requirements to fix problems under Windows
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.7.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...v1.7.0)
   * 2026-01-19 - Speedup and enhance unittest
   * 2026-01-17 - Remove unfinished copied files on errors
@@ -285,9 +290,6 @@ Overview of main changes:
   * 2026-01-17 - simplify tests
   * 2026-01-17 - Warn if broken symlink found
   * 2026-01-17 - Update README
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v1.6.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.5.0...v1.6.0)
   * 2026-01-17 - Fix flaky test, because of terminal size
   * 2026-01-17 - Bugfix: Don't hash new large files twice

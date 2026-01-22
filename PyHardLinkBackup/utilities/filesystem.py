@@ -43,7 +43,7 @@ def hash_file(path: Path, progress: DisplayFileTreeProgress, total_size: int) ->
     logger.debug('Hash file %s using %s', path, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)
     with LargeFileProgress(
-        f'Hashing large file: {path.name}',
+        f'Hashing large file: "[yellow]{path}[/yellow]"',
         parent_progress=progress,
         total_size=total_size,
     ) as progress_bar:
@@ -60,7 +60,7 @@ def copy_and_hash(src: Path, dst: Path, progress: DisplayFileTreeProgress, total
     logger.debug('Copy and hash file %s to %s using %s', src, dst, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)
     with LargeFileProgress(
-        f'Copying large file: {src.name}',
+        f'Copying large file: "[yellow]{src}[/yellow]"',
         parent_progress=progress,
         total_size=total_size,
     ) as progress_bar:

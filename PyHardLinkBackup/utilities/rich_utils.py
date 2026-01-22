@@ -31,18 +31,9 @@ class HumanFileSizeColumn(ProgressColumn):
             advance_size = task.completed
             remaining_size = task.remaining
             return (
-                Text('Achieved: ', style='white')
-                + Text(
-                    human_filesize(advance_size),
-                    style='progress.elapsed',
-                )
-                + Text(' Remaining: ', style='white')
-                + Text(
-                    human_filesize(remaining_size),
-                    style='progress.remaining',
-                )
+                f'[white][progress.elapsed]{human_filesize(advance_size)}[white]'
+                f' / [progress.remaining]{human_filesize(remaining_size)}'
             )
-
         else:
             try:
                 advance_size = task.fields[self.field_name]
@@ -76,20 +67,15 @@ class DisplayFileTreeProgress:
         self.file_size_progress_bar = Progress(TaskProgressColumn(**percent_kwargs), BarColumn(bar_width=None))
 
         self.overall_progress = Progress(
-            TextColumn('Elapsed:'),
             TimeElapsedColumn(),
-            TextColumn('Remaining:'),
+            '/',
             TimeRemainingColumn(),
         )
         self.file_count_progress = Progress(
-            TextColumn(
-                '[white]Achieved: [progress.elapsed]{task.completed}[white]'
-                ' Remaining: [progress.remaining]{task.remaining}'
-            ),
+            TextColumn('[white][progress.elapsed]{task.completed}[white] / [progress.remaining]{task.remaining}'),
             '|',
             TransferSpeedColumn2(unit='files'),
             '|',
-            TextColumn('Remaining:'),
             TimeRemainingColumn(),
         )
         self.file_size_progress = Progress(
@@ -97,7 +83,6 @@ class DisplayFileTreeProgress:
             '|',
             TransferSpeedColumn(),
             '|',
-            TextColumn('Remaining:'),
             TimeRemainingColumn(),
         )
 
@@ -110,9 +95,9 @@ class DisplayFileTreeProgress:
         self.file_size_progress_task_time = self.file_size_progress.add_task('', total=total_size)
 
         progress_table = Table(box=None, expand=True, padding=(0, 2), show_header=False)
-        progress_table.add_row('[b]Overall Progress', self.overall_progress_bar, self.overall_progress)
-        progress_table.add_row('Total files saved', self.file_count_progress_bar, self.file_count_progress)
-        progress_table.add_row('Total file size processed', self.file_size_progress_bar, self.file_size_progress)
+        progress_table.add_row('[b]Overall', self.overall_progress_bar, self.overall_progress)
+        progress_table.add_row('Files', self.file_count_progress_bar, self.file_count_progress)
+        progress_table.add_row('Size', self.file_size_progress_bar, self.file_size_progress)
 
         self.file_count_progress_task = self.file_count_progress.tasks[0]
         self.file_size_progress_task = self.file_size_progress.tasks[0]
@@ -121,7 +106,7 @@ class DisplayFileTreeProgress:
             Panel(
                 progress_table,
                 title=Text(description, style='progress.data.speed'),
-                border_style=Style(color='blue', bold=True),
+                border_style=Style(color='white', bold=True),
             ),
             auto_refresh=False,
         )
@@ -221,9 +206,7 @@ class LargeFileProgress:
                 '|',
                 TransferSpeedColumn(),
                 '|',
-                TextColumn('Elapsed:'),
                 TimeElapsedColumn(),
-                TextColumn('Remaining:'),
                 TimeRemainingColumn(),
             )
             self.progress.log(f'Large file processing start: {self.description}')
