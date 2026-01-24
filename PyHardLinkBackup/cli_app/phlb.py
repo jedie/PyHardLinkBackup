@@ -114,6 +114,10 @@ def rebuild(
         ),
     ],
     /,
+    skip_same_inode: Annotated[
+        bool,
+        tyro.conf.arg(help='Skip files that have the same inode number as already processed files.'),
+    ] = True,
     verbosity: TyroConsoleLogLevelArgType = DEFAULT_CONSOLE_LOG_LEVEL,
     log_file_level: TyroLogFileLevelArgType = DEFAULT_LOG_FILE_LEVEL,
 ) -> None:
@@ -127,5 +131,6 @@ def rebuild(
     )
     rebuild_databases.rebuild(
         backup_root=backup_root,
+        skip_same_inode=skip_same_inode,
         log_manager=log_manager,
     )
