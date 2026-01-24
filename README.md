@@ -284,7 +284,7 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...main)
+* [v1.8.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...v1.8.1)
   * 2026-01-24 - Bugfix "rebuild" command
   * 2026-01-24 - Update requirements
   * 2026-01-24 - CI: Use "main" instead of version pinning and fix code coverage
