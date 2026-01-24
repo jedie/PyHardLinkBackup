@@ -21,7 +21,7 @@ def install():
     """
     tools_executor = ToolsExecutor(cwd=PACKAGE_ROOT)
     tools_executor.verbose_check_call('uv', 'sync')
-    tools_executor.verbose_check_call('pip', 'install', '--no-deps', '-e', '.')
+    tools_executor.verbose_check_call('uv', 'pip', 'install', '--no-deps', '-e', '.')
 
 
 @app.command
@@ -41,9 +41,6 @@ def update(verbosity: TyroVerbosityArgType):
     setup_logging(verbosity=verbosity)
 
     tools_executor = ToolsExecutor(cwd=PACKAGE_ROOT)
-
-    tools_executor.verbose_check_call('pip', 'install', '-U', 'pip')
-    tools_executor.verbose_check_call('pip', 'install', '-U', 'uv')
     tools_executor.verbose_check_call('uv', 'lock', '--upgrade')
 
     run_pip_audit(base_path=PACKAGE_ROOT, verbosity=verbosity)
