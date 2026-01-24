@@ -209,6 +209,15 @@ The file contains only the relative path to the first hardlink of this file cont
 
 ## start development
 
+At least `uv` is needed. Install e.g.: via pipx:
+```bash
+apt-get install pipx
+pipx install uv
+```
+
+Clone the project and just start the CLI help commands.
+A virtual environment will be created/updated automatically.
+
 ```bash
 ~$ git clone https://github.com/jedie/PyHardLinkBackup.git
 ~$ cd PyHardLinkBackup
@@ -276,6 +285,7 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...main)
+  * 2026-01-24 - Simplify CLIs using uv direct
   * 2026-01-22 - rebuid command: skip hashing same files by check the inode uniqueness
   * 2026-01-22 - Add "fs-info" in dev cli
   * 2026-01-22 - rebuild command: fix wrong progress bar

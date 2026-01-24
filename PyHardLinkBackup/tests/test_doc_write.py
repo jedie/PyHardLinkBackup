@@ -21,6 +21,6 @@ class DocuWriteApiTestCase(TestCase):
 
         with self.assertLogs():
             info: GeneratedInfo = generate(base_path=PACKAGE_ROOT)
-        self.assertGreaterEqual(len(info.paths), 1)
+        self.assertGreaterEqual(len(info.paths), 2)
         self.assertEqual(info.update_count, 0, 'No files should be updated, commit the changes')
         self.assertEqual(info.remove_count, 0, 'No files should be removed, commit the changes')
