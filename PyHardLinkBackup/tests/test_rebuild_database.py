@@ -1,4 +1,5 @@
 import logging
+import os
 import textwrap
 from pathlib import Path
 from unittest.mock import patch
@@ -30,7 +31,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
             backup_root = temp_path / 'backup'
 
             with self.assertRaises(SystemExit), RedirectOut() as redirected_out:
-                rebuild(backup_root, log_manager=NoopLoggingManager())
+                rebuild(backup_root, skip_same_inode=True, log_manager=NoopLoggingManager())
 
             self.assertEqual(redirected_out.stderr, '')
             self.assertEqual(redirected_out.stdout, f'Error: Backup directory "{backup_root}" does not exist!\n')
@@ -38,7 +39,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
             backup_root.mkdir()
 
             with self.assertRaises(SystemExit), RedirectOut() as redirected_out:
-                rebuild(backup_root, log_manager=NoopLoggingManager())
+                rebuild(backup_root, skip_same_inode=True, log_manager=NoopLoggingManager())
 
             self.assertEqual(redirected_out.stderr, '')
             self.assertIn('hidden ".phlb" configuration directory is missing', redirected_out.stdout)
@@ -56,7 +57,8 @@ class RebuildDatabaseTestCase(BaseTestCase):
                 RedirectOut() as redirected_out,
                 freeze_time('2026-01-16T12:34:56Z', auto_tick_seconds=0),
             ):
-                rebuild_result = rebuild(backup_root, log_manager=NoopLoggingManager())
+                rebuild_result = rebuild(backup_root, skip_same_inode=True, log_manager=NoopLoggingManager())
+            self.assertEqual(redirected_out.stderr, '')
             self.assertEqual(
                 rebuild_result,
                 RebuildResult(
@@ -92,7 +94,8 @@ class RebuildDatabaseTestCase(BaseTestCase):
                 RedirectOut() as redirected_out,
                 freeze_time('2026-01-16T12:34:56Z', auto_tick_seconds=0),
             ):
-                rebuild_result = rebuild(backup_root, log_manager=NoopLoggingManager())
+                rebuild_result = rebuild(backup_root, skip_same_inode=True, log_manager=NoopLoggingManager())
+            self.assertEqual(redirected_out.stderr, '')
             self.assertEqual(
                 sorted_rglob_paths(backup_root),
                 [
@@ -134,6 +137,8 @@ class RebuildDatabaseTestCase(BaseTestCase):
                     hash_verified_count=0,
                     hash_mismatch_count=0,
                     hash_not_found_count=1,
+                    unique_inode_count=2,
+                    skip_by_inode_count=0,
                 ),
             )
             self.assertEqual(
@@ -152,7 +157,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
                 RedirectOut() as redirected_out,
                 freeze_time('2026-01-16T12:34:56Z', auto_tick_seconds=0),
             ):
-                rebuild_result = rebuild(backup_root, log_manager=NoopLoggingManager())
+                rebuild_result = rebuild(backup_root, skip_same_inode=True, log_manager=NoopLoggingManager())
             # No new hash of size entries, just the new file:
             self.assertEqual(
                 sorted_rglob_files(backup_root),
@@ -177,6 +182,8 @@ class RebuildDatabaseTestCase(BaseTestCase):
                     hash_verified_count=1,  # Existing file verified successfully
                     hash_mismatch_count=0,
                     hash_not_found_count=1,  # One file added
+                    unique_inode_count=4,
+                    skip_by_inode_count=0,
                 ),
                 '\n'.join(logs.output) + redirected_out.stdout,
             )
@@ -201,7 +208,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
                 RedirectOut() as redirected_out,
                 patch.object(rebuild_databases, 'rebuild_one_file', rebuild_one_file_mock),
             ):
-                rebuild_result = rebuild(backup_root, log_manager=NoopLoggingManager())
+                rebuild_result = rebuild(backup_root, skip_same_inode=True, log_manager=NoopLoggingManager())
             logs = ''.join(logs.output)
             self.assertIn(f'Backup {snapshot_path}/file1.txt OSError: Bam!\n', logs)
             self.assertIn('\nTraceback (most recent call last):\n', logs)
@@ -218,5 +225,42 @@ class RebuildDatabaseTestCase(BaseTestCase):
                     hash_verified_count=1,
                     hash_mismatch_count=0,
                     hash_not_found_count=0,
+                    unique_inode_count=3,
+                    skip_by_inode_count=0,
                 ),
+            )
+
+    def test_skip_same_inode(self):
+        with TemporaryDirectoryPath() as temp_path:
+            backup_root = temp_path / 'backup'
+            backup_root.mkdir()
+            (backup_root / '.phlb').mkdir()
+
+            file1_path = backup_root / 'file2.txt'
+            file1_path.write_text('123456')
+
+            (backup_root / 'symlink2file1.txt').symlink_to(file1_path)
+            os.link(file1_path, backup_root / 'hardlink2file1')
+
+            with (
+                self.assertLogs('PyHardLinkBackup', level=logging.DEBUG),
+                RedirectOut() as redirected_out,
+            ):
+                rebuild_result = rebuild(backup_root, skip_same_inode=True, log_manager=NoopLoggingManager())
+            self.assertEqual(redirected_out.stderr, '')
+            self.assertEqual(
+                rebuild_result,
+                RebuildResult(
+                    process_count=1,
+                    process_size=6,
+                    added_size_count=0,
+                    added_hash_count=0,
+                    error_count=0,
+                    hash_verified_count=0,
+                    hash_mismatch_count=0,
+                    hash_not_found_count=0,
+                    unique_inode_count=2,
+                    skip_by_inode_count=1,
+                ),
+                redirected_out.stdout,
             )
