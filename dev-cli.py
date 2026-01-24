@@ -1,116 +1,63 @@
 #!/usr/bin/env python3
 
 """
-    bootstrap CLI
-    ~~~~~~~~~~~~~
+`./dev-cli.py` is a development bootstrap script and CLI entry point.
+Just call this file, and the magic happens ;)
 
-    Just call this file, and the magic happens ;)
+The `uv` tool is required to run the development CLI.
+
+e.g.: Install `uv` via `pipx`
+    apt-get install pipx
+    pipx install uv
 """
 
-import hashlib
+import os
 import shlex
+import shutil
 import subprocess
 import sys
-import venv
 from pathlib import Path
-
-
-def print_no_pip_error():
-    print('Error: Pip not available!')
-    print('Hint: "apt-get install python3-venv"\n')
-
-
-try:
-    from ensurepip import version
-except ModuleNotFoundError as err:
-    print(err)
-    print('-' * 100)
-    print_no_pip_error()
-    raise
-else:
-    if not version():
-        print_no_pip_error()
-        sys.exit(-1)
 
 
 assert sys.version_info >= (3, 12), f'Python version {sys.version_info} is too old!'
 
 
-if sys.platform == 'win32':  # wtf
-    # Files under Windows, e.g.: .../.venv/Scripts/python.exe
-    BIN_NAME = 'Scripts'
-    FILE_EXT = '.exe'
-else:
-    # Files under Linux/Mac and all other than Windows, e.g.: .../.venv/bin/python3
-    BIN_NAME = 'bin'
-    FILE_EXT = ''
-
-BASE_PATH = Path(__file__).parent
-VENV_PATH = BASE_PATH / '.venv'
-BIN_PATH = VENV_PATH / BIN_NAME
-PYTHON_PATH = BIN_PATH / f'python3{FILE_EXT}'
-PIP_PATH = BIN_PATH / f'pip{FILE_EXT}'
-UV_PATH = BIN_PATH / f'uv{FILE_EXT}'
-
-DEP_LOCK_PATH = BASE_PATH / 'uv.lock'
-DEP_HASH_PATH = VENV_PATH / '.dep_hash'
-
-# script file defined in pyproject.toml as [console_scripts]
-# (Under Windows: ".exe" not added!)
-PROJECT_SHELL_SCRIPT = BIN_PATH / '_PyHardLinkBackup_dev'
+# Create and use  "/.venv/" for virtualenv:
+VIRTUAL_ENV = '.venv'
 
 
-def get_dep_hash():
-    """Get SHA512 hash from lock file content."""
-    return hashlib.sha512(DEP_LOCK_PATH.read_bytes()).hexdigest()
-
-
-def store_dep_hash():
-    """Generate .venv/.dep_hash"""
-    DEP_HASH_PATH.write_text(get_dep_hash())
-
-
-def venv_up2date():
-    """Is existing .venv is up-to-date?"""
-    if DEP_HASH_PATH.is_file():
-        return DEP_HASH_PATH.read_text() == get_dep_hash()
-    return False
+def print_uv_error_and_exit():
+    print('\nError: "uv" command not found in PATH. Please install "uv" first!\n')
+    print('Hint:')
+    print('\tapt-get install pipx\n')
+    print('\tpipx install uv\n')
+    sys.exit(1)
 
 
 def verbose_check_call(*popen_args):
     print(f'\n+ {shlex.join(str(arg) for arg in popen_args)}\n')
-    return subprocess.check_call(popen_args)
+    env = {
+        'VIRTUAL_ENV': VIRTUAL_ENV,
+        'UV_VENV': VIRTUAL_ENV,
+        **os.environ,
+    }
+    return subprocess.check_call(popen_args, env=env)
 
 
 def main(argv):
-    assert DEP_LOCK_PATH.is_file(), f'File not found: "{DEP_LOCK_PATH}" !'
+    uv_bin = shutil.which('uv')  # Ensure 'uv' is available in PATH
+    if not uv_bin:
+        print_uv_error_and_exit()
 
-    # Create virtual env in ".venv/":
-    if not PYTHON_PATH.is_file():
-        print(f'Create virtual env here: {VENV_PATH.absolute()}')
-        builder = venv.EnvBuilder(symlinks=True, upgrade=True, with_pip=True)
-        builder.create(env_dir=VENV_PATH)
-
-    if not PROJECT_SHELL_SCRIPT.is_file() or not venv_up2date():
-        # Update pip
-        verbose_check_call(PYTHON_PATH, '-m', 'pip', 'install', '-U', 'pip')
-
-        # Install uv
-        verbose_check_call(PYTHON_PATH, '-m', 'pip', 'install', '-U', 'uv')
-
-        # install requirements
-        verbose_check_call(UV_PATH, 'sync')
-
-        # install project
-        verbose_check_call(PIP_PATH, 'install', '--no-deps', '-e', '.')
-        store_dep_hash()
+    if not Path(VIRTUAL_ENV).is_dir():
+        verbose_check_call(uv_bin, 'venv', VIRTUAL_ENV)
 
         # Activate git pre-commit hooks:
-        verbose_check_call(PYTHON_PATH, '-m', 'pre_commit', 'install')
+        verbose_check_call(uv_bin, 'run', '--active', '-m', 'pre_commit', 'install')
 
     # Call our entry point CLI:
     try:
-        verbose_check_call(PROJECT_SHELL_SCRIPT, *argv[1:])
+        verbose_check_call(uv_bin, 'run', '--active', '-m', 'PyHardLinkBackup.cli_dev', *argv[1:])
     except subprocess.CalledProcessError as err:
         sys.exit(err.returncode)
     except KeyboardInterrupt:
