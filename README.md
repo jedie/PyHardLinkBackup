@@ -284,6 +284,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.1...main)
+  * 2026-01-25 - Github CI: Activate tests under windows
 * [v1.8.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...v1.8.1)
   * 2026-01-24 - Update packaging commands related to new direct "uv" usage
   * 2026-01-24 - Bugfix "rebuild" command
@@ -300,11 +302,11 @@ Overview of main changes:
   * 2026-01-22 - Optimize progress bars for smaller screens
 * [v1.7.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.2...v1.7.3)
   * 2026-01-21 - Handle directory symlinks correct
-* [v1.7.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...v1.7.2)
-  * 2026-01-21 - Display "Remaining time" to files and sizes, too.
 
 <details><summary>Expand older history entries ...</summary>
 
+* [v1.7.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...v1.7.2)
+  * 2026-01-21 - Display "Remaining time" to files and sizes, too.
 * [v1.7.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.0...v1.7.1)
   * 2026-01-19 - Update requirements to fix problems under Windows
 * [v1.7.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.6.0...v1.7.0)
