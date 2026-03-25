@@ -53,7 +53,7 @@ class SortedIterScandirFiles:
 def set_file_times(path: Path, dt: datetime.datetime):
     # move dt to UTC if it has timezone info:
     if dt.tzinfo is not None:
-        dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        dt = dt.astimezone(datetime.UTC).replace(tzinfo=None)
     fixed_time = dt.timestamp()
     with NoLogs(logger_name=''):
         for entry in iter_scandir_files(

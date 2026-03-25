@@ -48,7 +48,7 @@ def check_sha256sums(
             else:
                 filename = filename.strip()
                 if filename == file_path.name:
-                    if not expected_hash == file_hash:
+                    if expected_hash != file_hash:
                         logger.error(
                             f'Hash {file_hash} from file {file_path} does not match hash in {hash_file_path} !'
                         )

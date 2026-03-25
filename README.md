@@ -285,6 +285,8 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.1...main)
+  * 2026-03-25 - fix some code styles
+  * 2026-03-25 - Update requirements
 * [v1.8.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...v1.8.1)
   * 2026-01-24 - Update packaging commands related to new direct "uv" usage
   * 2026-01-24 - Bugfix "rebuild" command
