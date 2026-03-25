@@ -200,7 +200,7 @@ class RebuildDatabaseTestCase(BaseTestCase):
 
             def rebuild_one_file_mock(*, entry, **kwargs):
                 if entry.name == 'file1.txt':
-                    raise IOError('Bam!')
+                    raise OSError('Bam!')
                 return rebuild_one_file(entry=entry, **kwargs)
 
             with (

@@ -3,8 +3,8 @@ import logging
 import os
 import shutil
 import time
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from bx_py_utils.path import assert_is_dir
 from rich.progress import (
