@@ -35,6 +35,27 @@ dev = [
     "typeguard",  # https://github.com/agronholm/typeguard/
 ]
 
+
+[tool.uv]
+# Don't install bleed-edge versions of dependencies, to avoid undetected issues and supply chain attacks.
+exclude-newer = "1 week"
+
+# Exclude own packages from the "exclude-newer" rule and
+# add external packages temporarily to fix known issues or current CVEs
+# TODO: Remove requests - v2.33.0 fixed CVE-2026-25645
+exclude-newer-package = { requests = "2026-03-25T18:00:00Z", cryptography="2026-03-27T00:00:00Z" }
+
+
+[tool.cli_base.pip_audit]
+strict=true
+require_hashes=true
+ignore-vuln=[
+    "CVE-2026-4539", # https://github.com/pygments/pygments/issues/3058#issuecomment-4127344972
+]
+
+[tool.cli_base]
+version_module_name = "PyHardLinkBackup"  # Used by "update-readme-history" git hook
+
 [project.urls]
 Documentation = "https://github.com/jedie/PyHardLinkBackup"
 Source = "https://github.com/jedie/PyHardLinkBackup"
@@ -62,17 +83,6 @@ packages = ["PyHardLinkBackup"]
 path = "PyHardLinkBackup/__init__.py"
 
 
-[tool.cli_base.pip_audit]
-strict=true
-require_hashes=true
-ignore-vuln=[
-    "CVE-2026-4539", # https://github.com/pygments/pygments/issues/3058#issuecomment-4127344972
-]
-
-[tool.cli_base]
-version_module_name = "PyHardLinkBackup"  # Used by "update-readme-history" git hook
-
-
 [tool.ruff]
 # https://docs.astral.sh/ruff/configuration/
 line-length = 120
@@ -89,6 +99,8 @@ extend-select = [
 ignore = [
     "E402", # https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file/
     "E731", # https://docs.astral.sh/ruff/rules/lambda-assignment/
+    "PLW1508", # Invalid type for environment variable default
+    "C408", # Unnecessary `dict()` call (rewrite as a literal)
 ]
 
 [tool.ruff.lint.isort]
@@ -107,7 +119,7 @@ source = ['.']
 command_line = '-m unittest --verbose --locals --buffer'
 
 [tool.coverage.report]
-omit = ['.*', '*/tests/*']
+omit = ['.*', '*/tests/*', 'noxfile.py']
 skip_empty = true
 fail_under = 30
 show_missing = true
@@ -135,6 +147,7 @@ cookiecutter_template = "https://github.com/jedie/cookiecutter_templates/"
 cookiecutter_directory = "uv-python"
 applied_migrations = [
     "ae7c1ba", # 2025-12-16T19:28:11+01:00
+    "69ee933", # 2026-03-28T10:01:57+01:00
 ]
 
 [manageprojects.cookiecutter_context.cookiecutter]

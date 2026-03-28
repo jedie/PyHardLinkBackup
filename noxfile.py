@@ -12,6 +12,7 @@ PYTHON_VERSIONS = ('3.14', '3.13', '3.12')
 @nox.session(
     python=PYTHON_VERSIONS,
     venv_backend='uv',
+    reuse_venv=True,
     download_python='auto',
 )
 def tests(session: Session):
