@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from bx_py_utils.test_utils.redirect import RedirectOut
+from cli_base.cli_tools.test_utils.assertion import assert_in
 from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
 from freezegun import freeze_time
 
@@ -209,10 +210,15 @@ class RebuildDatabaseTestCase(BaseTestCase):
                 patch.object(rebuild_databases, 'rebuild_one_file', rebuild_one_file_mock),
             ):
                 rebuild_result = rebuild(backup_root, skip_same_inode=True, log_manager=NoopLoggingManager())
-            logs = ''.join(logs.output)
-            self.assertIn(f'Backup {snapshot_path}/file1.txt OSError: Bam!\n', logs)
-            self.assertIn('\nTraceback (most recent call last):\n', logs)
             self.assertEqual(redirected_out.stderr, '')
+            assert_in(
+                content=''.join(logs.output),
+                parts=(
+                    f'Backup {snapshot_path}/file1.txt OSError\n',
+                    '\nTraceback (most recent call last):\n',
+                    'OSError: Bam!'
+                ),
+            )
 
             self.assertEqual(
                 rebuild_result,

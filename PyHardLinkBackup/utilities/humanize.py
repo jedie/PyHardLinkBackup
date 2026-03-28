@@ -3,7 +3,7 @@ import time
 from bx_py_utils.humanize.time import human_timedelta
 
 
-def human_filesize(size: int | float) -> str:
+def human_filesize(size: float) -> str:
     """
     >>> human_filesize(1024)
     '1.00 KiB'

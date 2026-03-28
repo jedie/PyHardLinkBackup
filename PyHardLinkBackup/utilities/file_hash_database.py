@@ -2,6 +2,9 @@ import logging
 from pathlib import Path
 
 
+logger = logging.getLogger(__name__)
+
+
 class HashAlreadyExistsError(ValueError):
     pass
 
@@ -45,7 +48,7 @@ class FileHashDatabase:
         else:
             abs_file_path = self.backup_root / rel_file_path
             if not abs_file_path.is_file():
-                logging.warning('Hash database entry found, but file does not exist: %s', abs_file_path)
+                logger.warning('Hash database entry found, but file does not exist: %s', abs_file_path)
                 hash_path.unlink()
                 return None
             return abs_file_path

@@ -1,6 +1,6 @@
 """
     Allow PyHardLinkBackup to be executable
-    through `python -m PyHardLinkBackup`.
+    through `python -m phlb.cli_dev`.
 """
 
 from PyHardLinkBackup.cli_dev import main

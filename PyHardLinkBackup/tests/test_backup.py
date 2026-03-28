@@ -5,7 +5,7 @@ import shutil
 import textwrap
 import unittest
 import zlib
-from collections.abc import Iterable
+from collections.abc import Iterator
 from pathlib import Path
 from unittest.mock import patch
 
@@ -14,6 +14,7 @@ from bx_py_utils.test_utils.assertion import assert_text_equal
 from bx_py_utils.test_utils.datetime import parse_dt
 from bx_py_utils.test_utils.log_utils import NoLogs
 from bx_py_utils.test_utils.redirect import RedirectOut
+from cli_base.cli_tools.test_utils.assertion import assert_in
 from freezegun import freeze_time
 from tabulate import tabulate
 
@@ -42,7 +43,7 @@ class SortedIterScandirFiles:
     def __enter__(self):
         return self
 
-    def __iter__(self) -> Iterable[os.DirEntry]:
+    def __iter__(self) -> Iterator[os.DirEntry]:
         scandir_iterator = iter_scandir_files(**self.iter_scandir_files_kwargs)
         yield from sorted(scandir_iterator, key=lambda e: e.name)
 
@@ -741,9 +742,14 @@ class BackupTreeTestCase(
         assert_is_file(log_file)
         self.assertEqual(str(log_file), f'{self.temp_path}/backups/source/2026-01-01-123456-backup.log')
         logs = log_file.read_text()
-        self.assertIn(
-            f'Backup {self.src_root / "file2.txt"} PermissionError: Bam!\n',
+        assert_in(
             logs,
+            parts=(
+                'PyHardLinkBackup.backup - INFO - Backup ',
+                'PermissionError: Bam!',
+                f'ERROR - Backup {self.src_root / "file2.txt"} PermissionError',
+                'WARNING - Removing incomplete file',
+            ),
         )
         self.assertIn('\nTraceback (most recent call last):\n', logs)
         self.assertIn(
@@ -806,6 +812,7 @@ class BackupTreeTestCase(
                 time_to_freeze='2026-01-01T12:34:56Z',
                 log_file_level='debug',  # Skip SHA256SUMS is logged at DEBUG level
             )
+        self.assertEqual(redirected_out.stderr, '')
         self.assertEqual(
             collector.opened_for_read,
             [
@@ -851,6 +858,7 @@ class BackupTreeTestCase(
 
         with patch('PyHardLinkBackup.backup.CHUNK_SIZE', 1000), CollectOpenFiles(self.temp_path) as collector:
             redirected_out, result = self.create_backup(time_to_freeze='2026-01-11T12:34:56Z')
+        self.assertEqual(redirected_out.stderr, '')
         self.assertEqual(
             collector.opened_for_read,
             [
@@ -891,6 +899,7 @@ class BackupTreeTestCase(
 
         with patch('PyHardLinkBackup.backup.CHUNK_SIZE', 1000), CollectOpenFiles(self.temp_path) as collector:
             redirected_out, result = self.create_backup(time_to_freeze='2026-02-22T12:34:56Z')
+        self.assertEqual(redirected_out.stderr, '')
         self.assertEqual(
             collector.opened_for_read,
             [
@@ -967,6 +976,7 @@ class BackupTreeTestCase(
                 time_to_freeze='2026-01-01T12:34:56Z',
                 log_file_level='debug',
             )
+        self.assertEqual(redirected_out.stderr, '')
         backup_dir = result.backup_dir
 
         """DocWrite: README.md ## backup implementation - Symlinks
@@ -1057,6 +1067,7 @@ class BackupTreeTestCase(
                 time_to_freeze='2026-01-23T12:34:56Z',
                 log_file_level='debug',
             )
+        self.assertEqual(redirected_out.stderr, '')
         backup_dir = result.backup_dir
 
         # It's still a directory symlink in the backup and points to the original subdir:
@@ -1131,17 +1142,20 @@ class BackupTreeTestCase(
         (self.src_root / 'file.txt').touch()
 
         redirected_out, result = self.create_backup(time_to_freeze='2026-01-01T12:34:56Z', backup_name=None)
+        self.assertEqual(redirected_out.stderr, '')
         self.assertEqual(
             str(result.backup_dir.relative_to(self.temp_path)),
             'backups/source/2026-01-01-123456',
         )
 
         redirected_out, result = self.create_backup(time_to_freeze='2026-01-01T12:34:56Z', backup_name='My-Backup')
+        self.assertEqual(redirected_out.stderr, '')
         self.assertEqual(
             str(result.backup_dir.relative_to(self.temp_path)),
             'backups/My-Backup/2026-01-01-123456',
         )
         redirected_out, result = self.create_backup(time_to_freeze='2026-12-24T00:12:34Z', backup_name='My-Backup')
+        self.assertEqual(redirected_out.stderr, '')
         self.assertEqual(
             str(result.backup_dir.relative_to(self.temp_path)),
             'backups/My-Backup/2026-12-24-001234',

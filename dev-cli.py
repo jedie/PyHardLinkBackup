@@ -21,9 +21,10 @@ from pathlib import Path
 
 assert sys.version_info >= (3, 12), f'Python version {sys.version_info} is too old!'
 
+BASE_PATH = Path(__file__).resolve().parent
 
 # Create and use  "/.venv/" for virtualenv:
-VIRTUAL_ENV = '.venv'
+VIRTUAL_ENV = str(BASE_PATH / '.venv')
 
 
 def print_uv_error_and_exit():
@@ -41,7 +42,14 @@ def verbose_check_call(*popen_args):
         'UV_VENV': VIRTUAL_ENV,
         **os.environ,
     }
-    return subprocess.check_call(popen_args, env=env)
+    for key, value in env.items():
+        if 'ENV' in key:
+            print(f'{key}={value}')
+    return subprocess.check_call(
+        popen_args,
+        env=env,
+        cwd=Path(__file__).parent,  # Needed if called from other working directory
+    )
 
 
 def main(argv):
