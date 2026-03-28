@@ -23,16 +23,12 @@ logger = logging.getLogger(__name__)
 class RebuildResult:
     process_count: int = 0
     process_size: int = 0
-    #
     added_size_count: int = 0
     added_hash_count: int = 0
-    #
     error_count: int = 0
-    #
     hash_verified_count: int = 0
     hash_mismatch_count: int = 0
     hash_not_found_count: int = 0
-    #
     unique_inode_count: int = 0
     skip_by_inode_count: int = 0
 
@@ -175,7 +171,7 @@ def rebuild(
                     progress=progress,
                 )
             except Exception as err:
-                logger.exception(f'Backup {entry.path} {err.__class__.__name__}: {err}')
+                logger.exception(f'Backup {entry.path} {err.__class__.__name__}')
                 rebuild_result.error_count += 1
             else:
                 now = time.monotonic()

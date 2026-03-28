@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 import time
-from collections.abc import Iterable
+from collections.abc import Iterator
 from pathlib import Path
 
 from bx_py_utils.path import assert_is_dir
@@ -54,15 +54,17 @@ class RemoveFileOnError:
 def hash_file(path: Path, progress: DisplayFileTreeProgress, total_size: int) -> str:
     logger.debug('Hash file %s using %s', path, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)
-    with LargeFileProgress(
-        description=f'Hashing large file: "[yellow]{path}[/yellow]"',
-        parent_progress=progress,
-        total_size=total_size,
-    ) as progress_bar:
-        with path.open('rb') as f:
-            while chunk := f.read(CHUNK_SIZE):
-                hasher.update(chunk)
-                progress_bar.update(advance=len(chunk))
+    with (
+        LargeFileProgress(
+            description=f'Hashing large file: "[yellow]{path}[/yellow]"',
+            parent_progress=progress,
+            total_size=total_size,
+        ) as progress_bar,
+        path.open('rb') as f,
+    ):
+        while chunk := f.read(CHUNK_SIZE):
+            hasher.update(chunk)
+            progress_bar.update(advance=len(chunk))
     file_hash = hasher.hexdigest()
     logger.info('%s %s hash: %s', path, HASH_ALGO, file_hash)
     return file_hash
@@ -70,15 +72,18 @@ def hash_file(path: Path, progress: DisplayFileTreeProgress, total_size: int) ->
 
 def copy_with_progress(src: Path, dst: Path, progress: DisplayFileTreeProgress, total_size: int) -> None:
     logger.debug('Copy file %s to %s using %s', src, dst, HASH_ALGO)
-    with LargeFileProgress(
-        description=f'Copying large file: "[yellow]{src}[/yellow]"',
-        parent_progress=progress,
-        total_size=total_size,
-    ) as progress_bar:
-        with src.open('rb') as source_file, dst.open('wb') as dst_file:
-            while chunk := source_file.read(CHUNK_SIZE):
-                dst_file.write(chunk)
-                progress_bar.update(advance=len(chunk))
+    with (
+        LargeFileProgress(
+            description=f'Copying large file: "[yellow]{src}[/yellow]"',
+            parent_progress=progress,
+            total_size=total_size,
+        ) as progress_bar,
+        src.open('rb') as source_file,
+        dst.open('wb') as dst_file,
+    ):
+        while chunk := source_file.read(CHUNK_SIZE):
+            dst_file.write(chunk)
+            progress_bar.update(advance=len(chunk))
 
     # Keep original file metadata (permission bits, last access time, last modification time, and flags)
     shutil.copystat(src, dst)
@@ -87,16 +92,19 @@ def copy_with_progress(src: Path, dst: Path, progress: DisplayFileTreeProgress, 
 def copy_and_hash(src: Path, dst: Path, progress: DisplayFileTreeProgress, total_size: int) -> str:
     logger.debug('Copy and hash file %s to %s using %s', src, dst, HASH_ALGO)
     hasher = hashlib.new(HASH_ALGO)
-    with LargeFileProgress(
-        description=f'Copy and hash large file: "[yellow]{src}[/yellow]"',
-        parent_progress=progress,
-        total_size=total_size,
-    ) as progress_bar:
-        with src.open('rb') as source_file, dst.open('wb') as dst_file:
-            while chunk := source_file.read(CHUNK_SIZE):
-                dst_file.write(chunk)
-                hasher.update(chunk)
-                progress_bar.update(advance=len(chunk))
+    with (
+        LargeFileProgress(
+            description=f'Copy and hash large file: "[yellow]{src}[/yellow]"',
+            parent_progress=progress,
+            total_size=total_size,
+        ) as progress_bar,
+        src.open('rb') as source_file,
+        dst.open('wb') as dst_file,
+    ):
+        while chunk := source_file.read(CHUNK_SIZE):
+            dst_file.write(chunk)
+            hasher.update(chunk)
+            progress_bar.update(advance=len(chunk))
 
     # Keep original file metadata (permission bits, last access time, last modification time, and flags)
     shutil.copystat(src, dst)
@@ -121,7 +129,7 @@ def iter_scandir_files(
     one_file_system: bool,
     src_device_id,
     excludes: set[str],
-) -> Iterable[os.DirEntry]:
+) -> Iterator[os.DirEntry]:
     """
     Recursively yield all files+symlinks in the given directory.
     Note: Directory symlinks are treated as files (not recursed into).
@@ -246,9 +254,9 @@ def supports_hardlinks(directory: Path) -> bool:
         os.link(test_src_file, test_dst_file)
         assert test_dst_file.read_text() == 'test'
         hardlinks_supported = True
-    except OSError as err:
+    except OSError:
         # e.g.: FAT/exFAT filesystems ;)
-        logger.exception('Hardlink test failed in %s: %s', directory, err)
+        logger.exception('Hardlink test failed in %s', directory)
     finally:
         test_src_file.unlink(missing_ok=True)
         test_dst_file.unlink(missing_ok=True)

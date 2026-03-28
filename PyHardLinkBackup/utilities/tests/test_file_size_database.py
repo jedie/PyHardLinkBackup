@@ -1,6 +1,5 @@
 import logging
 import tempfile
-from collections.abc import Iterable
 from pathlib import Path
 
 from bx_py_utils.test_utils.log_utils import NoLogs
@@ -22,7 +21,7 @@ class TemporaryFileSizeDatabase(tempfile.TemporaryDirectory):
         return size_db
 
 
-def get_size_db_filenames(size_db: FileSizeDatabase) -> Iterable[str]:
+def get_size_db_filenames(size_db: FileSizeDatabase) -> list[str]:
     return sorted(
         str(Path(entry.path).relative_to(size_db.base_path))
         for entry in iter_scandir_files(
@@ -34,7 +33,7 @@ def get_size_db_filenames(size_db: FileSizeDatabase) -> Iterable[str]:
     )
 
 
-def get_sizes(size_db: FileSizeDatabase) -> Iterable[int]:
+def get_sizes(size_db: FileSizeDatabase) -> list[int]:
     with NoLogs('PyHardLinkBackup.utilities.filesystem'):
         return sorted(
             int(entry.name)
@@ -121,7 +120,7 @@ class FileSizeDatabaseTestCase(BaseTestCase):
             with self.assertRaises(AssertionError):
                 size_db.add(999)
             with self.assertRaises(AssertionError):
-                999 in size_db
+                999 in size_db  # noqa: B015
 
             ########################################################################################
             # Check final state:

@@ -101,6 +101,8 @@ ignore = [
     "E731", # https://docs.astral.sh/ruff/rules/lambda-assignment/
     "PLW1508", # Invalid type for environment variable default
     "C408", # Unnecessary `dict()` call (rewrite as a literal)
+    "DTZ", # e.g.: `datetime` without a `tz` argument"
+    "N999", # Invalid module name: 'PyHardLinkBackup'"
 ]
 
 [tool.ruff.lint.isort]

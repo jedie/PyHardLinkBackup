@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 
-from rich import print  # noqa
+from rich import print
 
 from PyHardLinkBackup.constants import CHUNK_SIZE
 from PyHardLinkBackup.logging_setup import LoggingManager
@@ -37,20 +37,15 @@ logger = logging.getLogger(__name__)
 class BackupResult:
     backup_dir: Path
     log_file: Path
-    #
     backup_count: int = 0
     backup_size: int = 0
-    #
     symlink_files: int = 0
     hardlinked_files: int = 0
     hardlinked_size: int = 0
-    #
     copied_files: int = 0
     copied_size: int = 0
-    #
     copied_small_files: int = 0
     copied_small_size: int = 0
-    #
     error_count: int = 0
 
 
@@ -260,7 +255,7 @@ def backup_tree(
                     progress=progress,
                 )
             except Exception as err:
-                logger.exception(f'Backup {entry.path} {err.__class__.__name__}: {err}')
+                logger.exception(f'Backup {entry.path} {err.__class__.__name__}')
                 backup_result.error_count += 1
             else:
                 now = time.monotonic()

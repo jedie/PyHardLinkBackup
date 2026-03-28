@@ -6,7 +6,7 @@ import sys
 import time
 from pathlib import Path
 
-from rich import print  # noqa
+from rich import print
 
 from PyHardLinkBackup.logging_setup import LoggingManager
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase
@@ -30,18 +30,14 @@ class CompareResult:
     last_timestamp: str
     compare_dir: Path
     log_file: Path
-    #
     total_file_count: int = 0
     total_size: int = 0
-    #
     src_file_new_count: int = 0
     file_size_missmatch: int = 0
     file_hash_missmatch: int = 0
-    #
     small_file_count: int = 0
     size_db_missing_count: int = 0
     hash_db_missing_count: int = 0
-    #
     successful_file_count: int = 0
     error_count: int = 0
 
@@ -223,7 +219,7 @@ def compare_tree(
                     progress=progress,
                 )
             except Exception as err:
-                logger.exception(f'Compare {entry.path} {err.__class__.__name__}: {err}')
+                logger.exception(f'Compare {entry.path} {err.__class__.__name__}')
                 compare_result.error_count += 1
             else:
                 now = time.monotonic()

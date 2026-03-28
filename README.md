@@ -227,7 +227,7 @@ A virtual environment will be created/updated automatically.
 
 [comment]: <> (✂✂✂ auto generated dev help start ✂✂✂)
 ```
-usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,fs-info,install,lint,mypy,nox,pip-audit,publish,scan-benchmark,shell-completion,test,update,update-readme-history,update-test-snapshot-files,version}
+usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,fs-info,install,lint,mypy,nox,pip-audit,publish,scan-benchmark,test,update,update-readme-history,update-test-snapshot-files,version}
 
 
 
@@ -248,8 +248,6 @@ usage: ./dev-cli.py [-h] {benchmark-hashes,coverage,fs-info,install,lint,mypy,no
 │   • publish    Build and upload this project to PyPi                                                                 │
 │   • scan-benchmark                                                                                                   │
 │                Benchmark our filesystem scan routine.                                                                │
-│   • shell-completion                                                                                                 │
-│                Setup shell completion for this CLI (Currently only for bash shell)                                   │
 │   • test       Run unittests                                                                                         │
 │   • update     Update dependencies (uv.lock) and git pre-commit hooks                                                │
 │   • update-readme-history                                                                                            │
@@ -285,9 +283,9 @@ Overview of main changes:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.1...main)
+  * 2026-03-28 - Update requirements
   * 2026-03-28 - apply manageprojects updates
   * 2026-03-25 - fix some code styles
-  * 2026-03-25 - Update requirements
 * [v1.8.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...v1.8.1)
   * 2026-01-24 - Update packaging commands related to new direct "uv" usage
   * 2026-01-24 - Bugfix "rebuild" command
