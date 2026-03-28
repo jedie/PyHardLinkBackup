@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+from cli_base.cli_tools.test_utils.assertion import assert_in
 from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
 
 from PyHardLinkBackup.constants import HASH_ALGO
@@ -159,9 +160,13 @@ class TestHashFile(BaseTestCase):
                 patch('PyHardLinkBackup.utilities.filesystem.os.link', side_effect=OSError),
             ):
                 self.assertFalse(supports_hardlinks(temp_path))
-            logs = ''.join(logs.output)
-            self.assertIn(f'Hardlink test failed in {temp_path}:', logs)
-            self.assertIn('OSError', logs)
+            assert_in(
+                content=''.join(logs.output),
+                parts=(
+                    f'Hardlink test failed in {temp_path}',
+                    'OSError',
+                ),
+            )
 
         with self.assertLogs(level=logging.DEBUG), self.assertRaises(NotADirectoryError):
             supports_hardlinks(Path('/not/existing/directory'))

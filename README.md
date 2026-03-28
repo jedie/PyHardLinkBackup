@@ -282,7 +282,9 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.1...main)
+* [v1.8.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.1...v1.8.2)
+  * 2026-03-28 - Update tests
+  * 2026-03-28 - fix code style
   * 2026-03-28 - Update requirements
   * 2026-03-28 - apply manageprojects updates
   * 2026-03-25 - fix some code styles

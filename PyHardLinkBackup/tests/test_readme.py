@@ -40,7 +40,7 @@ class ReadmeTestCase(BaseTestCase):
         assert_in(
             content=stdout,
             parts=(
-                'usage: ./cli.py [-h]',
+                'usage: phlb [-h]',
                 ' version ',
                 'Print version and exit',
                 constants.CLI_EPILOG,
@@ -55,10 +55,10 @@ class ReadmeTestCase(BaseTestCase):
     def test_backup_help(self):
         with NoColorEnvRich():
             stdout = invoke(cli_bin=PACKAGE_ROOT / 'cli.py', args=['backup', '--help'], strip_line_prefix='usage: ')
-        self.assert_in_content(
-            got=stdout,
+        assert_in(
+            content=stdout,
             parts=(
-                'usage: ./cli.py backup [-h] ',
+                'usage: phlb backup [-h] ',
                 'Backup the source directory to the destination',
             ),
         )

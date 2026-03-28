@@ -43,7 +43,7 @@ class RemoveFileOnError:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if exc_type:
-            logger.info(
+            logger.warning(
                 f'Removing incomplete file {self.file_path} due to error: {exc_value}',
                 exc_info=(exc_type, exc_value, exc_traceback),
             )

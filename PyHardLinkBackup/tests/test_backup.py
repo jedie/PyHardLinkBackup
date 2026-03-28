@@ -14,6 +14,7 @@ from bx_py_utils.test_utils.assertion import assert_text_equal
 from bx_py_utils.test_utils.datetime import parse_dt
 from bx_py_utils.test_utils.log_utils import NoLogs
 from bx_py_utils.test_utils.redirect import RedirectOut
+from cli_base.cli_tools.test_utils.assertion import assert_in
 from freezegun import freeze_time
 from tabulate import tabulate
 
@@ -741,9 +742,14 @@ class BackupTreeTestCase(
         assert_is_file(log_file)
         self.assertEqual(str(log_file), f'{self.temp_path}/backups/source/2026-01-01-123456-backup.log')
         logs = log_file.read_text()
-        self.assertIn(
-            f'Backup {self.src_root / "file2.txt"} PermissionError: Bam!\n',
+        assert_in(
             logs,
+            parts=(
+                'PyHardLinkBackup.backup - INFO - Backup ',
+                'PermissionError: Bam!',
+                f'ERROR - Backup {self.src_root / "file2.txt"} PermissionError',
+                'WARNING - Removing incomplete file',
+            ),
         )
         self.assertIn('\nTraceback (most recent call last):\n', logs)
         self.assertIn(
