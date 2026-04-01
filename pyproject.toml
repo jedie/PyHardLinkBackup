@@ -42,8 +42,8 @@ exclude-newer = "1 week"
 
 # Exclude own packages from the "exclude-newer" rule and
 # add external packages temporarily to fix known issues or current CVEs
-# TODO: Remove requests - v2.33.0 fixed CVE-2026-25645
-exclude-newer-package = { requests = "2026-03-25T18:00:00Z", cryptography="2026-03-27T00:00:00Z" }
+# TODO: Remove all fixed packages from this list:
+exclude-newer-package = { requests = "2026-03-25T18:00:00Z", cryptography="2026-03-27T00:00:00Z", pygments="2026-04-01T00:00:00Z" }
 
 
 [tool.cli_base.pip_audit]
