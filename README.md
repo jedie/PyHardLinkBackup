@@ -282,7 +282,7 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.2...main)
+* [v1.8.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.2...v1.8.3)
   * 2026-04-01 - Update requirements
   * 2026-03-30 - Bump pygments from 2.19.2 to 2.20.0
 * [v1.8.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.1...v1.8.2)
