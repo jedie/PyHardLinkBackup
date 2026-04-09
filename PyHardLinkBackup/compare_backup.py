@@ -6,7 +6,7 @@ import sys
 import time
 from pathlib import Path
 
-from rich import print
+from rich import print  # noqa
 
 from PyHardLinkBackup.logging_setup import LoggingManager
 from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase

@@ -7,7 +7,7 @@ from pathlib import Path
 from bx_py_utils.path import assert_is_dir
 from cli_base.cli_tools.verbosity import setup_logging
 from cli_base.tyro_commands import TyroVerbosityArgType
-from rich import print
+from rich import print  # noqa
 
 from PyHardLinkBackup.cli_dev import app
 from PyHardLinkBackup.utilities.filesystem import humanized_fs_scan, iter_scandir_files
