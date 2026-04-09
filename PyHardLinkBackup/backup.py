@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 
-from rich import print  # noqa
+from rich import print
 
 from PyHardLinkBackup.constants import CHUNK_SIZE
 from PyHardLinkBackup.logging_setup import LoggingManager

@@ -282,7 +282,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.3...main)
+* [v1.8.4](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.3...v1.8.4)
+  * 2026-04-09 - Update requirements
   * 2026-04-09 - Apply project updates
   * 2026-04-08 - Bump cryptography from 46.0.6 to 46.0.7
 * [v1.8.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.2...v1.8.3)

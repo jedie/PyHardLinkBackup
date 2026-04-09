@@ -4,7 +4,7 @@ from pathlib import Path
 
 from bx_py_utils.test_utils.deny_requests import deny_any_real_request
 from cli_base.cli_tools.verbosity import MAX_LOG_LEVEL, setup_logging
-from rich import print  # noqa
+from rich import print
 from typeguard import install_import_hook
 
 
