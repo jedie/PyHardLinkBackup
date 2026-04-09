@@ -40,10 +40,11 @@ dev = [
 # Don't install bleed-edge versions of dependencies, to avoid undetected issues and supply chain attacks.
 exclude-newer = "1 week"
 
+[tool.uv.exclude-newer-package]
 # Exclude own packages from the "exclude-newer" rule and
 # add external packages temporarily to fix known issues or current CVEs
-# TODO: Remove all fixed packages from this list:
-exclude-newer-package = { requests = "2026-03-25T18:00:00Z", cryptography="2026-03-27T00:00:00Z", pygments="2026-04-01T00:00:00Z" }
+cryptography = "2026-04-08T12:00:00Z"
+django = "2026-04-08T12:00:00Z"
 
 
 [tool.cli_base.pip_audit]
@@ -150,6 +151,7 @@ cookiecutter_directory = "uv-python"
 applied_migrations = [
     "ae7c1ba", # 2025-12-16T19:28:11+01:00
     "69ee933", # 2026-03-28T10:01:57+01:00
+    "3cbc419", # 2026-04-09T17:37:01+02:00
 ]
 
 [manageprojects.cookiecutter_context.cookiecutter]

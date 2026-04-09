@@ -282,6 +282,10 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v1.8.4](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.3...v1.8.4)
+  * 2026-04-09 - Update requirements
+  * 2026-04-09 - Apply project updates
+  * 2026-04-08 - Bump cryptography from 46.0.6 to 46.0.7
 * [v1.8.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.2...v1.8.3)
   * 2026-04-01 - Update requirements
   * 2026-03-30 - Bump pygments from 2.19.2 to 2.20.0
@@ -300,14 +304,14 @@ Overview of main changes:
   * 2026-01-22 - rebuid command: skip hashing same files by check the inode uniqueness
   * 2026-01-22 - Add "fs-info" in dev cli
   * 2026-01-22 - rebuild command: fix wrong progress bar
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.8.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...v1.8.0)
   * 2026-01-22 - Add optional "--name" to enforce a name for the backup sub directory
   * 2026-01-22 - Do not cross filesystem boundaries as default
   * 2026-01-22 - Display progress also for large unique file copy
   * 2026-01-22 - Optimize progress bars for smaller screens
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v1.7.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.2...v1.7.3)
   * 2026-01-21 - Handle directory symlinks correct
 * [v1.7.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.1...v1.7.2)
