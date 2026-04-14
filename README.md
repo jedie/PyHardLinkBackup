@@ -282,7 +282,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.4...main)
+* [v1.9.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.4...v1.9.0)
+  * 2026-04-14 - Update existing links in has database
   * 2026-04-14 - Update requirements
 * [v1.8.4](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.3...v1.8.4)
   * 2026-04-09 - Update requirements

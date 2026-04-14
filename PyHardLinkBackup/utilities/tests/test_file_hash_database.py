@@ -8,7 +8,7 @@ from bx_py_utils.test_utils.assertion import assert_text_equal
 from bx_py_utils.test_utils.log_utils import NoLogs
 from cli_base.cli_tools.test_utils.base_testcases import BaseTestCase
 
-from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase, HashAlreadyExistsError
+from PyHardLinkBackup.utilities.file_hash_database import FileHashDatabase
 from PyHardLinkBackup.utilities.filesystem import iter_scandir_files
 
 
@@ -127,10 +127,28 @@ class FileHashDatabaseTestCase(BaseTestCase):
                 )
 
             ########################################################################################
-            # Deny "overwrite" of existing hash:
+            # Update existing hash to point to a newer file:
 
-            with self.assertRaises(HashAlreadyExistsError):
-                hash_db['12abcd345678abcdef'] = 'foo/bar/baz'  # already exists!
+            """DocWrite: README.md ## FileHashDatabase
+            The entry for each hash is always updated to point to the most recently backed-up file.
+            This means you can safely delete old backups: the hash DB will still point to a valid
+            file in the most recent backup, so deduplication continues to work correctly.
+            """
+
+            file_c_path = backup_root_path / 'rel/path/to/file-C'
+            file_c_path.parent.mkdir(parents=True, exist_ok=True)
+            file_c_path.touch()
+
+            hash_db['12abcd345678abcdef'] = file_c_path
+            self.assertEqual(hash_db.get('12abcd345678abcdef'), file_c_path)
+            with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
+                assert_hash_db_info(
+                    backup_root=hash_db.backup_root,
+                    expected="""
+                        12/34/12345678abcdef… -> rel/path/to/file-A
+                        12/ab/12abcd345678ab… -> rel/path/to/file-C
+                    """,
+                )
 
             ########################################################################################
             # Don't use stale entries pointing to missing files:
@@ -139,8 +157,10 @@ class FileHashDatabaseTestCase(BaseTestCase):
             file_a_path.unlink()
 
             """DocWrite: README.md ## FileHashDatabase - Missing hardlink target file
-            We check if the hardlink source file still exists. If not, we remove the hash entry from the database.
-            A warning is logged in this case."""
+            The `get()` method checks whether the referenced file still exists.
+            If not, the stale entry is removed and a warning is logged.
+            On the next backup run, the file is then copied fresh instead of hardlinked.
+            """
             with self.assertLogs(level=logging.WARNING) as logs:
                 self.assertIs(hash_db.get('12345678abcdef'), None)
             self.assertIn('Hash database entry found, but file does not exist', ''.join(logs.output))
@@ -148,6 +168,6 @@ class FileHashDatabaseTestCase(BaseTestCase):
                 assert_hash_db_info(
                     backup_root=hash_db.backup_root,
                     expected="""
-                        12/ab/12abcd345678ab… -> rel/path/to/file-B
+                        12/ab/12abcd345678ab… -> rel/path/to/file-C
                     """,
                 )

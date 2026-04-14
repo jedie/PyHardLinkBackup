@@ -130,7 +130,6 @@ def backup_one_file(
                 else:
                     logger.info('Store unique file: %s to %s', src_path, dst_path)
                     dst_path.write_bytes(file_content)
-                    hash_db[file_hash] = dst_path
                     backup_result.copied_files += 1
                     backup_result.copied_size += size
 
@@ -146,9 +145,11 @@ def backup_one_file(
                 else:
                     logger.info('Copy unique file: %s to %s', src_path, dst_path)
                     copy_with_progress(src_path, dst_path, progress=progress, total_size=size)
-                    hash_db[file_hash] = dst_path
                     backup_result.copied_files += 1
                     backup_result.copied_size += size
+
+            # Store new file in hash database or update existing entry to latest backuped file:
+            hash_db[file_hash] = dst_path
 
             # Keep original file metadata (permission bits, time stamps, and flags)
             shutil.copystat(src_path, dst_path)
