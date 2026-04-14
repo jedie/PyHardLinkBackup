@@ -9,7 +9,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "cli-base-utilities>=0.27.1",  # https://github.com/jedie/cli-base-utilities
+    "cli-base-utilities",  # https://github.com/jedie/cli-base-utilities
     "bx_py_utils",  # https://github.com/boxine/bx_py_utils
     "tyro",  # https://github.com/brentyi/tyro
     "rich",  # https://github.com/Textualize/rich
@@ -43,8 +43,9 @@ exclude-newer = "1 week"
 [tool.uv.exclude-newer-package]
 # Exclude own packages from the "exclude-newer" rule and
 # add external packages temporarily to fix known issues or current CVEs
+uv = "2026-04-13T12:00:00Z"
+cli-base-utilities = "2026-04-13T12:00:00Z"
 cryptography = "2026-04-08T12:00:00Z"
-django = "2026-04-08T12:00:00Z"
 
 
 [tool.cli_base.pip_audit]

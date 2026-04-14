@@ -282,6 +282,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.4...main)
+  * 2026-04-14 - Update requirements
 * [v1.8.4](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.3...v1.8.4)
   * 2026-04-09 - Update requirements
   * 2026-04-09 - Apply project updates
@@ -295,6 +297,9 @@ Overview of main changes:
   * 2026-03-28 - Update requirements
   * 2026-03-28 - apply manageprojects updates
   * 2026-03-25 - fix some code styles
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.8.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...v1.8.1)
   * 2026-01-24 - Update packaging commands related to new direct "uv" usage
   * 2026-01-24 - Bugfix "rebuild" command
@@ -304,9 +309,6 @@ Overview of main changes:
   * 2026-01-22 - rebuid command: skip hashing same files by check the inode uniqueness
   * 2026-01-22 - Add "fs-info" in dev cli
   * 2026-01-22 - rebuild command: fix wrong progress bar
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v1.8.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.7.3...v1.8.0)
   * 2026-01-22 - Add optional "--name" to enforce a name for the backup sub directory
   * 2026-01-22 - Do not cross filesystem boundaries as default
