@@ -282,6 +282,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v1.9.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.9.0...v1.9.1)
+  * 2026-04-14 - fix pipx installation and set requires-python to ">=3.13"
 * [v1.9.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.4...v1.9.0)
   * 2026-04-14 - Update existing links in has database
   * 2026-04-14 - Update requirements
@@ -292,15 +294,15 @@ Overview of main changes:
 * [v1.8.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.2...v1.8.3)
   * 2026-04-01 - Update requirements
   * 2026-03-30 - Bump pygments from 2.19.2 to 2.20.0
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v1.8.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.1...v1.8.2)
   * 2026-03-28 - Update tests
   * 2026-03-28 - fix code style
   * 2026-03-28 - Update requirements
   * 2026-03-28 - apply manageprojects updates
   * 2026-03-25 - fix some code styles
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v1.8.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.0...v1.8.1)
   * 2026-01-24 - Update packaging commands related to new direct "uv" usage
   * 2026-01-24 - Bugfix "rebuild" command
