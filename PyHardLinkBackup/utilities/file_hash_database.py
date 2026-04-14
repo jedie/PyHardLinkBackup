@@ -5,10 +5,6 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-class HashAlreadyExistsError(ValueError):
-    pass
-
-
 class FileHashDatabase:
     """DocWrite: README.md ## FileHashDatabase
     A simple "database" to store file content hash <-> relative path mappings.
@@ -54,12 +50,9 @@ class FileHashDatabase:
             return abs_file_path
 
     def __setitem__(self, hash: str, abs_file_path: Path):
+        """
+        Create or update the hash entry with the given absolute file path.
+        """
         hash_path = self._get_hash_path(hash)
         hash_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # File should be found before and results in hardlink creation!
-        # So deny change of existing hashes:
-        if hash_path.exists():
-            raise HashAlreadyExistsError(f'Hash {hash} already exists in the database!')
-
         hash_path.write_text(str(abs_file_path.relative_to(self.backup_root)))

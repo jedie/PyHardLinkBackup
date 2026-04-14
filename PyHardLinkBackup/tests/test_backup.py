@@ -274,6 +274,7 @@ class BackupTreeTestCase(
                 'wb backups/source/2026-01-01-123456/min_sized_file1.bin',
                 'w backups/.phlb/hash-lookup/bb/c4/bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8',
                 'a backups/source/2026-01-01-123456/SHA256SUMS',
+                'w backups/.phlb/hash-lookup/bb/c4/bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8',
                 'a backups/source/2026-01-01-123456/SHA256SUMS',
                 'w backups/source/2026-01-01-123456-summary.txt',
             ],
@@ -320,7 +321,7 @@ class BackupTreeTestCase(
             assert_hash_db_info(
                 backup_root=self.backup_root,
                 expected="""
-                    bb/c4/bbc4de2ca238d1… -> source/2026-01-01-123456/min_sized_file1.bin
+                    bb/c4/bbc4de2ca238d1… -> source/2026-01-01-123456/min_sized_file2.bin
                     e3/71/e3711d0eacddeb… -> source/2026-01-01-123456/large_file1.bin
                 """,
             )
@@ -416,15 +417,15 @@ class BackupTreeTestCase(
             redirected_out.stdout,
         )
 
-        # The FileHashDatabase remains the same:
+        # The FileHashDatabase always points to the latest backed-up files:
         with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
             assert_hash_db_info(
                 backup_root=self.backup_root,
                 expected="""
                     23/d2/23d2ce40d26211… -> source/2026-01-02-123456/min_sized_file_newA.bin
                     9a/56/9a567077114134… -> source/2026-01-02-123456/min_sized_file_newB.bin
-                    bb/c4/bbc4de2ca238d1… -> source/2026-01-01-123456/min_sized_file1.bin
-                    e3/71/e3711d0eacddeb… -> source/2026-01-01-123456/large_file1.bin
+                    bb/c4/bbc4de2ca238d1… -> source/2026-01-02-123456/min_sized_file2.bin
+                    e3/71/e3711d0eacddeb… -> source/2026-01-02-123456/large_file2.bin
                 """,
             )
 
@@ -463,9 +464,13 @@ class BackupTreeTestCase(
                 'a backups/source/2026-01-02-123456/SHA256SUMS',
                 'wb backups/source/2026-01-02-123456/hardlink2file1',
                 'a backups/source/2026-01-02-123456/SHA256SUMS',
+                'w backups/.phlb/hash-lookup/e3/71/e3711d0eacddeb105af4ad9b0d63069d759acf32e49712663419e68dc294a94a',
                 'a backups/source/2026-01-02-123456/SHA256SUMS',
+                'w backups/.phlb/hash-lookup/e3/71/e3711d0eacddeb105af4ad9b0d63069d759acf32e49712663419e68dc294a94a',
                 'a backups/source/2026-01-02-123456/SHA256SUMS',
+                'w backups/.phlb/hash-lookup/bb/c4/bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8',
                 'a backups/source/2026-01-02-123456/SHA256SUMS',
+                'w backups/.phlb/hash-lookup/bb/c4/bbc4de2ca238d1ec41fb622b75b5cf7d31a6d2ac92405043dd8f8220364fefc8',
                 'a backups/source/2026-01-02-123456/SHA256SUMS',
                 'wb backups/source/2026-01-02-123456/min_sized_file_newA.bin',
                 'w backups/.phlb/hash-lookup/23/d2/23d2ce40d26211a9ffe8096fd1f927f2abd094691839d24f88440f7c5168d500',
@@ -499,8 +504,8 @@ class BackupTreeTestCase(
         # Don't create broken hardlinks!
 
         """DocWrite: README.md ## FileHashDatabase - Missing hardlink target file
-        If a hardlink source from a old backup is missing, we cannot create a hardlink to it.
-        But it still works to hardlink same files within the current backup.
+        Deleting files from old backups is safe: the hash DB entry always points to the
+        most recently backed-up file, so subsequent backups can still create hardlinks.
         """
 
         # Let's remove one of the files used for hardlinking from the first backup:
@@ -515,8 +520,8 @@ class BackupTreeTestCase(
         self.assertIn('Backup complete', redirected_out.stdout)
         backup_dir = result.backup_dir
 
-        # Note: min_sized_file1.bin and min_sized_file2.bin are hardlinked,
-        # but not with the first backup anymore! So it's only nlink=2 now!
+        # Note: min_sized_file1.bin and min_sized_file2.bin accumulate hardlinks
+        # because hash_db always points to the latest backup file.
         with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
             assert_fs_tree_overview(
                 root=backup_dir,
@@ -527,8 +532,8 @@ class BackupTreeTestCase(
                     hardlink2file1           12:00:00     file            1      14  8a11514a
                     large_file1.bin          12:00:00     hardlink        5    1001  fb3014ff
                     large_file2.bin          12:00:00     hardlink        5    1001  fb3014ff
-                    min_sized_file1.bin      12:00:00     hardlink        2    1000  f0d93de4
-                    min_sized_file2.bin      12:00:00     hardlink        2    1000  f0d93de4
+                    min_sized_file1.bin      12:00:00     hardlink        5    1000  f0d93de4
+                    min_sized_file2.bin      12:00:00     hardlink        5    1000  f0d93de4
                     min_sized_file_newA.bin  12:00:00     hardlink        2    1001  a48f0e33
                     min_sized_file_newB.bin  12:00:00     hardlink        2    1000  7d9c564d
                     small_file_newA.txt      12:00:00     file            1      10  76d1acf1
@@ -547,26 +552,26 @@ class BackupTreeTestCase(
                 backup_count=12,
                 backup_size=6091,
                 symlink_files=1,
-                hardlinked_files=5,
-                hardlinked_size=5003,
-                copied_files=6,
-                copied_size=1074,
+                hardlinked_files=6,
+                hardlinked_size=6003,
+                copied_files=5,
+                copied_size=74,
                 copied_small_files=5,
                 copied_small_size=74,
                 error_count=0,
             ),
         )
 
-        # Note: min_sized_file1.bin is now from the 2026-01-03 backup!
+        # All files points now to "2026-01-03" and non of them to the first "2026-01-01" backup:
         self.assertEqual(backup_dir.name, '2026-01-03-123456')  # Latest backup dir name
         with self.assertLogs('PyHardLinkBackup', level=logging.DEBUG):
             assert_hash_db_info(
                 backup_root=self.backup_root,
                 expected="""
-                    23/d2/23d2ce40d26211… -> source/2026-01-02-123456/min_sized_file_newA.bin
-                    9a/56/9a567077114134… -> source/2026-01-02-123456/min_sized_file_newB.bin
-                    bb/c4/bbc4de2ca238d1… -> source/2026-01-03-123456/min_sized_file1.bin
-                    e3/71/e3711d0eacddeb… -> source/2026-01-01-123456/large_file1.bin
+                    23/d2/23d2ce40d26211… -> source/2026-01-03-123456/min_sized_file_newA.bin
+                    9a/56/9a567077114134… -> source/2026-01-03-123456/min_sized_file_newB.bin
+                    bb/c4/bbc4de2ca238d1… -> source/2026-01-03-123456/min_sized_file2.bin
+                    e3/71/e3711d0eacddeb… -> source/2026-01-03-123456/large_file2.bin
                 """,
             )
 
@@ -916,6 +921,7 @@ class BackupTreeTestCase(
             [
                 'w backups/.phlb_test',
                 'a backups/source/2026-02-22-123456-backup.log',
+                'w backups/.phlb/hash-lookup/23/d2/23d2ce40d26211a9ffe8096fd1f927f2abd094691839d24f88440f7c5168d500',
                 'a backups/source/2026-02-22-123456/SHA256SUMS',
                 'wb backups/source/2026-02-22-123456/large_fileB.txt',
                 'w backups/.phlb/hash-lookup/2a/92/2a925556d3ec9e4258624a324cd9300a9a3d9c86dac6bbbb63071bdb7787afd2',

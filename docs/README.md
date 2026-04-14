@@ -36,13 +36,18 @@ Notes:
   * The "relative path" that will be stored is not validated, so it can be any string.
   * We don't "cache" anything in Memory, to avoid high memory consumption for large datasets.
 
+The entry for each hash is always updated to point to the most recently backed-up file.
+This means you can safely delete old backups: the hash DB will still point to a valid
+file in the most recent backup, so deduplication continues to work correctly.
+
 ## FileHashDatabase - Missing hardlink target file
 
-If a hardlink source from a old backup is missing, we cannot create a hardlink to it.
-But it still works to hardlink same files within the current backup.
+Deleting files from old backups is safe: the hash DB entry always points to the
+most recently backed-up file, so subsequent backups can still create hardlinks.
 
-We check if the hardlink source file still exists. If not, we remove the hash entry from the database.
-A warning is logged in this case.
+The `get()` method checks whether the referenced file still exists.
+If not, the stale entry is removed and a warning is logged.
+On the next backup run, the file is then copied fresh instead of hardlinked.
 
 ## FileSizeDatabase
 

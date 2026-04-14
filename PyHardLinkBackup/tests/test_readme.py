@@ -47,9 +47,6 @@ class ReadmeTestCase(BaseTestCase):
             ),
         )
 
-        # Installed via pipx is called 'phlb', not 'cli.py':
-        stdout = stdout.replace('./cli.py', 'phlb')
-
         assert_cli_help_in_readme(text_block=stdout, marker='main help')
 
     def test_backup_help(self):
@@ -62,9 +59,6 @@ class ReadmeTestCase(BaseTestCase):
                 'Backup the source directory to the destination',
             ),
         )
-
-        # Installed via pipx is called 'phlb', not 'cli.py':
-        stdout = stdout.replace('./cli.py', 'phlb')
 
         assert_cli_help_in_readme(text_block=stdout, marker='backup help')
 
