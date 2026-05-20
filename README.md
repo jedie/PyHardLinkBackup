@@ -282,6 +282,8 @@ Overview of main changes:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/PyHardLinkBackup/compare/v1.9.1...main)
+  * 2026-05-20 - Update requirements
 * [v1.9.1](https://github.com/jedie/PyHardLinkBackup/compare/v1.9.0...v1.9.1)
   * 2026-04-14 - fix pipx installation and set requires-python to ">=3.13"
 * [v1.9.0](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.4...v1.9.0)
@@ -291,12 +293,12 @@ Overview of main changes:
   * 2026-04-09 - Update requirements
   * 2026-04-09 - Apply project updates
   * 2026-04-08 - Bump cryptography from 46.0.6 to 46.0.7
-* [v1.8.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.2...v1.8.3)
-  * 2026-04-01 - Update requirements
-  * 2026-03-30 - Bump pygments from 2.19.2 to 2.20.0
 
 <details><summary>Expand older history entries ...</summary>
 
+* [v1.8.3](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.2...v1.8.3)
+  * 2026-04-01 - Update requirements
+  * 2026-03-30 - Bump pygments from 2.19.2 to 2.20.0
 * [v1.8.2](https://github.com/jedie/PyHardLinkBackup/compare/v1.8.1...v1.8.2)
   * 2026-03-28 - Update tests
   * 2026-03-28 - fix code style
